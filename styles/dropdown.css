@@ -31,6 +31,49 @@ nav{
     font-weight: semibold;
    
 }
+
+@media (max-width: 900px) {
+    #options {
+        width: 100%;
+    }
+
+    #options > ul {
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 6px 12px;
+        font-size: clamp(0.7rem, 1.5vw, 0.9rem);
+    }
+
+    #options > ul > li {
+        min-width: 0;
+    }
+}
+
+@media (max-width: 600px) {
+    #options > ul {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 4px;
+        padding: 8px;
+    }
+
+    #options > ul > li {
+        display: block;
+        min-width: 0;
+        text-align: center;
+    }
+
+    #options > ul > li > a {
+        display: block;
+        padding: 8px 4px;
+        overflow-wrap: anywhere;
+    }
+
+    #options > ul > li > ul {
+        z-index: 5;
+        max-width: calc(100vw - 24px);
+    }
+}
 /* icons */
 #icons {
     /* border: 1px solid red; */

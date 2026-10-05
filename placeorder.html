@@ -1,10 +1,10 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="vi">
 <head>
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Order Confirmation</title>
+    <title>Xác nhận đơn hàng</title>
 </head>
 <link rel="stylesheet" href="./styles/dropdown.css">
 <link rel="stylesheet" href="./index.css">
@@ -95,8 +95,8 @@
           />
         </div>
         <div id="nav-center">
-          <input type="text" placeholder="Enter Keyword or Product Number" />
-          <button>SEARCH</button>
+          <input type="text" placeholder="Nhập tên hoa hoặc mã sản phẩm" />
+          <button>TÌM KIẾM</button>
         </div>
         <div id="nav-right">
           <!-- <i class="fa-regular fa-user"></i>
@@ -108,7 +108,7 @@
                 alt=""
               />
             </i>
-            <h5>Sign In</h5>
+            <h5>Đăng nhập</h5>
           </div>
           <div>
             <a href="./cart.html"
@@ -116,7 +116,7 @@
                 src="https://images.contentstack.io/v3/assets/bltdd99f24e8a94d536/bltd7f3af8e242d37c1/5e1782936430b50f03d6ccc3/Header-Icon-PWA-truck.svg?height=25&width=44"
                 alt=""
             />
-            <h5>My Orders</h5></a>
+            <h5>Đơn hàng</h5></a>
           </div>
           <div>
             <i
@@ -124,7 +124,7 @@
                 src="https://images.contentstack.io/v3/assets/bltdd99f24e8a94d536/blt7888ec93d3d5c1ec/5e17829300c38f0f022d3646/Header-Icon-PWA-bag.svg?height=25&width=44"
                 alt=""
             /></i>
-            <h5><span>(0)</span>Cart</h5>
+            <h5><span>(0)</span> Giỏ hàng</h5>
           </div>
         </div>
       </div>
@@ -133,16 +133,16 @@
         <div id="options">
         
           <ul>
-            <li id="birthday"><a href="./product.html">BIRTHDAY</a></li>
-            <li id="sympathy"><a href="./product.html">SYMPATHY</a></li>
-            <li id="occasion"><a href="./product.html">OCCASIONS</a></li>
-            <li id="flowers"><a href="./product.html">FLOWERS</a></li>
-            <li id="plants"><a href="./product.html">PLANTS</a></li>
-            <li id="food"><a href="./product.html">GIFT BASKETS & FOOD</a></li>
-            <li id="gift"><a href="./product.html">GIFTS & MORE</a></li>
-            <li id="delivery"><a href="./product.html">SAME-DAY DELIVERY</a></li>
-            <li id="sale"><a href="./product.html">SALE</a></li>
-            <li id="community"><a href="./product.html">COMMUNITY</a></li>
+            <li id="birthday"><a href="./product.html">SINH NHẬT</a></li>
+            <li id="sympathy"><a href="./product.html">CHIA BUỒN</a></li>
+            <li id="occasion"><a href="./product.html">DỊP ĐẶC BIỆT</a></li>
+            <li id="flowers"><a href="./product.html">HOA TƯƠI</a></li>
+            <li id="plants"><a href="./product.html">CÂY CẢNH</a></li>
+            <li id="food"><a href="./product.html">GIỎ QUÀ & THỰC PHẨM</a></li>
+            <li id="gift"><a href="./product.html">QUÀ TẶNG & HƠN THẾ NỮA</a></li>
+            <li id="delivery"><a href="./product.html">GIAO HOA TRONG NGÀY</a></li>
+            <li id="sale"><a href="./product.html">ƯU ĐÃI</a></li>
+            <li id="community"><a href="./product.html">CỘNG ĐỒNG</a></li>
           </ul>
      
         </div>
@@ -154,7 +154,7 @@
       </div>
 
       <div class="placeorder">
-        <button>Place Order</button>
+        <button>Đặt hàng</button>
       </div>
 
     </div>
@@ -162,6 +162,8 @@
 
   </body>
 
+  <script src="./product-names.js"></script>
+  <script src="./currency.js"></script>
   <script>
     // Write all necessery JS here
     let CartContainer = document.getElementById("product-container");

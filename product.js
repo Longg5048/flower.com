@@ -8,6 +8,8 @@ let Cart = JSON.parse(localStorage.getItem("cart")) || [];
 
 let Total = document.getElementById("cartTotal")
 Total.innerText = cart.length
+let WishTotal = document.getElementById("wishTotal")
+WishTotal.innerText = wish.length
 
 console.log(cart.length)
 let container = document.getElementById("container")
@@ -35,10 +37,10 @@ function display(data) {
 
         // Assigning Data
         img.src = el.image
-        title.innerText = el.title
-        price.innerText = `₹ ${el.price}`
-        btn.innerText = "Add to Cart"
-        btn2.innerText = "Add to Wish"
+        title.innerText = getVietnameseProductName(el.title)
+        price.innerText = formatVnd(el.price)
+        btn.innerText = "Thêm vào giỏ hàng"
+        btn2.innerText = "Thêm vào yêu thích"
 
         // Clssess
         box.className = "box";
@@ -51,7 +53,7 @@ function display(data) {
             Swal.fire({
               position: 'center',
               icon: 'error',
-              title: 'Already in Cart',
+              title: 'Sản phẩm đã có trong giỏ hàng',
               showConfirmButton: false,
               timer: 1500
             })
@@ -62,7 +64,7 @@ function display(data) {
             Swal.fire({
               position: 'center',
               icon: 'success',
-              title: 'Added to Cart',
+              title: 'Đã thêm vào giỏ hàng',
               showConfirmButton: false,
               timer: 1500
             })
@@ -74,17 +76,18 @@ function display(data) {
                   Swal.fire({
                     position: 'center',
                     icon: 'error',
-                    title: 'Already in wishlist',
+                    title: 'Sản phẩm đã có trong danh sách yêu thích',
                     showConfirmButton: false,
                     timer: 1500
                   })
               }else{
                   wish.push(el)
                   localStorage.setItem("wish", JSON.stringify(wish))
+                  WishTotal.innerText = wish.length
                   Swal.fire({
                     position: 'center',
                     icon: 'success',
-                    title: 'Added to wishlist',
+                    title: 'Đã thêm vào danh sách yêu thích',
                     showConfirmButton: false,
                     timer: 1500
                   })
@@ -119,8 +122,8 @@ function fetchandrender(Data) {
       })
     } else if (ans == "str-i") {
       Data.sort((a, b) => {
-        const nameA = a.title.toUpperCase();
-        const nameB = b.title.toUpperCase();
+        const nameA = getVietnameseProductName(a.title).toUpperCase();
+        const nameB = getVietnameseProductName(b.title).toUpperCase();
         if (nameA < nameB) {
           return -1;
         } return 0;
@@ -128,8 +131,8 @@ function fetchandrender(Data) {
     }
     else if (ans == "str-d") {
       Data.sort((a, b) => {
-        const nameA = a.title.toUpperCase();
-        const nameB = b.title.toUpperCase();
+        const nameA = getVietnameseProductName(a.title).toUpperCase();
+        const nameB = getVietnameseProductName(b.title).toUpperCase();
         if (nameA > nameB) {
           return -1;
         } return 0;
@@ -180,7 +183,7 @@ async function FetchData() {
         console.log("vi")
       }else{
         let filterdata=link.flower.filter((el)=>{
-               if(el.title.toUpperCase().includes(searchv.value.toUpperCase())==true ){
+               if(getVietnameseProductName(el.title).toUpperCase().includes(searchv.value.toUpperCase()) || el.title.toUpperCase().includes(searchv.value.toUpperCase())){
                   return true
                   }else{
                     return false
@@ -212,13 +215,13 @@ FetchData()
 
 
 
-let user = document.querySelector(".signin");
-user.onclick = () => {
-  location.href = "./login.html";
+let wishlistLink = document.querySelector(".wishlist");
+wishlistLink.onclick = () => {
+  location.href = "./wish.html";
 };
 let order = document.querySelector(".orders");
 order.onclick = () => {
-  location.href = "./wish.html";
+  location.href = "./cart.html";
 };
 
 

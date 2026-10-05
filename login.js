@@ -2,7 +2,6 @@ const signUpButton = document.getElementById('signup');
 const signInButton = document.getElementById('signin');
 const container = document.getElementById('container');
 const display = document.getElementById("display");
-const adminLoginLink = document.getElementById("adminLoginLink");
 const adminCredentials = {
     email: "admin@flower.com",
     password: "admin123"
@@ -17,16 +16,6 @@ if (signUpButton) {
 if (signInButton) {
     signInButton.addEventListener('click', () => {
         container.classList.remove("right-panel-active");
-    });
-}
-
-if (adminLoginLink) {
-    adminLoginLink.addEventListener("click", (event) => {
-        event.preventDefault();
-        container.classList.remove("right-panel-active");
-        document.getElementById("email1").value = adminCredentials.email;
-        document.getElementById("password1").value = adminCredentials.password;
-        display.innerHTML = "Tài khoản admin đã sẵn sàng";
     });
 }
 

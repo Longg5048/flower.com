@@ -1,90 +1,110 @@
 const signUpButton = document.getElementById('signup');
 const signInButton = document.getElementById('signin');
 const container = document.getElementById('container');
-const display = document.getElementById("display")
-signUpButton.addEventListener('click', () => {
-    container.classList.add("right-panel-active");
-});
+const display = document.getElementById("display");
+const adminLoginLink = document.getElementById("adminLoginLink");
+const adminCredentials = {
+    email: "admin@flower.com",
+    password: "admin123"
+};
 
-signInButton.addEventListener('click', () => {
-    container.classList.remove("right-panel-active");
-});
-// ..................................................Sign In and Sign Up.......................................................
+if (signUpButton) {
+    signUpButton.addEventListener('click', () => {
+        container.classList.add("right-panel-active");
+    });
+}
+
+if (signInButton) {
+    signInButton.addEventListener('click', () => {
+        container.classList.remove("right-panel-active");
+    });
+}
+
+if (adminLoginLink) {
+    adminLoginLink.addEventListener("click", (event) => {
+        event.preventDefault();
+        container.classList.remove("right-panel-active");
+        document.getElementById("email1").value = adminCredentials.email;
+        document.getElementById("password1").value = adminCredentials.password;
+        display.innerHTML = "Tài khoản admin đã sẵn sàng";
+    });
+}
+
 let signIn = document.querySelector("#signIn");
 let signUp = document.querySelector("#signUp");
-let pass = document.getElementById("checkpassword")
-let pass1 = document.getElementById("password")
 let users = JSON.parse(localStorage.getItem("usersData")) || [];
 
 signUp.addEventListener("submit", function (event) {
-
     event.preventDefault();
+
+    const submittedEmail = document.getElementById("email").value.trim().toLowerCase();
+    const password = document.getElementById("password").value;
+    const confirmPassword = document.getElementById("checkpassword").value;
+
+    if (password !== confirmPassword) {
+        alert("Mật khẩu xác nhận không khớp!");
+        return;
+    }
 
     let count = 0;
     users.forEach(function (el) {
-        if (el.email === signUp.email.value) {
+        if ((el.email || "").toLowerCase() === submittedEmail) {
             count++;
         }
     });
 
     if (count > 0) {
-        alert("user already registered!");
-    }
-    else {
-
+        alert("Tài khoản này đã tồn tại!");
+    } else {
         let user = {
-            name: signUp.name.value,
-            email: signUp.email.value,
-            password: signUp.password.value,
+            name: document.getElementById("name").value,
+            email: submittedEmail,
+            password: password,
+            phone: document.getElementById("phone").value,
         };
 
         users.push(user);
-
-
-
-
         localStorage.setItem("usersData", JSON.stringify(users));
-        alert("Sign Up successful!");
-
-
-
-
+        alert("Đăng ký tài khoản thành công!");
         signUp.reset();
-
     }
 });
 
 signIn.addEventListener("submit", function (event) {
     event.preventDefault();
+
+    const enteredEmail = document.getElementById("email1").value.trim().toLowerCase();
+    const enteredPassword = document.getElementById("password1").value;
+
+    if (enteredEmail === adminCredentials.email && enteredPassword === adminCredentials.password) {
+        localStorage.setItem("loggedUser", JSON.stringify({
+            name: "Admin",
+            email: adminCredentials.email,
+            password: adminCredentials.password,
+            role: "admin"
+        }));
+        localStorage.setItem("loggedAdmin", "true");
+        display.innerHTML = "Đăng nhập quản trị thành công";
+        window.location.assign("./admin.html");
+        return;
+    }
+
     let count = 0;
-    // we are creating a temp var to store user who is trying to login
     let temp;
-    // we are checking whether the user is registered or not
     users.forEach(function (el) {
-        if (el.email === signIn.email1.value) {
+        if ((el.email || "").toLowerCase() === enteredEmail) {
             count++;
-            // when count is incremented or we found user, we are storing the user data;
             temp = el;
-            // we are storing the user in our local storage so that we can access user data from different pages
             localStorage.setItem('loggedUser', JSON.stringify(el));
         }
     });
-    // if we didn't find any user we alert
-    if (count == 0) {
-        // alert("user not registered!");
-        display.innerHTML = "User Not Registered"
-    }
-    // if we find user we check the password
-    else {
-        // we check the temp password with form password
-        if (temp.password != signIn.password1.value) {
-            display.innerHTML = "Wrong Credentials"
-        } else {
-            display.innerHTML = "Login Successfull"
-            // alert("login successful!");
-            // we can use n number of methods to change the page. here we are using assign() method
-            // window.location.assign('url')
-            window.location.assign("./product.html");
-        }
+
+    if (count === 0) {
+        display.innerHTML = "Tài khoản chưa đăng ký";
+    } else if (temp.password !== enteredPassword) {
+        display.innerHTML = "Sai thông tin đăng nhập";
+    } else {
+        display.innerHTML = "Đăng nhập thành công";
+        window.location.assign("./product.html");
     }
 });

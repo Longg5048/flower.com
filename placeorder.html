@@ -164,18 +164,85 @@
 
   <script>
     // Write all necessery JS here
-
-    let placeorder= document.querySelector(".placeorder>button")
-    placeorder.addEventListener("click",()=>{
-        alert("Order Placed")
-        localStorage.clear()
-        location.reload()
-      })
-
-  
     let CartContainer = document.getElementById("product-container");
-  
     let Cart = JSON.parse(localStorage.getItem("cart")) || [];
+
+    function saveOrderToAdmin() {
+      if (!Cart.length) {
+        alert("Giỏ hàng đang trống.");
+        return;
+      }
+
+      const loggedUser = JSON.parse(localStorage.getItem("loggedUser") || "null");
+      const customerName = loggedUser?.name || "Khách hàng mới";
+      const phone = prompt("Nhập số điện thoại để tư vấn và giao hàng:", loggedUser?.phone || "");
+      const address = prompt("Nhập địa chỉ nhận hàng:", "");
+
+      if (!phone || !address) {
+        alert("Vui lòng nhập đủ số điện thoại và địa chỉ.");
+        return;
+      }
+
+      const orderId = Date.now();
+      const total = Cart.reduce((sum, item) => sum + Number(item.price) * Number(item.quantity || 1), 0);
+      const order = {
+        id: orderId,
+        customerName,
+        phone,
+        address,
+        email: loggedUser?.email || "",
+        createdAt: new Date().toISOString(),
+        status: "Đặt hàng",
+        total,
+        items: Cart.map((item) => ({
+          id: item.id,
+          title: item.title,
+          quantity: Number(item.quantity || 1),
+          price: Number(item.price || 0)
+        }))
+      };
+
+      const orders = JSON.parse(localStorage.getItem("flowerOrders") || "[]");
+      orders.push(order);
+      localStorage.setItem("flowerOrders", JSON.stringify(orders));
+
+      const customerMessage = prompt("Bạn muốn tư vấn thêm về mẫu hoa hoặc thiết kế? (bỏ trống nếu không cần):", "");
+      if (customerMessage && customerMessage.trim()) {
+        const messages = JSON.parse(localStorage.getItem("flowerMessages") || "[]");
+        messages.push({
+          id: Date.now() + 1,
+          customerName,
+          phone,
+          subject: "Tư vấn thiết kế hoa",
+          message: customerMessage,
+          createdAt: new Date().toISOString(),
+          reply: ""
+        });
+        localStorage.setItem("flowerMessages", JSON.stringify(messages));
+      }
+
+      const reviews = JSON.parse(localStorage.getItem("flowerReviews") || "[]");
+      Cart.forEach((item) => {
+        reviews.push({
+          id: Date.now() + Math.random(),
+          customerName,
+          phone,
+          productName: item.title,
+          rating: 5,
+          comment: "Khách hàng đã đặt hàng và chờ được xử lý.",
+          createdAt: new Date().toISOString(),
+          reply: ""
+        });
+      });
+      localStorage.setItem("flowerReviews", JSON.stringify(reviews));
+
+      localStorage.removeItem("cart");
+      alert("Đặt hàng thành công! Đơn hàng đã được gửi tới admin.");
+      window.location.href = "./product.html";
+    }
+
+    let placeorder = document.querySelector(".placeorder>button");
+    placeorder.addEventListener("click", saveOrderToAdmin);
   
     function DisplayProduct() {
       let originalprice = document.getElementById("originalprice");
@@ -186,31 +253,19 @@
   
       CartContainer.innerHTML = "";
 
-      
-  
       Cart.forEach((product) => {
         let image = document.createElement("img");
         let details = document.createElement("p");
         let price = document.createElement("h3");
-        let Remove = document.createElement("button");
-        let Increase = document.createElement("button");
-        let Decrease = document.createElement("button");
         let card = document.createElement("div");
         let quantity = document.createElement("span");
   
         image.src = product.image;
         details.textContent = product.title;
-        price.textContent =  ("Price "+(product.price * product.quantity) +" For "+ product.quantity +" pice");
-        Remove.textContent = "Remove";
+        price.textContent = "Price " + (product.price * product.quantity) + " For " + product.quantity + " pice";
         quantity.textContent = product.quantity + " pic";
 
-        
-        card.append(
-          image,
-          details,
-          quantity,
-          price,
-        );
+        card.append(image, details, quantity, price);
         CartContainer.append(card);
       });
   
@@ -219,21 +274,13 @@
         sum += Cart[i].price * Cart[i].quantity;
       }
 
-      originalprice.textContent = Math.floor(sum);
-      savings.textContent = Math.floor(sum * 0.05);
-      delivery.textContent = sum;
-      tax.textContent = Math.floor(sum * 0.1);
-
-      total.textContent = eval(Math.floor(sum - sum * 0.05 + sum * 0.1));
-
-      location.reload()
+      if (originalprice) originalprice.textContent = Math.floor(sum);
+      if (savings) savings.textContent = Math.floor(sum * 0.05);
+      if (delivery) delivery.textContent = sum;
+      if (tax) tax.textContent = Math.floor(sum * 0.1);
+      if (total) total.textContent = Math.floor(sum - sum * 0.05 + sum * 0.1);
     }
 
-    
-  
     DisplayProduct();
-    
-  
-    // Write all necessery JS here
   </script>
 </html>

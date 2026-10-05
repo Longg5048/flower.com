@@ -100,6 +100,9 @@
    height:45%;
    /* margin-top: 5%; */
 } 
+#nav-right .signin {
+   cursor: pointer;
+}
  button{
     padding: 10px;
     padding-left: 20px;
@@ -242,5 +245,4 @@
       padding: 1.25rem;
    }
 }
-
 

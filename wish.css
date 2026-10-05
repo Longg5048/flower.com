@@ -79,3 +79,79 @@ h1{
     text-align: center;
 }
 
+main {
+    display: block;
+    width: 100%;
+    margin: 0;
+    padding: 16px;
+}
+
+#container {
+    width: 100%;
+    min-width: 0;
+    margin: 0;
+    padding: 20px 0;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+#container > div {
+    width: 100%;
+    min-width: 0;
+}
+
+#container h2,
+#container h3,
+main > h1 {
+    min-width: 0;
+    overflow-wrap: anywhere;
+}
+
+#container img {
+    display: block;
+    width: min(100%, 200px);
+    height: 150px;
+    object-fit: contain;
+    margin: 0 auto;
+}
+
+#container #wish {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 8px;
+    min-width: 0;
+}
+
+#container #wish button {
+    width: auto;
+    max-width: 100%;
+    min-height: 40px;
+    height: auto;
+    margin: 0 0 16px;
+    padding: 8px 12px;
+    white-space: normal;
+}
+
+@media (max-width: 1000px) {
+    #container {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+}
+
+@media (max-width: 600px) {
+    main {
+        padding: 12px;
+    }
+
+    #container {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 16px 8px;
+    }
+}
+
+@media (max-width: 420px) {
+    #container {
+        grid-template-columns: minmax(0, 1fr);
+    }
+}
+

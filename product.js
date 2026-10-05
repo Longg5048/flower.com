@@ -8,6 +8,8 @@ let Cart = JSON.parse(localStorage.getItem("cart")) || [];
 
 let Total = document.getElementById("cartTotal")
 Total.innerText = cart.length
+let WishTotal = document.getElementById("wishTotal")
+WishTotal.innerText = wish.length
 
 console.log(cart.length)
 let container = document.getElementById("container")
@@ -38,7 +40,7 @@ function display(data) {
         title.innerText = el.title
         price.innerText = `₹ ${el.price}`
         btn.innerText = "Add to Cart"
-        btn2.innerText = "Add to Wish"
+        btn2.innerText = "Add to Wishlist"
 
         // Clssess
         box.className = "box";
@@ -81,6 +83,7 @@ function display(data) {
               }else{
                   wish.push(el)
                   localStorage.setItem("wish", JSON.stringify(wish))
+                  WishTotal.innerText = wish.length
                   Swal.fire({
                     position: 'center',
                     icon: 'success',
@@ -212,13 +215,13 @@ FetchData()
 
 
 
-let user = document.querySelector(".signin");
-user.onclick = () => {
-  location.href = "./login.html";
+let wishlistLink = document.querySelector(".wishlist");
+wishlistLink.onclick = () => {
+  location.href = "./wish.html";
 };
 let order = document.querySelector(".orders");
 order.onclick = () => {
-  location.href = "./wish.html";
+  location.href = "./cart.html";
 };
 
 

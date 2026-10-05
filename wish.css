@@ -13,6 +13,15 @@
     grid-template-columns: repeat(4,1fr);
     row-gap: 30px;
 }
+.empty-wishlist{
+    grid-column: 1 / -1;
+    padding: 48px 20px;
+    text-align: center;
+    font-size: 18px;
+}
+.empty-wishlist a{
+    color: rgb(170, 53, 21);
+}
 #container>div{
     box-shadow: rgba(0, 0, 0, 0.1) 0px 4px 12px;
     padding-top: 20px;

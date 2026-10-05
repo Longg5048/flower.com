@@ -10,10 +10,17 @@ let Cart = JSON.parse(localStorage.getItem("cart")) || [];
 // Fetching the data
 
 let container=document.getElementById("container")
+let wishTotal=document.getElementById("wishTotal")
 
 display(wish)
 function display(wish){
+  wishTotal.innerText=wish.length
     container.innerHTML=""
+
+  if(wish.length===0){
+    container.innerHTML='<p class="empty-wishlist">Your wishlist is empty. <a href="./product.html">Browse flowers</a></p>'
+    return
+  }
    
     wish.forEach((el,ind) => {
 
@@ -64,6 +71,7 @@ function display(wish){
               localStorage.setItem("cart",JSON.stringify(cart))
               wish.splice(ind,1)
               localStorage.setItem("wish",JSON.stringify(wish))
+              wishTotal.innerText=wish.length
               display(wish)
               
           } 
@@ -78,6 +86,7 @@ function display(wish){
             })
            wish.splice(ind,1)
             localStorage.setItem("wish",JSON.stringify(wish))
+            wishTotal.innerText=wish.length
             display(wish)
     })
 

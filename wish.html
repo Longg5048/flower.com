@@ -1,10 +1,10 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="vi">
 <head>
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Your Wishlist</title>
+    <title>Danh sách yêu thích</title>
     <link rel="stylesheet" href="./wish.css">
     <link rel="stylesheet" href="headder.css">
 </head>
@@ -92,8 +92,8 @@
             /></a>
           </div>
           <div id="nav-center">
-            <input type="text" placeholder="Enter Keyword or Product Number" />
-            <button style="margin-top: 9px;">SEARCH</button>
+            <input type="text" placeholder="Nhập tên hoa hoặc mã sản phẩm" />
+            <button style="margin-top: 9px;">TÌM KIẾM</button>
           </div>
           <div id="nav-right">
             <!-- <i class="fa-regular fa-user"></i>
@@ -105,7 +105,7 @@
                   alt=""
                 />
               </i>
-              <h5>Sign In</h5>
+              <h5>Đăng nhập</h5>
             </div>
             <div class="orders">
               <i
@@ -113,7 +113,7 @@
                   src="https://images.contentstack.io/v3/assets/bltdd99f24e8a94d536/bltd7f3af8e242d37c1/5e1782936430b50f03d6ccc3/Header-Icon-PWA-truck.svg?height=25&width=44"
                   alt=""
               /></i>
-              <h5>My Orders</h5>
+              <h5>Đơn hàng</h5>
             </div>
             <div class="bag">
               <i
@@ -121,13 +121,13 @@
                   src="https://images.contentstack.io/v3/assets/bltdd99f24e8a94d536/blt7888ec93d3d5c1ec/5e17829300c38f0f022d3646/Header-Icon-PWA-bag.svg?height=25&width=44"
                   alt=""
               /></i>
-              <h5><span id="cartTotal">(0)</span>Cart</h5>
+              <h5><span id="cartTotal">(0)</span> Giỏ hàng</h5>
             </div>
           </div>
         </div>
   
      <main>
-       <h1>Your Wishlist (<span id="wishTotal">0</span>)</h1>
+      <h1>Danh sách yêu thích (<span id="wishTotal">0</span>)</h1>
        <div id="container">
         </div> 
 </main> 
@@ -135,5 +135,7 @@
 </body>
 
 </html>
+<script src="./product-names.js"></script>
+<script src="./currency.js"></script>
 <script src="./wish.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>

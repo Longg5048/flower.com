@@ -1,11 +1,11 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="vi">
 
 <head>
   <meta charset="UTF-8">
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Document</title>
+  <title>Cửa hàng hoa</title>
   <link rel="stylesheet" href="./product.css">
   <link rel="stylesheet" href="headder.css" />
 </head>
@@ -96,8 +96,8 @@
         /></a>
       </div>
       <div id="nav-center">
-        <input type="text" placeholder="Enter Keyword or Product Number" id="search" />
-        <button style="margin-top: 9px;" id="sbtn">SEARCH</button>
+        <input type="text" placeholder="Nhập tên hoa hoặc mã sản phẩm" id="search" />
+        <button style="margin-top: 9px;" id="sbtn">TÌM KIẾM</button>
       </div>
       <div id="nav-right">
         <!-- <i class="fa-regular fa-user"></i>
@@ -113,7 +113,7 @@
             />
             </a>
           </i>
-          <h5>WishList (<span id="wishTotal">0</span>)</h5>
+          <h5>Yêu thích (<span id="wishTotal">0</span>)</h5>
         </div>
         <div class="orders">
           <i
@@ -123,7 +123,7 @@
               alt=""
           />
             </a></i>
-          <h5>My Orders</h5>
+          <h5>Đơn hàng</h5>
         </div>
         <div class="bag">
           <!-- <a href="./cart.html"> -->
@@ -131,7 +131,7 @@
               src="https://images.contentstack.io/v3/assets/bltdd99f24e8a94d536/blt7888ec93d3d5c1ec/5e17829300c38f0f022d3646/Header-Icon-PWA-bag.svg?height=25&width=44"
               alt=""
           />
-          <h5><span id="cartTotal">(0)</span>Cart</h5>
+          <h5><span id="cartTotal">(0)</span> Giỏ hàng</h5>
         <!-- </a> -->
         </div>
       </div>
@@ -146,27 +146,27 @@
 
     <div id="sidebar">
       <div id="plz-sort" class="sortfilter">
-        <label for="sort" class="select">Sort By: </label>
+        <label for="sort" class="select">Sắp xếp theo: </label>
         <select name="sort" class="select arrange">
-          <option value="">select</option>
-          <option value="dsc-p">Price: High To Low</option>
-          <option value="asc-p">Price: Low To High</option>
-          <option value="str-i">A - Z</option>
-          <option value="str-d">Z - A</option>
+          <option value="">Chọn</option>
+          <option value="dsc-p">Giá: cao đến thấp</option>
+          <option value="asc-p">Giá: thấp đến cao</option>
+          <option value="str-i">Tên: A đến Z</option>
+          <option value="str-d">Tên: Z đến A</option>
         </select>
       </div>
 
 
 
       <div id="filtering" class="sortfilter">
-        <label for="filter" class="select">Filter By:</label>
+        <label for="filter" class="select">Lọc theo:</label>
         <select name="filter" id="filter"  class="select">
-          <option value="">select</option>
-          <option value="price">Filter By Price</option>
+          <option value="">Chọn</option>
+          <option value="price">Lọc theo giá</option>
           <!-- <option value="asc-p">Price: Low To High</option> -->
-          <option value="Basket Of Wishes">Wish Basket</option>
-          <option value="Vibrant Spring Basket">Vibrant Spring </option>
-          <option value="Lovely Lavender Bouquet">Lavender Bouquett</option>
+          <option value="Basket Of Wishes">Giỏ hoa điều ước</option>
+          <option value="Vibrant Spring Basket">Giỏ hoa sắc xuân</option>
+          <option value="Lovely Lavender Bouquet">Bó hoa oải hương</option>
           
 
         </select>
@@ -187,5 +187,7 @@
 </body>
 
 </html>
+<script src="./product-names.js"></script>
+<script src="./currency.js"></script>
 <script src="./product.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>

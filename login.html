@@ -1,12 +1,12 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="vi">
 
 <head>
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="./login.css">
-    <title>Login Page</title>
+    <title>Đăng nhập hoặc tạo tài khoản</title>
     
 </head>
 
@@ -16,43 +16,43 @@
         <div class="container" id="container">
             <div class="form-container sign-up-container">
                 <form id="signUp">
-                    <h1>Create Account</h1>
-                    <span>or use your email for registration</span>
-                    <input type="text" id="name" placeholder="First Name" required />
-                    <input type="text" id="" placeholder="Last Name" required />
+                    <h1>Tạo tài khoản</h1>
+                    <span>hoặc đăng ký bằng email</span>
+                    <input type="text" id="name" placeholder="Tên" required />
+                    <input type="text" id="" placeholder="Họ" required />
                     <input type="email" id="email" placeholder="Email" required />
-                    <input type="number" placeholder="Phone no.">
-                    <input type="password" id="password" placeholder="Password" required />
-                    <input type="password" id="checkpassword" placeholder="Confirm Your Password" required />
-                    <input type="Submit" class="submit">
+                    <input type="number" placeholder="Số điện thoại">
+                    <input type="password" id="password" placeholder="Mật khẩu" required />
+                    <input type="password" id="checkpassword" placeholder="Xác nhận mật khẩu" required />
+                    <input type="Submit" class="submit" value="Tạo tài khoản">
                 </form>
             </div>
             <div class="form-container sign-in-container">
                 <form id="signIn">
                    
-                    <h1>Sign in</h1>
-                    <span>or use your account</span>
+                    <h1>Đăng nhập</h1>
+                    <span>hoặc sử dụng tài khoản của bạn</span>
                     <input type="email" id="email1" placeholder="Email" required />
-                    <input type="password1" id="password1" placeholder="Password" required />
+                    <input type="password1" id="password1" placeholder="Mật khẩu" required />
                     <h4 style="color: rgb(235, 82, 82);" id="display"></h4>
-                    <a href="#">Forgot your password?</a>
-                    <input type="Submit" class="submit">
+                    <a href="#">Quên mật khẩu?</a>
+                    <input type="Submit" class="submit" value="Đăng nhập">
                 </form>
             </div>
             <div class="overlay-container">
                 <div class="overlay">
                     <div class="overlay-panel overlay-left">
                         <img src="" alt="">
-                        <h1>Hello, Friend!</h1>
-                        <h4>Enter your personal details and start journey with us</h4>
-                        <h5>Already have account</h5>
-                        <button class="ghost" id="signin">Sign In</button>
+                        <h1>Xin chào!</h1>
+                        <h4>Nhập thông tin cá nhân để bắt đầu cùng chúng tôi</h4>
+                        <h5>Đã có tài khoản?</h5>
+                        <button class="ghost" id="signin">Đăng nhập</button>
                     </div>
                     <div class="overlay-panel overlay-right">
-                        <h1>Welcome Back!</h1>
-                        <h4 >To keep connected with us please login with your personal info</h4>
-                        <h5>Register Yourself</h5>
-                        <button class="ghost" id="signup">Sign Up</button>
+                        <h1>Chào mừng bạn trở lại!</h1>
+                        <h4>Đăng nhập bằng thông tin cá nhân để tiếp tục</h4>
+                        <h5>Chưa có tài khoản?</h5>
+                        <button class="ghost" id="signup">Đăng ký</button>
                     </div>
                 </div>
             </div>

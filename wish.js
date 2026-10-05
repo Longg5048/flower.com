@@ -18,7 +18,7 @@ function display(wish){
     container.innerHTML=""
 
   if(wish.length===0){
-    container.innerHTML='<p class="empty-wishlist">Your wishlist is empty. <a href="./product.html">Browse flowers</a></p>'
+    container.innerHTML='<p class="empty-wishlist">Danh sách yêu thích đang trống. <a href="./product.html">Khám phá các loài hoa</a></p>'
     return
   }
    
@@ -36,10 +36,10 @@ function display(wish){
 
         // Assigning Data
         img.src=el.image
-        title.innerText=el.title
-        price.innerText=`₹ ${el.price}`
-        btn.innerText="Add to Cart"
-        btn2.innerText="Remove"
+        title.innerText=getVietnameseProductName(el.title)
+        price.innerText=formatVnd(el.price)
+        btn.innerText="Thêm vào giỏ hàng"
+        btn2.innerText="Xóa"
 
         // Clssess
         box.className="box";
@@ -53,7 +53,7 @@ function display(wish){
               Swal.fire({
                 position: 'center',
                 icon: 'error',
-                title: 'Product Already in Cart',
+                title: 'Sản phẩm đã có trong giỏ hàng',
                 showConfirmButton: false,
                 timer: 1500
               })
@@ -62,7 +62,7 @@ function display(wish){
             Swal.fire({
               position: 'center',
               icon: 'success',
-              title: 'Product Added To Cart',
+              title: 'Đã thêm sản phẩm vào giỏ hàng',
               showConfirmButton: false,
               timer: 1500
             })
@@ -80,7 +80,7 @@ function display(wish){
             Swal.fire({
               position: 'center',
               icon: 'success',
-              title: 'Removed',
+              title: 'Đã xóa khỏi danh sách yêu thích',
               showConfirmButton: false,
               timer: 1500
             })

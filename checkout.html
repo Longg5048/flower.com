@@ -1,11 +1,11 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="vi">
 
 <head>
   <meta charset="UTF-8">
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Checkout</title>
+  <title>Thanh toán</title>
   <link rel="stylesheet" href="./headder.css">
   <link rel="stylesheet" href="./index.css">
   <link rel="stylesheet" href="./styles/dropdown.css">
@@ -81,8 +81,8 @@
           alt="" />
       </div>
       <div id="nav-center">
-        <input type="text" placeholder="Enter Keyword or Product Number" />
-        <button>SEARCH</button>
+        <input type="text" placeholder="Nhập tên hoa hoặc mã sản phẩm" />
+        <button>TÌM KIẾM</button>
       </div>
       <div id="nav-right">
         <!-- <i class="fa-regular fa-user"></i>
@@ -92,14 +92,14 @@
               src="https://images.contentstack.io/v3/assets/bltdd99f24e8a94d536/blt88337dc20d1d8278/5e178293942caf0fc36b77ab/Header-Icon-PWA-profile.svg"
               alt="" />
           </i>
-          <h5>Sign In</h5>
+          <h5>Đăng nhập</h5>
         </div>
         <div class="orders">
           <i><img
               src="https://images.contentstack.io/v3/assets/bltdd99f24e8a94d536/bltd7f3af8e242d37c1/5e1782936430b50f03d6ccc3/Header-Icon-PWA-truck.svg?height=25&width=44"
               alt="" /></i>
           <!-- <a href="./cart.html"> -->
-            <h5>My Orders</h5>
+            <h5>Đơn hàng</h5>
           <!-- </a> -->
         </div>
         <div class="bag">
@@ -107,7 +107,7 @@
             <img
               src="https://images.contentstack.io/v3/assets/bltdd99f24e8a94d536/blt7888ec93d3d5c1ec/5e17829300c38f0f022d3646/Header-Icon-PWA-bag.svg?height=25&width=44"
               alt="" />
-            <h5><span id="cartTotal">(0)</span>Cart</h5>
+            <h5><span id="cartTotal">(0)</span> Giỏ hàng</h5>
           <!-- </a> -->
         </div>
       </div>
@@ -116,16 +116,16 @@
     <nav>
       <div id="options">
         <ul>
-          <li id="birthday"><a href="./product.html">BIRTHDAY</a></li>
-          <li id="sympathy"><a href="./product.html">SYMPATHY</a></li>
-          <li id="occasion"><a href="./product.html">OCCASIONS</a></li>
-          <li id="flowers"><a href="./product.html">FLOWERS</a></li>
-          <li id="plants"><a href="./product.html">PLANTS</a></li>
-          <li id="food"><a href="./product.html">GIFT BASKETS & FOOD</a></li>
-          <li id="gift"><a href="./product.html">GIFTS & MORE</a></li>
-          <li id="delivery"><a href="./product.html">SAME-DAY DELIVERY</a></li>
-          <li id="sale"><a href="./product.html">SALE</a></li>
-          <li id="community"><a href="./product.html">COMMUNITY</a></li>
+          <li id="birthday"><a href="./product.html">SINH NHẬT</a></li>
+          <li id="sympathy"><a href="./product.html">CHIA BUỒN</a></li>
+          <li id="occasion"><a href="./product.html">DỊP ĐẶC BIỆT</a></li>
+          <li id="flowers"><a href="./product.html">HOA TƯƠI</a></li>
+          <li id="plants"><a href="./product.html">CÂY CẢNH</a></li>
+          <li id="food"><a href="./product.html">GIỎ QUÀ & THỰC PHẨM</a></li>
+          <li id="gift"><a href="./product.html">QUÀ TẶNG & HƠN THẾ NỮA</a></li>
+          <li id="delivery"><a href="./product.html">GIAO HOA TRONG NGÀY</a></li>
+          <li id="sale"><a href="./product.html">ƯU ĐÃI</a></li>
+          <li id="community"><a href="./product.html">CỘNG ĐỒNG</a></li>
         </ul>
       </div>
     </nav>
@@ -137,36 +137,36 @@
     </div>
 
     <div class="checkout">
-      <h1>Order Sumary</h1>
+      <h1>Tóm tắt đơn hàng</h1>
       <div class="details">
         <div>
           <div>
-            <p>Original Price</p>
+            <p>Giá gốc</p>
           </div>
           <div id="originalprice">0</div>
         </div>
         <hr />
         <div>
           <div>
-            <p>Savings 5%</p>
+            <p>Tiết kiệm 5%</p>
           </div>
           <div id="savings">0</div>
         </div>
         <hr />
         <div>
 
-          <div><p>Delivery charges</p></div>
-          <div id="delivery">Free</div>
+          <div><p>Phí giao hàng</p></div>
+          <div id="deliveryCharge">Miễn phí</div>
 
         </div>
         <hr />
         <div>
-          <div>Taxes 10%</div>
+          <div>Thuế 10%</div>
           <div id="tax">0</div>
         </div>
         <hr />
         <div>
-          <div>Total Price</div>
+          <div>Tổng tiền</div>
           <div id="total">0</div>
         </div>
       </div>
@@ -175,26 +175,26 @@
 
     <div id="form">
       <form action="">
-        <h1>Customer Details</h1>
-        <input type="text" placeholder="  Home Address" required>
-        <input type="text" placeholder="  LandMarks" required>
-        <input type="text" placeholder="  Locality" required>
-        <input type="text" placeholder="  City" required>
-        <input type="text" placeholder="  State" required>
-        <input type="number" placeholder="  Pincode" required>
-        <input type="number" placeholder="  Phone No" required>
-        <button>Submit</button>
+        <h1>Thông tin khách hàng</h1>
+        <input type="text" placeholder="Địa chỉ nhà" required>
+        <input type="text" placeholder="Địa điểm gần đó" required>
+        <input type="text" placeholder="Phường/xã" required>
+        <input type="text" placeholder="Thành phố" required>
+        <input type="text" placeholder="Tỉnh" required>
+        <input type="number" placeholder="Mã bưu chính" required>
+        <input type="number" placeholder="Số điện thoại" required>
+        <button>Gửi thông tin</button>
 
       </form>
     </div>
 
     <div id="payment">
-      <h1>Payment Method</h1>
-      <div><input type="checkbox">UPI Pay</div>
-      <div><input type="checkbox">Pay With Debit/Credit/ATM cards </div>
-      <div><input type="checkbox">EMI Available</div>
-      <div><input type="checkbox">Cash On Delivery</div>
-      <button><a href="./placeorder.html">Continue</a></button>
+      <h1>Phương thức thanh toán</h1>
+      <div><input type="checkbox">Thanh toán UPI</div>
+      <div><input type="checkbox">Thẻ ghi nợ/tín dụng/ATM</div>
+      <div><input type="checkbox">Hỗ trợ trả góp</div>
+      <div><input type="checkbox">Thanh toán khi nhận hàng</div>
+      <button><a href="./placeorder.html">Tiếp tục</a></button>
     </div>
 
   </div>
@@ -203,54 +203,54 @@
 
   <div id="bottomtext">
     <div class="bottompart">
-      <h4>More Ways To shop</h4>
-      <p>FLower Delivery Same-Day</p>
-      <p>Flower Arrangement</p>
-      <p>Sympathy Flowers & Gifts</p>
-      <p>Roses</p>
-      <p>Birthday FLowers & Gifts</p>
-      <p>Flower Subscription</p>
-      <p>Plants</p>
-      <p>Gifts Baskets & Food</p>
-      <p>Mother's Day Flowers</p>
-      <p>International Flower Delivery</p>
-      <p>Find a Local Florist</p>
-      <p>Corporate Gifts</p>
-      <p>Choclate Covered Strawberries</p>
-      <p>Marketplace Sellers</p>
+      <h4>Cách mua sắm khác</h4>
+      <p>Giao hoa trong ngày</p>
+      <p>Hoa bó nghệ thuật</p>
+      <p>Hoa và quà chia buồn</p>
+      <p>Hoa hồng</p>
+      <p>Hoa và quà sinh nhật</p>
+      <p>Đăng ký nhận hoa định kỳ</p>
+      <p>Cây cảnh</p>
+      <p>Giỏ quà và thực phẩm</p>
+      <p>Hoa Ngày của Mẹ</p>
+      <p>Giao hoa quốc tế</p>
+      <p>Tìm tiệm hoa gần bạn</p>
+      <p>Quà tặng doanh nghiệp</p>
+      <p>Dâu tây phủ sô-cô-la</p>
+      <p>Đối tác bán hàng</p>
     </div>
     <div class="bottompart">
-      <h4>Customer Service</h4>
-      <p>Customer Service</p>
-      <p>COVID-19 Updates</p>
-      <p>eGift Cards</p>
-      <p>Contact Us</p>
-      <p>Do Not Sell My Personal Information</p>
-      <p>Allergy Warnging</p>
-      <p>Funeral/Sympathy Advisors</p>
-      <p>Smile Guarantee</p>
-      <h4>Veteran Advantage</h4>
-      <p>Get Exclusive Military Discounts Everyday</p>
+      <h4>Dịch vụ khách hàng</h4>
+      <p>Hỗ trợ khách hàng</p>
+      <p>Cập nhật COVID-19</p>
+      <p>Thẻ quà tặng điện tử</p>
+      <p>Liên hệ với chúng tôi</p>
+      <p>Không bán thông tin cá nhân của tôi</p>
+      <p>Cảnh báo dị ứng</p>
+      <p>Tư vấn hoa viếng và chia buồn</p>
+      <p>Cam kết hài lòng</p>
+      <h4>Ưu đãi dành cho cựu chiến binh</h4>
+      <p>Ưu đãi quân nhân độc quyền mỗi ngày</p>
     </div>
     <div class="bottompart">
-      <h4>Our Stories</h4>
-      <p>Store Locator</p>
-      <p>Franchies Opportunities</p>
-      <p>Local DIY Events</p>
-      <h4>Account Login</h4>
-      <p>Sign in to your Account</p>
+      <h4>Khám phá</h4>
+      <p>Tìm cửa hàng</p>
+      <p>Cơ hội nhượng quyền</p>
+      <p>Sự kiện tự làm tại địa phương</p>
+      <h4>Tài khoản</h4>
+      <p>Đăng nhập tài khoản</p>
     </div>
     <div class="bottompart">
-      <h4>Corporate</h4>
-      <p>About Us</p>
-      <p>Our Brands</p>
-      <p>Socal Responsibility</p>
-      <p>Carrers</p>
-      <p>News & Media</p>
-      <p>Investors</p>
+      <h4>Doanh nghiệp</h4>
+      <p>Về chúng tôi</p>
+      <p>Các thương hiệu</p>
+      <p>Trách nhiệm xã hội</p>
+      <p>Tuyển dụng</p>
+      <p>Tin tức và truyền thông</p>
+      <p>Quan hệ nhà đầu tư</p>
     </div>
     <div class="bottomicons">
-      <h4>Follow Us</h4>
+      <h4>Theo dõi chúng tôi</h4>
       <div>
         <div class="bicons">
           <img
@@ -283,13 +283,15 @@
   <div id="endline">
     <div>
       <p>
-        © 2023 1-800-Flowers.com, Inc., Jericho, NY Family of BrandsTerms of
-        Use-Privacy Notice-Accessibility Statement
+        © 2023 1-800-Flowers.com, Inc., Jericho, NY. Các thương hiệu thuộc cùng hệ thống.
+        Điều khoản sử dụng · Quyền riêng tư · Khả năng tiếp cận
       </p>
     </div>
   </div>
 
 </body>
+<script src="./product-names.js"></script>
+<script src="./currency.js"></script>
 <script>
   // Write all necessery JS here
 
@@ -300,7 +302,7 @@
   function DisplayProduct() {
     let originalprice = document.getElementById("originalprice");
     let savings = document.getElementById("savings");
-    let delivery = document.getElementById("delivery");
+    let delivery = document.getElementById("deliveryCharge");
     let tax = document.getElementById("tax");
     let total = document.getElementById("total");
 
@@ -317,9 +319,9 @@
       let quantity = document.createElement("span");
 
       image.src = product.image;
-      details.textContent = product.title;
-      price.textContent = product.price;
-      Remove.textContent = "Remove";
+      details.textContent = getVietnameseProductName(product.title);
+      price.textContent = formatVnd(product.price);
+      Remove.textContent = "Xóa";
       Increase.textContent = "+";
       Decrease.textContent = "-";
       quantity.textContent = product.quantity;
@@ -359,12 +361,12 @@
     for (let i = 0; i < Cart.length; i++) {
       sum += Cart[i].price * Cart[i].quantity;
     }
-    originalprice.textContent = Math.floor(sum);
-      savings.textContent = Math.floor(sum * 0.05);
-      delivery.textContent = sum;
-      tax.textContent = Math.floor(sum * 0.1);
+    originalprice.textContent = formatVnd(Math.floor(sum));
+      savings.textContent = formatVnd(Math.floor(sum * 0.05));
+      delivery.textContent = formatVnd(sum);
+      tax.textContent = formatVnd(Math.floor(sum * 0.1));
 
-      total.textContent = eval(Math.floor(sum - sum * 0.05 + sum * 0.1));
+      total.textContent = formatVnd(Math.floor(sum - sum * 0.05 + sum * 0.1));
     }
 
   DisplayProduct();

@@ -1,10 +1,10 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="vi">
   <head>
     <meta charset="UTF-8" />
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Document</title>
+    <title>Giỏ hàng</title>
     <link rel="stylesheet" href="headder.css" />
     <link rel="stylesheet" href="./styles/dropdown.css" />
     <link rel="stylesheet" href="./styles/cart.css" />
@@ -93,8 +93,8 @@
           /></a>
         </div>
         <div id="nav-center">
-          <input type="text" placeholder="Enter Keyword or Product Number" />
-          <button>SEARCH</button>
+          <input type="text" placeholder="Nhập tên hoa hoặc mã sản phẩm" />
+          <button>TÌM KIẾM</button>
         </div>
         <div id="nav-right">
           <!-- <i class="fa-regular fa-user"></i>
@@ -106,7 +106,7 @@
                 alt=""
               />
             </i>
-            <h5>Sign In</h5>
+            <h5>Đăng nhập</h5>
           </div>
           <div class="orders">
             <i
@@ -120,7 +120,7 @@
                 src="https://images.contentstack.io/v3/assets/bltdd99f24e8a94d536/bltd7f3af8e242d37c1/5e1782936430b50f03d6ccc3/Header-Icon-PWA-truck.svg?height=25&width=44"
                 alt=""
             /></i>
-            <h5>My Orders</h5>
+            <h5>Đơn hàng</h5>
           </div>
           <div class="bag">
             <i
@@ -128,7 +128,7 @@
                 src="https://images.contentstack.io/v3/assets/bltdd99f24e8a94d536/blt7888ec93d3d5c1ec/5e17829300c38f0f022d3646/Header-Icon-PWA-bag.svg?height=25&width=44"
                 alt=""
             /></i>
-            <h5><span id="cartTotal">(0)</span>Cart</h5>
+            <h5><span id="cartTotal">(0)</span> Giỏ hàng</h5>
           </div>
         </div>
       </div>
@@ -136,16 +136,16 @@
       <nav>
         <div id="options">
           <ul>
-            <li id="birthday"><a href="#">BIRTHDAY</a></li>
-            <li id="sympathy"><a href="#">SYMPATHY</a></li>
-            <li id="occasion"><a href="#">OCCASIONS</a></li>
-            <li id="flowers"><a href="#">FLOWERS</a></li>
-            <li id="plants"><a href="#">PLANTS</a></li>
-            <li id="food"><a href="#">GIFT BASKETS & FOOD</a></li>
-            <li id="gift"><a href="#">GIFTS & MORE</a></li>
-            <li id="delivery"><a href="#">SAME-DAY DELIVERY</a></li>
-            <li id="sale"><a href="#">SALE</a></li>
-            <li id="community"><a href="#">COMMUNITY</a></li>
+            <li id="birthday"><a href="#">SINH NHẬT</a></li>
+            <li id="sympathy"><a href="#">CHIA BUỒN</a></li>
+            <li id="occasion"><a href="#">DỊP ĐẶC BIỆT</a></li>
+            <li id="flowers"><a href="#">HOA TƯƠI</a></li>
+            <li id="plants"><a href="#">CÂY CẢNH</a></li>
+            <li id="food"><a href="#">GIỎ QUÀ & THỰC PHẨM</a></li>
+            <li id="gift"><a href="#">QUÀ TẶNG & HƠN THẾ NỮA</a></li>
+            <li id="delivery"><a href="#">GIAO HOA TRONG NGÀY</a></li>
+            <li id="sale"><a href="#">ƯU ĐÃI</a></li>
+            <li id="community"><a href="#">CỘNG ĐỒNG</a></li>
           </ul>
         </div>
       </nav>
@@ -156,40 +156,42 @@
         </div>
 
         <div class="checkout">
-          <h1>Order Sumary</h1>
+          <h1>Tóm tắt đơn hàng</h1>
           <div class="details">
             <div>
-              <div><p>Original Price</p></div>
+              <div><p>Giá gốc</p></div>
               <div id="originalprice">0</div>
             </div>
             <hr />
             <div>
-              <div><p>Savings 5%</p></div>
+              <div><p>Tiết kiệm 5%</p></div>
               <div id="savings">0</div>
             </div>
             <hr />
             <div>
-              <div><p>Delivery charges</p></div>
-              <div id="delivery">Free</div>
+              <div><p>Phí giao hàng</p></div>
+              <div id="deliveryCharge">Miễn phí</div>
             </div>
             <hr />
             <div>
-              <div>Taxes 10%</div>
+              <div>Thuế 10%</div>
               <div id="tax">0</div>
             </div>
             <hr />
             <div>
-              <div>Total Price</div>
+              <div>Tổng tiền</div>
               <div id="total">0</div>
             </div>
           </div>
           <div id="check">
-            <button ><a href="./checkout.html"style="color:white" >Proceed TO checkout</a></button>
+            <button ><a href="./checkout.html"style="color:white" >Tiến hành thanh toán</a></button>
           </div>
         </div>
       </div>
     </div>
   </body>
+  <script src="./product-names.js"></script>
+  <script src="./currency.js"></script>
   <script>
     // Write all necessery JS here
 
@@ -200,7 +202,7 @@
     function DisplayProduct() {
       let originalprice = document.getElementById("originalprice");
       let savings = document.getElementById("savings");
-      let delivery = document.getElementById("delivery");
+      let delivery = document.getElementById("deliveryCharge");
       let tax = document.getElementById("tax");
       let total = document.getElementById("total");
 
@@ -220,9 +222,9 @@
         let quantity = document.createElement("span");
 
         image.src = product.image;
-        details.textContent = product.title;
-        price.textContent = product.price;
-        Remove.textContent = "Remove";
+        details.textContent = getVietnameseProductName(product.title);
+        price.textContent = formatVnd(product.price);
+        Remove.textContent = "Xóa";
         Increase.textContent = "+";
         Decrease.textContent = "-";
         quantity.textContent = product.quantity;
@@ -250,7 +252,7 @@
           Swal.fire({
               position: 'center',
               icon: 'success',
-              title: 'Item Deleted from Cart',
+              title: 'Đã xóa sản phẩm khỏi giỏ hàng',
               showConfirmButton: false,
               timer: 1500
             })
@@ -271,13 +273,13 @@
       for (let i = 0; i < Cart.length; i++) {
         sum += Math.floor(Cart[i].price * Cart[i].quantity); 
       }
-      originalprice.textContent = sum;
-      savings.textContent = (sum * 0.05).toFixed(2);
-      delivery.textContent =(sum * 0.1).toFixed(2);
-      tax.textContent = (sum * 0.1).toFixed(2);
+      originalprice.textContent = formatVnd(sum);
+      savings.textContent = formatVnd(sum * 0.05);
+      delivery.textContent = formatVnd(sum * 0.1);
+      tax.textContent = formatVnd(sum * 0.1);
 
 
-      total.textContent = eval(Math.floor(sum - sum * 0.05 + sum * 0.1));
+      total.textContent = formatVnd(Math.floor(sum - sum * 0.05 + sum * 0.1));
 
     }
 

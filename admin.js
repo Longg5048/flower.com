@@ -60,10 +60,10 @@ let deletingItem=await fetch(`${productApi}/${id}`,{
 })
 // console.log(deletingItem)
 if(deletingItem.ok){
-    alert("Item Deleted")
+    alert("Đã xóa sản phẩm")
    
 }else{
-    alert("Some Issue While Deleting the item")
+    alert("Đã xảy ra lỗi khi xóa sản phẩm")
 
 }
 } catch (error) {
@@ -79,13 +79,13 @@ function getCard(id,image,title,price,description){
     let card=`
     <div id=${id}>
     <div>
-    <img src=${image} alt="Product image">
+    <img src=${image} alt="Ảnh sản phẩm">
     </div>
     <div>
     <p>${title}</p>
-    <p>${price}</p>
+    <p>${formatVnd(price)}</p>
     <p>${description}</p>
-    <button id=${id} class="removeBtn">Remove Item</button>
+    <button id=${id} class="removeBtn">Xóa sản phẩm</button>
     </div>
     </div>
     `
@@ -102,11 +102,11 @@ addProduct.addEventListener("click",()=>{
 function getForm(){
     main.innerHTML="";
     let add_product= `<form>
-    <input type="text" placeholder="title" id="AddProductTitle">
-    <input type="src" placeholder="image" id="AddProductImage">
-    <input type="number" placeholder="price" id="AddProductPrice">
-    <input type="" placeholder="description" id="AddProductDescription">
-    <input type="submit" value="submit">
+    <input type="text" placeholder="Tên sản phẩm" id="AddProductTitle">
+    <input type="src" placeholder="Đường dẫn hình ảnh" id="AddProductImage">
+    <input type="number" step="1" placeholder="Giá (VNĐ)" id="AddProductPrice">
+    <input type="" placeholder="Mô tả" id="AddProductDescription">
+    <input type="submit" value="Lưu sản phẩm">
 </form>`
 main.innerHTML=add_product;
 
@@ -124,7 +124,7 @@ async function postData(){
         let obj={
         title:add_product_title.value,
         image:add_product_image.value,
-        price:add_product_price.value,
+        price:usdFromVnd(add_product_price.value),
         description:add_product_description.value
     } 
 
@@ -136,10 +136,10 @@ let postDetails=await fetch(`${productApi}`,{
     body:JSON.stringify(obj)
 })
 if(postDetails.ok){
-    alert("Item Added")
+    alert("Đã thêm sản phẩm")
     
 }else{
-    alert("Some Issue")
+    alert("Đã xảy ra lỗi")
 }
     } catch (error) {
         console.log(error);
@@ -217,11 +217,11 @@ function puttingData(id,price,title,image,description){
     main.innerHTML="";
     let add_product= `<form>
     <p id="productId">${id}</p>
-    <input type="text" placeholder="title" value='${title}' id="AddProductTitle">
-    <input type="src" placeholder="image" value='${image}' id="AddProductImage">
-    <input type="number" placeholder="price" value= '${price}' id="AddProductPrice">
-    <input type="" placeholder="description" value='${description}' id="AddProductDescription">
-    <input type="submit" value="submit">
+    <input type="text" placeholder="Tên sản phẩm" value='${title}' id="AddProductTitle">
+    <input type="src" placeholder="Đường dẫn hình ảnh" value='${image}' id="AddProductImage">
+    <input type="number" step="1" placeholder="Giá (VNĐ)" value='${toVndAmount(price)}' id="AddProductPrice">
+    <input type="" placeholder="Mô tả" value='${description}' id="AddProductDescription">
+    <input type="submit" value="Lưu thay đổi">
 </form>`
 main.innerHTML=add_product;
 
@@ -240,7 +240,7 @@ async function fetchingDataToApi(){
 try {
     let obj={
         title:updateTitle.value,
-        price:updatePrice.value,
+        price:usdFromVnd(updatePrice.value),
         image:updateImage.value,
         description:updateDescription.value 
     }
@@ -279,11 +279,11 @@ fetchingDataToApi();
 function updateGetCard(id,image,title,price,description){
     let card=`
     <div id=${id}>
-    <img src=${image} alt="Product image">
+    <img src=${image} alt="Ảnh sản phẩm">
     <p>${title}</p>
-    <p>${price}</p>
+    <p>${formatVnd(price)}</p>
     <p>${description}</p>
-    <button id=${id} class="updateBtn">Edit Item</button>
+    <button id=${id} class="updateBtn">Chỉnh sửa</button>
     </div>
     `
     return card;

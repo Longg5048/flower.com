@@ -28,7 +28,7 @@ signUp.addEventListener("submit", function (event) {
     });
 
     if (count > 0) {
-        alert("user already registered!");
+        alert("Email này đã được đăng ký!");
     }
     else {
 
@@ -44,7 +44,7 @@ signUp.addEventListener("submit", function (event) {
 
 
         localStorage.setItem("usersData", JSON.stringify(users));
-        alert("Sign Up successful!");
+        alert("Đăng ký thành công!");
 
 
 
@@ -72,15 +72,15 @@ signIn.addEventListener("submit", function (event) {
     // if we didn't find any user we alert
     if (count == 0) {
         // alert("user not registered!");
-        display.innerHTML = "User Not Registered"
+        display.innerHTML = "Tài khoản chưa được đăng ký"
     }
     // if we find user we check the password
     else {
         // we check the temp password with form password
         if (temp.password != signIn.password1.value) {
-            display.innerHTML = "Wrong Credentials"
+            display.innerHTML = "Thông tin đăng nhập không chính xác"
         } else {
-            display.innerHTML = "Login Successfull"
+            display.innerHTML = "Đăng nhập thành công"
             // alert("login successful!");
             // we can use n number of methods to change the page. here we are using assign() method
             // window.location.assign('url')

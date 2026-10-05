@@ -1,5 +1,49 @@
 # casual-metal-9545
 netlify link - https://genuine-malabi-a05086.netlify.app/
+
+## Kiến trúc hệ thống
+
+### Tổng quan
+
+Đây là ứng dụng frontend tĩnh, dùng HTML, CSS và JavaScript thuần. Không có máy chủ ứng dụng riêng hoặc bước build. Các trang chạy trong trình duyệt; dữ liệu sản phẩm mẫu được tải từ `flower.json`, còn một số trạng thái được lưu trong `localStorage`.
+
+```mermaid
+flowchart LR
+	Browser[Trình duyệt] --> Pages[Trang HTML tĩnh]
+	Pages --> Scripts[JavaScript thuần]
+	Scripts --> Catalog["flower.json"]
+	Scripts <--> Storage[(localStorage)]
+	Admin["admin.js"] -->|CRUD sản phẩm| API[MockAPI]
+	Product["product.js"] --> Names["product-names.js"]
+	Product --> Currency["currency.js"]
+	Names --> UI[Giao diện]
+	Currency --> UI
+```
+
+### Các khu vực chính
+
+| Khu vực | Tệp tiêu biểu | Trách nhiệm |
+| --- | --- | --- |
+| Trang chủ | `index.html`, `index.css` | Nội dung giới thiệu, danh mục và điều hướng |
+| Danh mục hoa | `product.html`, `product.js`, `product.css` | Tải catalog, tìm kiếm, lọc, sắp xếp và thêm sản phẩm |
+| Wishlist | `wish.html`, `wish.js`, `wish.css` | Hiển thị, thêm vào giỏ và xóa sản phẩm yêu thích |
+| Giỏ hàng | `cart.html`, `styles/cart.css` | Cập nhật số lượng, xóa sản phẩm và tính tổng |
+| Thanh toán | `checkout.html`, `placeorder.html` | Hiển thị thông tin giao hàng, phương thức thanh toán và xác nhận đơn |
+| Tài khoản demo | `login.html`, `login.js` | Đăng ký/đăng nhập ở phía trình duyệt |
+| Quản trị sản phẩm | `admin.html`, `admin.js`, `admin.css` | Đọc, thêm, sửa và xóa sản phẩm qua MockAPI |
+
+### Dữ liệu và tiền tệ
+
+- `flower.json` chứa catalog mẫu; `product.js` đọc tệp này qua `fetch`, vì vậy cần mở ứng dụng qua HTTP thay vì mở trực tiếp bằng `file://`.
+- `cart`, `wish`, `usersData` và `loggedUser` được lưu trong `localStorage` của trình duyệt. Dữ liệu này không đồng bộ giữa thiết bị hoặc người dùng.
+- Đăng nhập và checkout hiện là luồng minh họa phía frontend; không có dịch vụ xác thực, xử lý thanh toán hoặc lưu đơn hàng phía máy chủ.
+- `admin.js` gọi API MockAPI riêng để CRUD catalog quản trị.
+- `product-names.js` chỉ ánh xạ tên sản phẩm khi hiển thị. `currency.js` định dạng giá catalog sang VND; catalog/API tiếp tục lưu giá nguồn bằng USD. Tỷ giá là giá trị snapshot cấu hình trong mã nguồn.
+
+### Chạy và triển khai
+
+Vì ứng dụng tĩnh có tải JSON bằng `fetch`, hãy chạy qua máy chủ HTTP cục bộ. Bản triển khai hiện có trên Netlify: https://genuine-malabi-a05086.netlify.app/.
+
 # Landing Page 
 
 Hear you can see the landing page of our project :

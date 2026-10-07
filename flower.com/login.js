@@ -289,28 +289,14 @@ signIn.addEventListener("submit", async (event) => {
     }
 });
 
-document.getElementById("forgotPassword").addEventListener("click", async (event) => {
-    event.preventDefault();
+document.getElementById("forgotPassword").addEventListener("click", (event) => {
     const email = document.getElementById("email1").value.trim().toLowerCase();
+    if (!email) return;
 
-    if (!email) {
-        showMessage("Nhập email trước để nhận liên kết đặt lại mật khẩu.");
-        return;
-    }
-
-    if (!isFirebaseConfigured) {
-        showMessage("Khôi phục mật khẩu cần được bật sau khi cấu hình Firebase.");
-        return;
-    }
-
-    try {
-        const authApi = await getFirebaseAuthApi();
-        await authApi.sendPasswordResetEmail(authApi.auth, email);
-        showMessage("Đã gửi liên kết đặt lại mật khẩu vào email của bạn.", false);
-    } catch (error) {
-        console.error("Gửi email khôi phục mật khẩu thất bại:", error);
-        showMessage(getFirebaseErrorMessage(error));
-    }
+    event.preventDefault();
+    const recoveryUrl = new URL(event.currentTarget.href);
+    recoveryUrl.searchParams.set("email", email);
+    window.location.assign(recoveryUrl.href);
 });
 
 completeGoogleRedirect();

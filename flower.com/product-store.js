@@ -16,10 +16,14 @@
     function normalizeProduct(product = {}) {
         const rawId = product.id ?? product._id;
         const numericId = Number(rawId);
+        const rawPrice = Number(product.price ?? 0);
+        const price = rawPrice > 10000
+            ? (typeof usdFromVnd === "function" ? usdFromVnd(rawPrice) : rawPrice / 25949.123093)
+            : rawPrice;
         return {
             id: Number.isFinite(numericId) && numericId > 0 ? numericId : String(rawId ?? Date.now()),
             title: String(product.title ?? "Sản phẩm").trim(),
-            price: Number(product.price ?? 0),
+            price,
             quantity: Number(product.quantity ?? product.stock ?? 10),
             image: product.image || "",
             description: product.description || ""
@@ -126,9 +130,18 @@
             const { db, firestoreSdk } = firebase;
             const existingIds = new Set(remoteProducts.map((product) => String(normalizeProduct(product).id)));
             const missingProducts = products.filter((product) => !existingIds.has(String(normalizeProduct(product).id)));
-            if (!missingProducts.length && !markCatalogSeeded) return true;
+            const snapshot = await firestoreSdk.getDocs(firestoreSdk.collection(db, "products"));
+            const productsNeedingPriceMigration = snapshot.docs.filter((doc) => {
+                const normalized = normalizeProduct({ ...doc.data(), id: doc.id });
+                return Number(doc.data().price) !== normalized.price;
+            });
+            if (!missingProducts.length && !productsNeedingPriceMigration.length && !markCatalogSeeded) return true;
 
             const batch = firestoreSdk.writeBatch(db);
+            productsNeedingPriceMigration.forEach((doc) => {
+                const normalized = normalizeProduct({ ...doc.data(), id: doc.id });
+                batch.update(doc.ref, { price: normalized.price });
+            });
             missingProducts.forEach((product) => {
                 const normalized = normalizeProduct(product);
                 batch.set(firestoreSdk.doc(db, "products", String(normalized.id)), normalized);

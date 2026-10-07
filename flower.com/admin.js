@@ -22,6 +22,7 @@ const ORDER_STATUSES = [
    "Đã nhận đơn",
    "Đã vận chuyển",
    "Hoàn thành chuyến",
+   "Giao hàng thất bại",
    "Từ chối đơn hàng"
 ];
 
@@ -326,7 +327,8 @@ function renderOrdersTab() {
        "Đã nhận đơn": 1,
        "Đã vận chuyển": 2,
        "Hoàn thành chuyến": 3,
-       "Từ chối đơn hàng": 4
+       "Giao hàng thất bại": 4,
+       "Từ chối đơn hàng": 5
    };
    const orders = getOrders().sort((first, second) => {
        const priorityDifference = (statusPriority[first.status] ?? 1) - (statusPriority[second.status] ?? 1);

@@ -9,9 +9,10 @@ let usersPage = document.getElementById("users_page");
 let logOutPage = document.getElementById("logout_page");
 let main = document.querySelector("main");
 let currentUser;
+let editingProductId = null;
+let productSearchTerm = "";
 
 const STORAGE_KEYS = {
-   products: "flowerInventory",
    orders: "flowerOrders",
    reviews: "flowerReviews",
    messages: "flowerMessages"
@@ -31,15 +32,6 @@ function moneyFormat(value) {
        style: "currency",
        currency: "VND"
    }).format(Number(value || 0));
-}
-
-function getDefaultProducts() {
-   return [
-       { id: 1, title: "Vibrant Spring Basket", price: 739900, quantity: 18, image: "https://img-src2.akamaized.net/img/p/GEN/lgwt/1103.jpg", description: "Giỏ hoa tươi rực rỡ cho ngày sinh nhật." },
-       { id: 2, title: "Floral Jewels Arrangement", price: 649900, quantity: 12, image: "https://img-src2.akamaized.net/img/p/GEN/lgwt/2344.jpg", description: "Hoa đẹp, sáng và tươi mới." },
-       { id: 3, title: "Lovely Lavender Bouquet", price: 599900, quantity: 15, image: "https://img-src2.akamaized.net/img/p/GEN/lgwt/2976.jpg", description: "Bó hoa tím dịu dàng, sang trọng." },
-       { id: 4, title: "Rising Star", price: 699900, quantity: 9, image: "https://img-src2.akamaized.net/img/p/GEN/lgwt/8501.jpg", description: "Hoa hồng và lily tinh tế." }
-   ];
 }
 
 function getDemoOrders() {
@@ -138,10 +130,8 @@ function getDemoMessages() {
    ];
 }
 
-function ensureStorage() {
-   if (!localStorage.getItem(STORAGE_KEYS.products)) {
-       localStorage.setItem(STORAGE_KEYS.products, JSON.stringify(getDefaultProducts()));
-   }
+async function ensureStorage() {
+   await FlowerInventory.initialize();
 
    const existingOrders = JSON.parse(localStorage.getItem(STORAGE_KEYS.orders) || "[]");
    const existingReviews = JSON.parse(localStorage.getItem(STORAGE_KEYS.reviews) || "[]");
@@ -159,7 +149,7 @@ function ensureStorage() {
 }
 
 function getProducts() {
-   return JSON.parse(localStorage.getItem(STORAGE_KEYS.products) || "[]");
+    return FlowerInventory.readProducts();
 }
 
 function getOrders() {
@@ -268,10 +258,22 @@ function renderRevenueTab() {
 
 function renderProductTab() {
    const products = getProducts();
+   const searchTerm = productSearchTerm.trim().toLocaleLowerCase("vi");
+   const filteredProducts = products.filter((item) =>
+       `${item.title} ${item.description || ""}`.toLocaleLowerCase("vi").includes(searchTerm)
+   );
+   const editingProduct = products.find((item) => String(item.id) === String(editingProductId));
    main.innerHTML = `
        <section class="panel-wrap">
            <div class="panel">
                <h2>Quản lý kho hoa</h2>
+               <form id="product-search-form" class="product-search" role="search">
+                   <label class="visually-hidden" for="product-search">Tìm sản phẩm</label>
+                   <input id="product-search" name="search" type="search" placeholder="Tìm theo tên hoặc mô tả..." value="${escapeHtml(productSearchTerm)}">
+                   <button type="submit" class="secondary-btn">Tìm kiếm</button>
+                   ${productSearchTerm ? '<button type="button" class="clear-search" data-action="clear-search">Xóa tìm kiếm</button>' : ""}
+               </form>
+               <div class="product-table-wrap">
                <table class="product-table">
                    <thead>
                        <tr>
@@ -283,33 +285,40 @@ function renderProductTab() {
                        </tr>
                    </thead>
                    <tbody>
-                       ${products.map((item) => `
+                       ${filteredProducts.map((item) => `
                            <tr>
-                               <td><img src="${item.image}" alt="${item.title}"></td>
+                               <td><img src="${escapeHtml(item.image)}" alt="${escapeHtml(item.title)}"></td>
                                <td>
-                                   <div><strong>${item.title}</strong></div>
-                                   <small>${item.description || ""}</small>
+                                   <div><strong>${escapeHtml(item.title)}</strong></div>
+                                   <small>${escapeHtml(item.description || "")}</small>
                                </td>
-                               <td>${moneyFormat(item.price)}</td>
-                               <td><input class="qty-input" data-id="${item.id}" type="number" min="0" value="${item.quantity || 0}"></td>
-                               <td class="product-actions">
-                                   <button class="save-qty" data-id="${item.id}">Lưu</button>
-                                   <button class="delete-record" data-record-type="products" data-record-id="${item.id}" type="button">Xóa</button>
+                               <td>${formatVnd(item.price)}</td>
+                               <td><input class="qty-input" data-id="${escapeHtml(item.id)}" type="number" min="0" value="${Number(item.quantity) || 0}"></td>
+                               <td>
+                                   <div class="product-row-actions">
+                                       <button class="save-qty" data-id="${escapeHtml(item.id)}" type="button">Lưu tồn kho</button>
+                                       <button class="secondary-btn edit-product" data-id="${escapeHtml(item.id)}" type="button">Sửa</button>
+                                       <button class="delete-product" data-id="${escapeHtml(item.id)}" type="button">Xóa</button>
+                                   </div>
                                </td>
                            </tr>
-                       `).join("")}
+                       `).join("") || `<tr><td colspan="5" class="empty-state">${products.length ? "Không tìm thấy sản phẩm phù hợp." : "Chưa có sản phẩm nào."}</td></tr>`}
                    </tbody>
                </table>
+               </div>
            </div>
            <div class="panel">
-               <h2>Thêm hoa mới</h2>
+               <h2>${editingProduct ? "Chỉnh sửa sản phẩm" : "Thêm hoa mới"}</h2>
                <form id="add-product-form" class="product-form">
-                   <input type="text" id="product-title" placeholder="Tên hoa" required>
-                   <input type="text" id="product-image" placeholder="Link hình ảnh" required>
-                   <input type="number" id="product-price" placeholder="Giá (VND)" min="0" required>
-                   <input type="number" id="product-quantity" placeholder="Số lượng" min="0" required>
-                   <textarea id="product-description" placeholder="Mô tả sản phẩm" required></textarea>
-                   <button type="submit" class="submit-btn">Thêm sản phẩm</button>
+                   <input type="text" id="product-title" placeholder="Tên hoa" value="${escapeHtml(editingProduct?.title || "")}" required maxlength="120">
+                   <input type="url" id="product-image" placeholder="Link hình ảnh" value="${escapeHtml(editingProduct?.image || "")}" required>
+                   <input type="number" id="product-price" placeholder="Giá (VND)" value="${editingProduct ? toVndAmount(editingProduct.price) : ""}" min="1" step="1" required>
+                   <input type="number" id="product-quantity" placeholder="Số lượng" value="${editingProduct ? Number(editingProduct.quantity) || 0 : ""}" min="0" step="1" required>
+                   <textarea id="product-description" placeholder="Mô tả sản phẩm" required maxlength="1000">${escapeHtml(editingProduct?.description || "")}</textarea>
+                   <div class="product-form-actions">
+                       <button type="submit" class="submit-btn">${editingProduct ? "Lưu thay đổi" : "Thêm sản phẩm"}</button>
+                       ${editingProduct ? '<button type="button" class="secondary-btn" data-action="cancel-edit">Hủy</button>' : ""}
+                   </div>
                </form>
            </div>
        </section>
@@ -675,7 +684,7 @@ function saveProductQuantity(id, quantity) {
        }
        return item;
    });
-   localStorage.setItem(STORAGE_KEYS.products, JSON.stringify(nextProducts));
+    FlowerInventory.saveProducts(nextProducts);
    renderProductTab();
 }
 
@@ -683,27 +692,35 @@ function addNewProduct(event) {
    event.preventDefault();
    const title = document.getElementById("product-title").value.trim();
    const image = document.getElementById("product-image").value.trim();
-   const price = Number(document.getElementById("product-price").value);
+    const priceInVnd = Number(document.getElementById("product-price").value);
    const quantity = Number(document.getElementById("product-quantity").value);
    const description = document.getElementById("product-description").value.trim();
 
-   if (!title || !image || !description || Number.isNaN(price) || Number.isNaN(quantity)) {
+    if (!title || !image || !description || !Number.isFinite(priceInVnd) || priceInVnd < 1 || !Number.isFinite(quantity) || quantity < 0) {
        alert("Vui lòng nhập đầy đủ thông tin.");
        return;
    }
 
    const products = getProducts();
-   products.push({
-       id: Date.now(),
-       title,
-       image,
-       price,
-       quantity,
-       description
-   });
+    const productData = { title, image, price: usdFromVnd(priceInVnd), quantity, description };
+   const isEditing = editingProductId !== null;
+   const nextProducts = isEditing
+       ? products.map((item) => String(item.id) === String(editingProductId) ? { ...item, ...productData } : item)
+       : [...products, { id: Date.now(), ...productData }];
 
-   localStorage.setItem(STORAGE_KEYS.products, JSON.stringify(products));
-   alert("Thêm sản phẩm thành công!");
+    FlowerInventory.saveProducts(nextProducts);
+   editingProductId = null;
+   alert(isEditing ? "Cập nhật sản phẩm thành công!" : "Thêm sản phẩm thành công!");
+   renderProductTab();
+}
+
+function deleteProduct(id) {
+   const product = getProductById(id);
+   if (!product || !window.confirm(`Bạn có chắc muốn xóa “${product.title}”?`)) return;
+
+   const products = getProducts().filter((item) => String(item.id) !== String(id));
+    FlowerInventory.saveProducts(products);
+   if (String(editingProductId) === String(id)) editingProductId = null;
    renderProductTab();
 }
 
@@ -770,7 +787,6 @@ function updateMessageReply(messageId, reply) {
 
 function deleteAdminRecord(type, id) {
    const records = {
-       products: { key: STORAGE_KEYS.products, label: "sản phẩm", render: renderProductTab },
        orders: { key: STORAGE_KEYS.orders, label: "đơn hàng", render: renderOrdersTab },
        reviews: { key: STORAGE_KEYS.reviews, label: "đánh giá", render: renderReviewsTab },
        messages: { key: STORAGE_KEYS.messages, label: "phản hồi", render: renderMessagesTab }
@@ -989,6 +1005,33 @@ main.addEventListener("click", (event) => {
        return;
    }
 
+   const editProductButton = event.target.closest(".edit-product");
+   if (editProductButton) {
+       editingProductId = editProductButton.dataset.id;
+       renderProductTab();
+       document.getElementById("product-title").focus();
+       document.getElementById("add-product-form").scrollIntoView({ behavior: "smooth", block: "center" });
+       return;
+   }
+
+   const deleteProductButton = event.target.closest(".delete-product");
+   if (deleteProductButton) {
+       deleteProduct(deleteProductButton.dataset.id);
+       return;
+   }
+
+   const actionButton = event.target.closest("[data-action]");
+   if (actionButton?.dataset.action === "clear-search") {
+       productSearchTerm = "";
+       renderProductTab();
+       return;
+   }
+   if (actionButton?.dataset.action === "cancel-edit") {
+       editingProductId = null;
+       renderProductTab();
+       return;
+   }
+
    const deleteButton = event.target.closest(".delete-record");
    if (deleteButton) {
        deleteAdminRecord(deleteButton.dataset.recordType, deleteButton.dataset.recordId);
@@ -1045,6 +1088,12 @@ main.addEventListener("click", (event) => {
 });
 
 main.addEventListener("submit", (event) => {
+   if (event.target && event.target.id === "product-search-form") {
+       event.preventDefault();
+       productSearchTerm = new FormData(event.target).get("search") || "";
+       renderProductTab();
+   }
+
    if (event.target && event.target.id === "add-product-form") {
        addNewProduct(event);
    }
@@ -1085,7 +1134,7 @@ async function initializeAdmin() {
        }
 
        bindAdminEvents({ auth, signOut: authSdk.signOut });
-       ensureStorage();
+    await ensureStorage();
        renderDashboard();
    } catch (error) {
        console.error("Không thể xác thực trang quản trị:", error);
@@ -1095,9 +1144,19 @@ async function initializeAdmin() {
 
 window.addEventListener("storage", (event) => {
    const activeHeading = main.querySelector(".panel h2");
+   if (event.key === "flowerInventory" && activeHeading?.textContent === "Quản lý kho hoa") {
+       renderProductTab();
+   }
    if (event.key === STORAGE_KEYS.orders && activeHeading?.textContent === "Quản lý đơn hàng") {
        renderOrdersTab();
    }
+});
+
+window.addEventListener("flowerinventorychange", () => {
+    const activeHeading = main.querySelector(".panel h2");
+    if (activeHeading?.textContent === "Quản lý kho hoa") {
+         renderProductTab();
+    }
 });
 
 initializeAdmin();

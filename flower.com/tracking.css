@@ -1,10 +1,10 @@
 :root {
-    --ink: #273a32;
-    --muted: #718078;
+    --ink: #000;
+    --muted: #555;
     --rose: #a84e68;
     --rose-dark: #853c53;
-    --line: #e9e8df;
-    --surface: #fffefa;
+    --line: #ddd;
+    --surface: #fff;
 }
 
 * {
@@ -15,11 +15,8 @@ body {
     min-height: 100vh;
     margin: 0;
     padding: 0 20px 48px;
-    background:
-        radial-gradient(ellipse at 9% 12%, rgba(226, 190, 177, 0.25), transparent 34%),
-        radial-gradient(ellipse at 94% 88%, rgba(193, 210, 191, 0.28), transparent 34%),
-        #f5f3ec;
-    color: var(--ink);
+    background: #fff;
+    color: #000;
     font-family: "Times New Roman", Times, serif;
 }
 

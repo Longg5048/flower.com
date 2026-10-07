@@ -1,5 +1,5 @@
 
-let API = "./flower.json"
+let products = []
 
 // Localstorage 
 let cart = JSON.parse(localStorage.getItem('cart')) || []
@@ -14,7 +14,6 @@ console.log(cart.length)
 let container = document.getElementById("container")
 let searchButton = document.getElementById("sbtn")
 let searchInput = document.getElementById("search")
-let products = []
 
 
 function display(data) {
@@ -161,12 +160,21 @@ searchInput.addEventListener("keydown", (event) => {
   if (event.key === "Enter") renderProducts()
 })
 
+window.addEventListener("storage", (event) => {
+  if (event.key === "flowerInventory") {
+    products = FlowerInventory.readProducts()
+    renderProducts()
+  }
+})
+
+window.addEventListener("flowerinventorychange", (event) => {
+  products = event.detail || FlowerInventory.readProducts()
+  renderProducts()
+})
+
 async function fetchAndRenderProducts() {
   try {
-    const response = await fetch(API)
-    if (!response.ok) throw new Error(`Catalog request failed: ${response.status}`)
-    const catalog = await response.json()
-    products = Array.isArray(catalog.flower) ? catalog.flower : []
+    products = await FlowerInventory.initialize()
     renderProducts()
   } catch (error) {
     console.error("Không thể tải danh sách hoa:", error)

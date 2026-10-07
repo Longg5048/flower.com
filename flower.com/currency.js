@@ -14,7 +14,7 @@ function toVndAmount(amountInUsd) {
 }
 
 function usdFromVnd(amountInVnd) {
-  return Number((Number(amountInVnd) / USD_TO_VND).toFixed(2));
+  return Number((Number(amountInVnd) / USD_TO_VND).toFixed(6));
 }
 
 function renderCartSummary(cart) {

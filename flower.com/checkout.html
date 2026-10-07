@@ -141,6 +141,7 @@
         <input type="text" name="customerName" autocomplete="name" placeholder="Họ và tên người nhận" required>
         <input type="text" name="address" placeholder="Địa chỉ nhà" required>
         <input type="text" name="ward" placeholder="Phường/xã" required>
+        <input type="text" name="district" placeholder="Quận/huyện" required>
         <input type="text" name="city" placeholder="Thành phố" required>
         <input type="tel" name="phone" pattern="\+?[0-9]{8,15}" placeholder="Số điện thoại" required>
         <textarea name="orderNote" placeholder="Ghi chú cho cửa hàng (không bắt buộc)"></textarea>
@@ -331,7 +332,7 @@
     const formData = new FormData(event.currentTarget);
     const checkout = {
       customerName: formData.get("customerName").trim(),
-      address: ["address", "ward", "city"]
+      address: ["address", "ward", "district", "city"]
         .map((field) => formData.get(field).trim())
         .join(", "),
       phone: formData.get("phone").trim(),

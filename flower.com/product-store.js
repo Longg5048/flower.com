@@ -1,6 +1,7 @@
 (() => {
     const PRODUCT_KEY = "flowerInventory";
     let initialization;
+    let synchronization;
     let firebaseApiPromise;
     let unsubscribeProducts;
 
@@ -166,6 +167,49 @@
         return normalized;
     }
 
+    async function synchronizeProducts(localProducts, catalog) {
+        const firebase = await getFirebaseApi();
+        const remoteProducts = firebase ? await readRemoteProducts() : null;
+        if (remoteProducts === null) return;
+
+        let isAdmin = false;
+        try {
+            const user = firebase.auth.currentUser;
+            isAdmin = Boolean(user && (await user.getIdTokenResult()).claims.admin === true);
+        } catch (error) {
+            console.warn("Không xác minh được quyền khởi tạo catalog:", error);
+        }
+
+        let catalogSeeded = false;
+        if (isAdmin) {
+            try {
+                const marker = await firebase.firestoreSdk.getDoc(
+                    firebase.firestoreSdk.doc(firebase.db, "metadata", "productCatalog")
+                );
+                catalogSeeded = marker.exists() && marker.data().catalogSeeded === true;
+            } catch (error) {
+                console.warn("Không đọc được trạng thái khởi tạo catalog:", error);
+            }
+        }
+
+        const existingProducts = remoteProducts.length ? remoteProducts : localProducts;
+        const products = mergeCatalogProducts(existingProducts, catalog);
+        if (isAdmin) {
+            await syncMissingRemoteProducts(remoteProducts, products, !catalogSeeded);
+        }
+        cacheProducts(products);
+        subscribeToProducts(catalog);
+    }
+
+    function startProductSynchronization(localProducts, catalog) {
+        if (synchronization) return;
+        synchronization = synchronizeProducts(localProducts, catalog)
+            .catch((error) => console.warn("Không thể đồng bộ sản phẩm:", error))
+            .finally(() => {
+                synchronization = null;
+            });
+    }
+
     async function initialize() {
         if (initialization) return initialization;
         initialization = (async () => {
@@ -181,42 +225,9 @@
                 console.warn("Không tải được catalog sản phẩm:", error);
             }
 
-            const firebase = await getFirebaseApi();
-            const remoteProducts = firebase ? await readRemoteProducts() : null;
-            let products;
-
-            if (remoteProducts !== null) {
-                let isAdmin = false;
-                try {
-                    const user = firebase.auth.currentUser;
-                    isAdmin = Boolean(user && (await user.getIdTokenResult()).claims.admin === true);
-                } catch (error) {
-                    console.warn("Không xác minh được quyền khởi tạo catalog:", error);
-                }
-
-                let catalogSeeded = false;
-                if (isAdmin) {
-                    try {
-                        const marker = await firebase.firestoreSdk.getDoc(
-                            firebase.firestoreSdk.doc(firebase.db, "metadata", "productCatalog")
-                        );
-                        catalogSeeded = marker.exists() && marker.data().catalogSeeded === true;
-                    } catch (error) {
-                        console.warn("Không đọc được trạng thái khởi tạo catalog:", error);
-                    }
-                }
-
-                const existingProducts = remoteProducts.length ? remoteProducts : localProducts;
-                products = mergeCatalogProducts(existingProducts, catalog);
-                if (isAdmin) {
-                    await syncMissingRemoteProducts(remoteProducts, products, !catalogSeeded);
-                }
-            } else {
-                products = mergeCatalogProducts(localProducts, catalog);
-            }
-
+            const products = mergeCatalogProducts(localProducts, catalog);
             cacheProducts(products, false);
-            subscribeToProducts(catalog);
+            startProductSynchronization(localProducts, catalog);
             return products;
         })().finally(() => {
             initialization = null;

@@ -321,6 +321,142 @@ function getProductById(productId) {
    return products.find((product) => String(product.id) === String(productId));
 }
 
+function renderCompletionAction(type, record) {
+   if (record.completedAt) {
+       return `<button class="restore-record" data-record-type="${type}" data-record-id="${record.id}" type="button">Khôi phục</button>`;
+   }
+   return `<button class="complete-record" data-record-type="${type}" data-record-id="${record.id}" type="button">Hoàn thành</button>`;
+}
+
+function renderCompletedSection(records, renderCard, label) {
+   return `
+       <section class="completed-section">
+           <h3>Hoàn thành (${records.length})</h3>
+           <div class="list-stack">
+               ${records.length ? records.map(renderCard).join("") : `<div class="empty-state">Chưa có ${label} nào hoàn thành.</div>`}
+           </div>
+       </section>
+   `;
+}
+
+function renderCompletedOrderSummary(order) {
+   return renderOrderSummary(order);
+}
+
+function renderActiveOrderSummary(order) {
+   return renderOrderSummary(order);
+}
+
+function renderOrderSummary(order) {
+   const itemSummary = (order.items || [])
+       .map((item) => `${item.title} × ${item.quantity}`)
+       .join(", ") || "Không có sản phẩm";
+   return `
+       <article class="record-summary">
+           <div class="completed-order-info">
+               <strong>Đơn #${order.id} · ${order.customerName}</strong>
+               <span><b>Sản phẩm:</b> ${itemSummary}</span>
+               <span><b>Thời gian đặt:</b> ${new Date(order.createdAt).toLocaleString("vi-VN")}</span>
+           </div>
+           <div class="record-summary-actions">
+               <button class="secondary-btn show-record-details" data-record-type="orders" data-record-id="${order.id}" type="button" aria-expanded="false">Xem chi tiết</button>
+           </div>
+           <div class="record-details" data-record-details="orders:${order.id}" hidden>
+               ${renderOrderCard(order)}
+           </div>
+       </article>
+   `;
+}
+
+function renderOrderCard(order, showCompletionAction = true) {
+   const items = order.items || [];
+   return `
+       <div class="order-item content-card">
+           <div class="card-header">
+               <div>
+                   <div class="title-row">
+                       <span class="card-icon">🧾</span>
+                       <strong>Đơn #${order.id} - ${order.customerName}</strong>
+                   </div>
+                   <div class="order-meta">
+                       <span>📞 ${order.phone}</span>
+                       <span>🕒 ${new Date(order.createdAt).toLocaleString("vi-VN")}</span>
+                       <span>💰 ${moneyFormat(order.total)}</span>
+                   </div>
+               </div>
+               <span class="status-badge">${order.status}</span>
+           </div>
+
+           <div class="info-grid two-col">
+               <div class="field">
+                   <span class="field-label">Khách hàng</span>
+                   <span class="field-value">${order.customerName}</span>
+               </div>
+               <div class="field">
+                   <span class="field-label">Điện thoại</span>
+                   <span class="field-value">${order.phone}</span>
+               </div>
+               <div class="field full-width">
+                   <span class="field-label">Địa chỉ</span>
+                   <span class="field-value">${order.address || "Chưa cập nhật"}</span>
+               </div>
+           </div>
+
+           <div class="section-label">Sản phẩm trong đơn</div>
+           <div class="order-product-list">
+               ${items.map((item) => {
+                   const product = getProductById(item.id) || {};
+                   const image = item.image || product.image || "https://images.contentstack.io/v3/assets/bltdd99f24e8a94d536/bltce6d6c480577e10e/5d4866eff9ece57fa9a82245/flowers.png?quality=60&auto=webp&optimize={medium}";
+                   return `
+                       <div class="product-card">
+                           <img src="${image}" alt="${item.title}">
+                           <div class="product-card-content">
+                               <strong>${item.title}</strong>
+                               <span>Số lượng: ${item.quantity}</span>
+                               <span>Giá: ${moneyFormat(item.price)}</span>
+                           </div>
+                       </div>
+                   `;
+               }).join("")}
+           </div>
+
+           ${!order.completedAt ? `
+               <div class="reply-box compact-box">
+                   <label class="field-label">Lịch trình vận chuyển</label>
+                   <div class="tracking-admin-fields">
+                       <label>
+                           Vị trí hiện tại
+                           <input class="tracking-location" data-order-id="${order.id}" value="${escapeHtml(order.currentLocation || "")}" placeholder="Ví dụ: Đang giao tại Quận 1">
+                       </label>
+                       <label>
+                           Dự kiến giao đến
+                           <input class="tracking-eta" data-order-id="${order.id}" type="datetime-local" value="${escapeHtml(toDateTimeLocal(order.estimatedDelivery))}">
+                       </label>
+                   </div>
+               </div>
+           ` : ""}
+
+           ${order.completedAt ? `
+               <div class="completion-meta">Hoàn thành lúc ${new Date(order.completedAt).toLocaleString("vi-VN")}</div>
+               ${showCompletionAction ? `<div class="status-row">${renderCompletionAction("orders", order)}</div>` : ""}
+           ` : `
+               <div class="reply-box compact-box">
+                   <label class="field-label">Cập nhật trạng thái</label>
+                   <div class="status-row">
+                       <select class="status-select" data-order-id="${order.id}">
+                           ${ORDER_STATUSES.map((status) => `
+                               <option value="${status}" ${status === order.status ? "selected" : ""}>${status}</option>
+                           `).join("")}
+                       </select>
+                       <button class="status-save" data-order-id="${order.id}">Cập nhật trạng thái</button>
+                       ${showCompletionAction ? renderCompletionAction("orders", order) : ""}
+                   </div>
+               </div>
+           `}
+       </div>
+   `;
+}
+
 function escapeHtml(value) {
     return String(value ?? "").replace(/[&<>"']/g, (character) => ({
          "&": "&amp;",
@@ -347,194 +483,186 @@ function renderOrdersTab() {
        "Giao hàng thất bại": 4,
        "Từ chối đơn hàng": 5
    };
-   const orders = getOrders().sort((first, second) => {
+   const sortedOrders = getOrders().sort((first, second) => {
        const priorityDifference = (statusPriority[first.status] ?? 1) - (statusPriority[second.status] ?? 1);
        if (priorityDifference !== 0) return priorityDifference;
        return new Date(second.createdAt).getTime() - new Date(first.createdAt).getTime();
    });
+   const orders = sortedOrders.filter((order) => !order.completedAt);
+   const completedOrders = sortedOrders.filter((order) => order.completedAt);
    main.innerHTML = `
        <section class="panel">
            <h2>Quản lý đơn hàng</h2>
            <div class="list-stack">
-               ${orders.length ? orders.map((order) => `
-                   <div class="order-item content-card">
-                       <div class="card-header">
-                           <div>
-                               <div class="title-row">
-                                   <span class="card-icon">🧾</span>
-                                   <strong>Đơn #${order.id} - ${order.customerName}</strong>
-                               </div>
-                               <div class="order-meta">
-                                   <span>📞 ${order.phone}</span>
-                                   <span>🕒 ${new Date(order.createdAt).toLocaleString("vi-VN")}</span>
-                                   <span>💰 ${moneyFormat(order.total)}</span>
-                               </div>
-                           </div>
-                           <span class="status-badge">${order.status}</span>
-                       </div>
-
-                       <div class="info-grid two-col">
-                           <div class="field">
-                               <span class="field-label">Khách hàng</span>
-                               <span class="field-value">${order.customerName}</span>
-                           </div>
-                           <div class="field">
-                               <span class="field-label">Điện thoại</span>
-                               <span class="field-value">${order.phone}</span>
-                           </div>
-                           <div class="field full-width">
-                               <span class="field-label">Địa chỉ</span>
-                               <span class="field-value">${order.address || "Chưa cập nhật"}</span>
-                           </div>
-                       </div>
-
-                       <div class="section-label">Sản phẩm trong đơn</div>
-                       <div class="order-product-list">
-                           ${order.items.map((item) => {
-                               const product = getProductById(item.id) || {};
-                               const image = item.image || product.image || "https://images.contentstack.io/v3/assets/bltdd99f24e8a94d536/bltce6d6c480577e10e/5d4866eff9ece57fa9a82245/flowers.png?quality=60&auto=webp&optimize={medium}";
-                               return `
-                                   <div class="product-card">
-                                       <img src="${image}" alt="${item.title}">
-                                       <div class="product-card-content">
-                                           <strong>${item.title}</strong>
-                                           <span>Số lượng: ${item.quantity}</span>
-                                           <span>Giá: ${moneyFormat(item.price)}</span>
-                                       </div>
-                                   </div>
-                               `;
-                           }).join("")}
-                       </div>
-
-                       <div class="reply-box compact-box">
-                           <label class="field-label">Lịch trình vận chuyển</label>
-                           <div class="tracking-admin-fields">
-                               <label>
-                                   Vị trí hiện tại
-                                   <input class="tracking-location" data-order-id="${order.id}" value="${escapeHtml(order.currentLocation || "")}" placeholder="Ví dụ: Đang giao tại Quận 1">
-                               </label>
-                               <label>
-                                   Dự kiến giao đến
-                                   <input class="tracking-eta" data-order-id="${order.id}" type="datetime-local" value="${escapeHtml(toDateTimeLocal(order.estimatedDelivery))}">
-                               </label>
-                           </div>
-                       </div>
-
-                       <div class="reply-box compact-box">
-                           <label class="field-label">Trạng thái đơn hàng</label>
-                           <div class="status-row">
-                               <select class="status-select" data-order-id="${order.id}">
-                                   ${ORDER_STATUSES.map(status => `
-                                       <option value="${status}" ${status === order.status ? "selected" : ""}>${status}</option>
-                                   `).join("")}
-                               </select>
-                               <button class="status-save" data-order-id="${order.id}">Lưu lịch trình</button>
-                               <button class="delete-record" data-record-type="orders" data-record-id="${order.id}" type="button">Xóa đơn hàng</button>
-                           </div>
-                       </div>
-                   </div>
-               `).join("") : '<div class="empty-state">Chưa có đơn hàng nào.</div>'}
+               ${orders.length ? orders.map(renderActiveOrderSummary).join("") : '<div class="empty-state">Không có đơn hàng nào cần xử lý.</div>'}
            </div>
+           ${renderCompletedSection(completedOrders, renderCompletedOrderSummary, "đơn hàng")}
        </section>
+   `;
+}
+
+function renderReviewCard(review, showCompletionAction = true) {
+   return `
+       <div class="review-item feedback-card content-card">
+           <div class="card-header">
+               <div>
+                   <div class="title-row">
+                       <span class="card-icon">⭐</span>
+                       <strong>${review.customerName}</strong>
+                   </div>
+                   <div class="review-meta">
+                       <span>📞 ${review.phone}</span>
+                       <span>🕒 ${new Date(review.createdAt).toLocaleString("vi-VN")}</span>
+                   </div>
+               </div>
+               <div class="card-actions">
+                   <span class="card-tag card-tag-review">Đánh giá</span>
+                   ${showCompletionAction ? renderCompletionAction("reviews", review) : ""}
+               </div>
+           </div>
+
+           <div class="info-grid two-col">
+               <div class="field">
+                   <span class="field-label">Sản phẩm</span>
+                   <span class="field-value">${review.productName}</span>
+               </div>
+               <div class="field">
+                   <span class="field-label">Xếp hạng</span>
+                   <span class="field-value rating-value">${"★".repeat(Number(review.rating || 0))}${"☆".repeat(5 - Number(review.rating || 0))}</span>
+               </div>
+           </div>
+
+           <div class="section-label">Nội dung đánh giá</div>
+           <div class="detail-block quote-box">${review.comment || "Không có nhận xét"}</div>
+
+           <div class="reply-box">
+               <label class="field-label">Phản hồi của bạn</label>
+               <textarea class="reply-input" data-review-id="${review.id}" placeholder="Nhập phản hồi cho khách hàng...">${review.reply || ""}</textarea>
+               <button class="send-reply" data-review-id="${review.id}">Gửi phản hồi</button>
+           </div>
+       </div>
+   `;
+}
+
+function renderCompletedReviewSummary(review) {
+   return renderReviewSummary(review);
+}
+
+function renderActiveReviewSummary(review) {
+   return renderReviewSummary(review);
+}
+
+function renderReviewSummary(review) {
+   return `
+       <article class="record-summary">
+           <div class="completed-order-info">
+               <strong>${review.customerName} · ${review.productName}</strong>
+               <span class="rating-value">${"★".repeat(Number(review.rating || 0))}${"☆".repeat(5 - Number(review.rating || 0))}</span>
+               <span class="record-summary-preview"><b>Đánh giá:</b> ${review.comment || "Không có nhận xét"}</span>
+               <span><b>Thời gian:</b> ${new Date(review.createdAt).toLocaleString("vi-VN")}</span>
+           </div>
+           <div class="record-summary-actions">
+               <button class="secondary-btn show-record-details" data-record-type="reviews" data-record-id="${review.id}" type="button" aria-expanded="false">Xem chi tiết</button>
+           </div>
+           <div class="record-details" data-record-details="reviews:${review.id}" hidden>
+               ${renderReviewCard(review)}
+           </div>
+       </article>
    `;
 }
 
 function renderReviewsTab() {
    const reviews = getReviews();
+   const activeReviews = reviews.filter((review) => !review.completedAt);
+   const completedReviews = reviews.filter((review) => review.completedAt);
    main.innerHTML = `
        <section class="panel">
            <h2>Đánh giá khách hàng</h2>
            <div class="list-stack">
-               ${reviews.length ? reviews.map((review) => `
-                   <div class="review-item feedback-card content-card">
-                       <div class="card-header">
-                           <div>
-                               <div class="title-row">
-                                   <span class="card-icon">⭐</span>
-                                   <strong>${review.customerName}</strong>
-                               </div>
-                               <div class="review-meta">
-                                   <span>📞 ${review.phone}</span>
-                                   <span>🕒 ${new Date(review.createdAt).toLocaleString("vi-VN")}</span>
-                               </div>
-                           </div>
-                           <div class="card-actions">
-                               <span class="card-tag card-tag-review">Đánh giá</span>
-                               <button class="delete-record" data-record-type="reviews" data-record-id="${review.id}" type="button">Xóa đánh giá</button>
-                           </div>
-                       </div>
-
-                       <div class="info-grid two-col">
-                           <div class="field">
-                               <span class="field-label">Sản phẩm</span>
-                               <span class="field-value">${review.productName}</span>
-                           </div>
-                           <div class="field">
-                               <span class="field-label">Xếp hạng</span>
-                               <span class="field-value rating-value">${"★".repeat(Number(review.rating || 0))}${"☆".repeat(5 - Number(review.rating || 0))}</span>
-                           </div>
-                       </div>
-
-                       <div class="section-label">Nội dung đánh giá</div>
-                       <div class="detail-block quote-box">${review.comment || "Không có nhận xét"}</div>
-
-                       <div class="reply-box">
-                           <label class="field-label">Phản hồi của bạn</label>
-                           <textarea class="reply-input" data-review-id="${review.id}" placeholder="Nhập phản hồi cho khách hàng...">${review.reply || ""}</textarea>
-                           <button class="send-reply" data-review-id="${review.id}">Gửi phản hồi</button>
-                       </div>
-                   </div>
-               `).join("") : '<div class="empty-state">Chưa có đánh giá nào.</div>'}
+               ${activeReviews.length ? activeReviews.map(renderActiveReviewSummary).join("") : '<div class="empty-state">Không có đánh giá nào cần xử lý.</div>'}
            </div>
+           ${renderCompletedSection(completedReviews, renderCompletedReviewSummary, "đánh giá")}
        </section>
+   `;
+}
+
+function renderMessageCard(message, showCompletionAction = true) {
+   return `
+       <div class="message-item feedback-card content-card">
+           <div class="card-header">
+               <div>
+                   <div class="title-row">
+                       <span class="card-icon">💬</span>
+                       <strong>${message.customerName}</strong>
+                   </div>
+                   <div class="message-meta">
+                       <span>📞 ${message.phone}</span>
+                       <span>🕒 ${new Date(message.createdAt).toLocaleString("vi-VN")}</span>
+                   </div>
+               </div>
+               <div class="card-actions">
+                   <span class="card-tag card-tag-message">Phản hồi</span>
+                   ${showCompletionAction ? renderCompletionAction("messages", message) : ""}
+               </div>
+           </div>
+
+           <div class="info-grid single-col">
+               <div class="field">
+                   <span class="field-label">Chủ đề</span>
+                   <span class="field-value">${message.subject || "Tư vấn đặt hàng"}</span>
+               </div>
+           </div>
+
+           <div class="section-label">Nội dung khách nhắn</div>
+           <div class="detail-block quote-box">${message.message}</div>
+           ${message.reply ? `<div class="reply-banner"><strong>Phản hồi của bạn:</strong> ${message.reply}</div>` : ""}
+
+           <div class="reply-box">
+               <label class="field-label">Trả lời khách</label>
+               <textarea class="reply-input" data-message-id="${message.id}" placeholder="Nhập câu trả lời cho khách hàng...">${message.reply || ""}</textarea>
+               <button class="send-reply" data-message-id="${message.id}">Trả lời</button>
+           </div>
+       </div>
+   `;
+}
+
+function renderCompletedMessageSummary(message) {
+   return renderMessageSummary(message);
+}
+
+function renderActiveMessageSummary(message) {
+   return renderMessageSummary(message);
+}
+
+function renderMessageSummary(message) {
+   return `
+       <article class="record-summary">
+           <div class="completed-order-info">
+               <strong>${message.customerName} · ${message.subject || "Tư vấn đặt hàng"}</strong>
+               <span class="record-summary-preview"><b>Nội dung:</b> ${message.message}</span>
+               <span><b>Thời gian:</b> ${new Date(message.createdAt).toLocaleString("vi-VN")}</span>
+           </div>
+           <div class="record-summary-actions">
+               <button class="secondary-btn show-record-details" data-record-type="messages" data-record-id="${message.id}" type="button" aria-expanded="false">Xem chi tiết</button>
+           </div>
+           <div class="record-details" data-record-details="messages:${message.id}" hidden>
+               ${renderMessageCard(message)}
+           </div>
+       </article>
    `;
 }
 
 function renderMessagesTab() {
    const messages = getMessages();
+   const activeMessages = messages.filter((message) => !message.completedAt);
+   const completedMessages = messages.filter((message) => message.completedAt);
    main.innerHTML = `
        <section class="panel">
            <h2>Phản hồi từ khách hàng</h2>
            <div class="list-stack">
-               ${messages.length ? messages.map((message) => `
-                   <div class="message-item feedback-card content-card">
-                       <div class="card-header">
-                           <div>
-                               <div class="title-row">
-                                   <span class="card-icon">💬</span>
-                                   <strong>${message.customerName}</strong>
-                               </div>
-                               <div class="message-meta">
-                                   <span>📞 ${message.phone}</span>
-                                   <span>🕒 ${new Date(message.createdAt).toLocaleString("vi-VN")}</span>
-                               </div>
-                           </div>
-                           <div class="card-actions">
-                               <span class="card-tag card-tag-message">Phản hồi</span>
-                               <button class="delete-record" data-record-type="messages" data-record-id="${message.id}" type="button">Xóa phản hồi</button>
-                           </div>
-                       </div>
-
-                       <div class="info-grid single-col">
-                           <div class="field">
-                               <span class="field-label">Chủ đề</span>
-                               <span class="field-value">${message.subject || "Tư vấn đặt hàng"}</span>
-                           </div>
-                       </div>
-
-                       <div class="section-label">Nội dung khách nhắn</div>
-                       <div class="detail-block quote-box">${message.message}</div>
-
-                       ${message.reply ? `<div class="reply-banner"><strong>Phản hồi của bạn:</strong> ${message.reply}</div>` : ""}
-
-                       <div class="reply-box">
-                           <label class="field-label">Trả lời khách</label>
-                           <textarea class="reply-input" data-message-id="${message.id}" placeholder="Nhập câu trả lời cho khách hàng...">${message.reply || ""}</textarea>
-                           <button class="send-reply" data-message-id="${message.id}">Trả lời</button>
-                       </div>
-                   </div>
-               `).join("") : '<div class="empty-state">Chưa có tin nhắn nào.</div>'}
+               ${activeMessages.length ? activeMessages.map(renderActiveMessageSummary).join("") : '<div class="empty-state">Không có phản hồi nào cần xử lý.</div>'}
            </div>
+           ${renderCompletedSection(completedMessages, renderCompletedMessageSummary, "phản hồi")}
        </section>
    `;
 }
@@ -663,6 +791,36 @@ function deleteAdminRecord(type, id) {
    }
 
    localStorage.setItem(record.key, JSON.stringify(remainingRecords));
+   record.render();
+}
+
+function setRecordCompletion(type, id, completed) {
+   const records = {
+       orders: { key: STORAGE_KEYS.orders, label: "đơn hàng", render: renderOrdersTab },
+       reviews: { key: STORAGE_KEYS.reviews, label: "đánh giá", render: renderReviewsTab },
+       messages: { key: STORAGE_KEYS.messages, label: "phản hồi", render: renderMessagesTab }
+   };
+   const record = records[type];
+   if (!record) {
+       console.error("Không thể cập nhật mục hoàn thành không hợp lệ:", type);
+       return;
+   }
+
+   const savedRecords = JSON.parse(localStorage.getItem(record.key) || "[]");
+   let found = false;
+   const updatedRecords = savedRecords.map((item) => {
+       if (String(item.id) !== String(id)) return item;
+       found = true;
+       if (completed) return { ...item, completedAt: new Date().toISOString() };
+       const { completedAt, ...restoredItem } = item;
+       return restoredItem;
+   });
+   if (!found) {
+       console.error(`Không tìm thấy ${record.label} cần cập nhật:`, id);
+       return;
+   }
+
+   localStorage.setItem(record.key, JSON.stringify(updatedRecords));
    record.render();
 }
 
@@ -819,9 +977,33 @@ if (logOutPage) {
 }
 
 main.addEventListener("click", (event) => {
+   const detailsButton = event.target.closest(".show-record-details");
+   if (detailsButton) {
+       const details = [...main.querySelectorAll(".record-details")]
+           .find((element) => element.dataset.recordDetails === `${detailsButton.dataset.recordType}:${detailsButton.dataset.recordId}`);
+       if (details) {
+           details.hidden = !details.hidden;
+           detailsButton.setAttribute("aria-expanded", String(!details.hidden));
+           detailsButton.textContent = details.hidden ? "Xem chi tiết" : "Ẩn chi tiết";
+       }
+       return;
+   }
+
    const deleteButton = event.target.closest(".delete-record");
    if (deleteButton) {
        deleteAdminRecord(deleteButton.dataset.recordType, deleteButton.dataset.recordId);
+       return;
+   }
+
+   const completeButton = event.target.closest(".complete-record");
+   if (completeButton) {
+       setRecordCompletion(completeButton.dataset.recordType, completeButton.dataset.recordId, true);
+       return;
+   }
+
+   const restoreButton = event.target.closest(".restore-record");
+   if (restoreButton) {
+       setRecordCompletion(restoreButton.dataset.recordType, restoreButton.dataset.recordId, false);
        return;
    }
 

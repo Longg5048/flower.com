@@ -2,7 +2,7 @@
   "name": "flowerflow-web",
   "private": true,
   "engines": {
-    "node": "20.x"
+    "node": "24.x"
   },
   "scripts": {
     "set-admin": "node scripts/set-admin-claim.js"

@@ -16,6 +16,7 @@ const merged = mergeCatalogProducts(existing, catalog);
 assert.strictEqual(Array.isArray(merged), true);
 assert.strictEqual(merged.length, 3);
 assert.strictEqual(merged.find((item) => item.id === 1).title, 'Hoa hồng cập nhật');
+assert.strictEqual(merged.find((item) => item.id === 1).quantity, 10);
 assert.strictEqual(merged.find((item) => item.id === 2).title, 'Hoa cúc');
 assert.strictEqual(normalizeProduct({ id: '7', title: '  Hoa tulip  ', price: '750.99', quantity: '9', image: 'tulip.jpg' }).price, 750.99);
 assert.strictEqual(

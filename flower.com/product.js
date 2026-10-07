@@ -29,6 +29,7 @@ function display(data) {
         let img = document.createElement("img")
         let title = document.createElement("h2")
         let price = document.createElement("h3")
+        let stock = document.createElement("p")
         let btn = document.createElement("button")
         let btn2 = document.createElement("button")
 
@@ -36,7 +37,11 @@ function display(data) {
         img.src = el.image
         title.innerText = getVietnameseProductName(el.title)
         price.innerText = formatVnd(el.price)
-        btn.innerText = "Thêm vào giỏ hàng"
+        const quantity = Math.max(0, Number(el.quantity) || 0)
+        stock.className = quantity > 0 ? "stock-status" : "stock-status out-of-stock"
+        stock.innerText = quantity > 0 ? `Còn hàng: ${quantity}` : "Hết hàng"
+        btn.innerText = quantity > 0 ? "Thêm vào giỏ hàng" : "Hết hàng"
+        btn.disabled = quantity === 0
         btn2.innerText = "Thêm vào yêu thích"
 
         // Clssess
@@ -95,7 +100,7 @@ function display(data) {
         // Appending to Main 
         box2.append(img)
         box3.append(btn, btn2)
-        box.append(box2, title, price, box3)
+        box.append(box2, title, price, stock, box3)
         container.append(box)
     });
 

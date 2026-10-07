@@ -42,6 +42,15 @@
     min-width:0;
     overflow-wrap:anywhere;
 }
+#container .stock-status{
+    margin: 4px 10px 10px;
+    text-align: center;
+    color: #39734b;
+    font-weight: 600;
+}
+#container .stock-status.out-of-stock{
+    color: #a33;
+}
 #container #wish{
     display:flex;
     flex-wrap:wrap;
@@ -73,6 +82,10 @@
     margin-right: 18px; */
     margin: 0px 18px 20px 18px;
     font-size: medium;
+}
+#container button:disabled{
+    background-color: #999;
+    cursor: not-allowed;
 }
 
 main{

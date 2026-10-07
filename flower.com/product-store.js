@@ -118,7 +118,32 @@
         }
     }
 
-    function subscribeToProducts() {
+    async function syncMissingRemoteProducts(remoteProducts, products, markCatalogSeeded = false) {
+        const firebase = await getFirebaseApi();
+        if (!firebase) return false;
+        try {
+            const { db, firestoreSdk } = firebase;
+            const existingIds = new Set(remoteProducts.map((product) => String(normalizeProduct(product).id)));
+            const missingProducts = products.filter((product) => !existingIds.has(String(normalizeProduct(product).id)));
+            if (!missingProducts.length && !markCatalogSeeded) return true;
+
+            const batch = firestoreSdk.writeBatch(db);
+            missingProducts.forEach((product) => {
+                const normalized = normalizeProduct(product);
+                batch.set(firestoreSdk.doc(db, "products", String(normalized.id)), normalized);
+            });
+            if (markCatalogSeeded) {
+                batch.set(firestoreSdk.doc(db, "metadata", "productCatalog"), { catalogSeeded: true });
+            }
+            await batch.commit();
+            return true;
+        } catch (error) {
+            console.warn("Không thể bổ sung sản phẩm còn thiếu trên Firestore:", error);
+            return false;
+        }
+    }
+
+    function subscribeToProducts(catalog) {
         if (unsubscribeProducts) return;
         getFirebaseApi().then((firebase) => {
             if (!firebase || unsubscribeProducts) return;
@@ -127,7 +152,8 @@
                 firestoreSdk.collection(db, "products"),
                 (snapshot) => {
                     if (snapshot.empty) return;
-                    cacheProducts(snapshot.docs.map((doc) => ({ ...doc.data(), id: doc.id })));
+                    const remoteProducts = snapshot.docs.map((doc) => ({ ...doc.data(), id: doc.id }));
+                    cacheProducts(mergeCatalogProducts(remoteProducts, catalog));
                 },
                 (error) => console.warn("Không nhận được cập nhật sản phẩm:", error)
             );
@@ -180,23 +206,17 @@
                     }
                 }
 
-                if (isAdmin && !catalogSeeded) {
-                    const seedProducts = mergeCatalogProducts(remoteProducts.length ? remoteProducts : localProducts, catalog);
-                    if (seedProducts.length) {
-                        const saved = await writeRemoteProducts(seedProducts, true);
-                        products = saved ? seedProducts : remoteProducts.length ? remoteProducts : seedProducts;
-                    } else {
-                        products = remoteProducts;
-                    }
-                } else {
-                    products = remoteProducts.length ? remoteProducts : localProducts.length ? localProducts : catalog;
+                const existingProducts = remoteProducts.length ? remoteProducts : localProducts;
+                products = mergeCatalogProducts(existingProducts, catalog);
+                if (isAdmin) {
+                    await syncMissingRemoteProducts(remoteProducts, products, !catalogSeeded);
                 }
             } else {
-                products = localProducts.length ? localProducts : catalog;
+                products = mergeCatalogProducts(localProducts, catalog);
             }
 
             cacheProducts(products, false);
-            subscribeToProducts();
+            subscribeToProducts(catalog);
             return products;
         })().finally(() => {
             initialization = null;

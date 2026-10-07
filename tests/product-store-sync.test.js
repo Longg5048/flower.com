@@ -19,4 +19,24 @@ assert.strictEqual(merged.find((item) => item.id === 1).title, 'Hoa hồng cập
 assert.strictEqual(merged.find((item) => item.id === 2).title, 'Hoa cúc');
 assert.strictEqual(normalizeProduct({ id: '7', title: '  Hoa tulip  ', price: '750000', quantity: '9', image: 'tulip.jpg' }).price, 750000);
 
+const partialRemote = [
+  { id: 1, title: 'Hoa hồng cập nhật', price: 260000, quantity: 2, image: 'rose.jpg', description: 'Hoa hồng đỏ' },
+];
+const restoredCatalog = mergeCatalogProducts(partialRemote, catalog);
+
+assert.strictEqual(restoredCatalog.length, 2);
+assert.strictEqual(restoredCatalog.find((item) => item.id === 1).quantity, 2);
+assert.strictEqual(restoredCatalog.find((item) => item.id === 2).quantity, 5);
+
+const fullCatalog = require('../flower.com/flower.json').flower;
+const restoredFullCatalog = mergeCatalogProducts(
+  [{ ...fullCatalog[0], quantity: 2 }, { id: 999, title: 'Hoa tùy chỉnh', quantity: 3 }],
+  fullCatalog
+);
+
+assert.strictEqual(fullCatalog.length, 48);
+assert.strictEqual(restoredFullCatalog.length, 49);
+assert.strictEqual(restoredFullCatalog.find((item) => item.id === fullCatalog[0].id).quantity, 2);
+assert.strictEqual(restoredFullCatalog.find((item) => item.id === 999).title, 'Hoa tùy chỉnh');
+
 console.log('product-store sync test passed');

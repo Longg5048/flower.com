@@ -420,6 +420,22 @@ function renderOrderCard(order, showCompletionAction = true) {
                }).join("")}
            </div>
 
+           ${!order.completedAt ? `
+               <div class="reply-box compact-box">
+                   <label class="field-label">Lịch trình vận chuyển</label>
+                   <div class="tracking-admin-fields">
+                       <label>
+                           Vị trí hiện tại
+                           <input class="tracking-location" data-order-id="${order.id}" value="${escapeHtml(order.currentLocation || "")}" placeholder="Ví dụ: Đang giao tại Quận 1">
+                       </label>
+                       <label>
+                           Dự kiến giao đến
+                           <input class="tracking-eta" data-order-id="${order.id}" type="datetime-local" value="${escapeHtml(toDateTimeLocal(order.estimatedDelivery))}">
+                       </label>
+                   </div>
+               </div>
+           ` : ""}
+
            ${order.completedAt ? `
                <div class="completion-meta">Hoàn thành lúc ${new Date(order.completedAt).toLocaleString("vi-VN")}</div>
                ${showCompletionAction ? `<div class="status-row">${renderCompletionAction("orders", order)}</div>` : ""}
@@ -439,6 +455,23 @@ function renderOrderCard(order, showCompletionAction = true) {
            `}
        </div>
    `;
+}
+
+function escapeHtml(value) {
+    return String(value ?? "").replace(/[&<>"']/g, (character) => ({
+         "&": "&amp;",
+         "<": "&lt;",
+         ">": "&gt;",
+         '"': "&quot;",
+         "'": "&#39;"
+    })[character]);
+}
+
+function toDateTimeLocal(value) {
+    if (!value) return "";
+    const date = new Date(value);
+    if (Number.isNaN(date.getTime())) return "";
+    return new Date(date.getTime() - date.getTimezoneOffset() * 60000).toISOString().slice(0, 16);
 }
 
 function renderOrdersTab() {
@@ -674,13 +707,38 @@ function addNewProduct(event) {
    renderProductTab();
 }
 
-function updateOrderStatus(orderId, status) {
+function updateOrderStatus(orderId, status, location, estimatedDelivery) {
+   if (status === "Đã vận chuyển" && (!location || !estimatedDelivery)) {
+       alert("Vui lòng nhập vị trí hiện tại và thời gian dự kiến giao hàng.");
+       return;
+   }
+
    const orders = getOrders();
+   const updatedAt = new Date().toISOString();
    const nextOrders = orders.map((order) => {
-       if (String(order.id) === String(orderId)) {
-           return { ...order, status };
-       }
-       return order;
+       if (String(order.id) !== String(orderId)) return order;
+
+       const trackingHistory = Array.isArray(order.trackingHistory) && order.trackingHistory.length
+           ? order.trackingHistory
+           : [{
+               status: order.status,
+               location: order.currentLocation || "Đơn hàng đã được tạo",
+               estimatedDelivery: order.estimatedDelivery || "",
+               updatedAt: order.createdAt || updatedAt
+           }];
+       const hasChanges = order.status !== status
+           || (order.currentLocation || "") !== location
+           || (order.estimatedDelivery || "") !== estimatedDelivery;
+       if (!hasChanges) return order;
+
+       return {
+           ...order,
+           status,
+           currentLocation: location,
+           estimatedDelivery,
+           trackingUpdatedAt: updatedAt,
+           trackingHistory: [...trackingHistory, { status, location, estimatedDelivery, updatedAt }]
+       };
    });
    localStorage.setItem(STORAGE_KEYS.orders, JSON.stringify(nextOrders));
    renderOrdersTab();
@@ -962,8 +1020,10 @@ main.addEventListener("click", (event) => {
    if (statusSave) {
        const orderId = statusSave.dataset.orderId;
        const select = document.querySelector(`.status-select[data-order-id="${orderId}"]`);
-       if (select) {
-           updateOrderStatus(orderId, select.value);
+       const location = document.querySelector(`.tracking-location[data-order-id="${orderId}"]`);
+       const estimatedDelivery = document.querySelector(`.tracking-eta[data-order-id="${orderId}"]`);
+       if (select && location && estimatedDelivery) {
+           updateOrderStatus(orderId, select.value, location.value.trim(), estimatedDelivery.value);
        }
    }
 

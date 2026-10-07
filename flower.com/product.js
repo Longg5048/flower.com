@@ -191,7 +191,7 @@ wishlistLink.onclick = () => {
 };
 let order = document.querySelector(".orders");
 order.onclick = () => {
-  location.href = "./cart.html";
+  location.href = "./tracking.html";
 };
 
 

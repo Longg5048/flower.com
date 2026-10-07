@@ -28,7 +28,7 @@ flowchart LR
 | Danh mục hoa | `product.html`, `product.js`, `product.css` | Tải catalog, tìm kiếm, lọc, sắp xếp và thêm sản phẩm |
 | Wishlist | `wish.html`, `wish.js`, `wish.css` | Hiển thị, thêm vào giỏ và xóa sản phẩm yêu thích |
 | Giỏ hàng | `cart.html`, `styles/cart.css` | Cập nhật số lượng, xóa sản phẩm và tính tổng |
-| Thanh toán | `checkout.html`, `placeorder.html` | Hiển thị thông tin giao hàng, phương thức thanh toán và xác nhận đơn |
+| Thanh toán và theo dõi đơn | `checkout.html`, `placeorder.html`, `tracking.html` | Thu thập thông tin giao hàng, xác nhận đơn và tra cứu trạng thái/lịch trình |
 | Tài khoản demo | `login.html`, `login.js`, `account.html` | Đăng ký/đăng nhập, xem hồ sơ và đăng xuất |
 | Quản trị sản phẩm | `admin.html`, `admin.js`, `admin.css` | Đọc, thêm, sửa và xóa sản phẩm qua MockAPI |
 

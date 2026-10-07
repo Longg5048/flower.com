@@ -8,10 +8,6 @@ const signupDisplay = document.getElementById("signup-display");
 const signIn = document.querySelector("#signIn");
 const signUp = document.querySelector("#signUp");
 const accountStorageKey = "usersData";
-const adminCredentials = {
-    email: "admin@flower.com",
-    password: "admin123"
-};
 
 let firebaseAuthApiPromise;
 
@@ -129,6 +125,29 @@ function saveCustomerSession(user, provider) {
     }
 }
 
+async function saveAuthenticatedSession(user, provider) {
+    const token = await user.getIdTokenResult();
+    if (token.claims.admin === true) {
+        try {
+            localStorage.setItem("loggedUser", JSON.stringify({
+                name: user.displayName || "Admin",
+                email: user.email || "",
+                uid: user.uid || "",
+                authProvider: provider,
+                role: "admin"
+            }));
+            localStorage.setItem("loggedAdmin", "true");
+            window.location.assign("./admin.html");
+        } catch (error) {
+            console.error("Không thể lưu phiên quản trị:", error);
+            showMessage("Đăng nhập được nhưng không thể lưu phiên trên trình duyệt này.");
+        }
+        return;
+    }
+
+    saveCustomerSession(user, provider);
+}
+
 async function signInWithGoogle(event) {
     const button = event.currentTarget;
     if (!isFirebaseConfigured) {
@@ -149,7 +168,7 @@ async function signInWithGoogle(event) {
         showFormMessage(button.closest("form")?.querySelector('[role="status"]') || display,
             "Đang mở cửa sổ đăng nhập Google...", false);
         const result = await authApi.signInWithPopup(authApi.auth, provider);
-        saveCustomerSession(result.user, "google");
+        await saveAuthenticatedSession(result.user, "google");
     } catch (error) {
         console.error("Đăng nhập Google thất bại:", error);
         showFormMessage(button.closest("form")?.querySelector('[role="status"]') || display,
@@ -168,7 +187,7 @@ async function completeGoogleRedirect() {
         const authApi = await getFirebaseAuthApi();
         const result = await authApi.getRedirectResult(authApi.auth);
         if (result?.user) {
-            saveCustomerSession(result.user, "google");
+            await saveAuthenticatedSession(result.user, "google");
         }
     } catch (error) {
         console.error("Không thể hoàn tất đăng nhập Google:", error);
@@ -233,27 +252,11 @@ signIn.addEventListener("submit", async (event) => {
     const email = document.getElementById("email1").value.trim().toLowerCase();
     const password = document.getElementById("password1").value;
 
-    if (email === adminCredentials.email && password === adminCredentials.password) {
-        try {
-            localStorage.setItem("loggedUser", JSON.stringify({
-                name: "Admin",
-                email: adminCredentials.email,
-                role: "admin"
-            }));
-            localStorage.setItem("loggedAdmin", "true");
-            window.location.assign("./admin.html");
-        } catch (error) {
-            console.error("Không thể lưu phiên quản trị:", error);
-            showMessage("Không thể lưu phiên đăng nhập trên trình duyệt này.");
-        }
-        return;
-    }
-
     if (isFirebaseConfigured) {
         try {
             const authApi = await getFirebaseAuthApi();
             const credential = await authApi.signInWithEmailAndPassword(authApi.auth, email, password);
-            saveCustomerSession(credential.user, "password");
+            await saveAuthenticatedSession(credential.user, "password");
         } catch (error) {
             console.error("Đăng nhập Firebase thất bại:", error);
 

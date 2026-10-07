@@ -1,10 +1,14 @@
+import { firebaseConfig } from "./firebase-config.js";
+
 let productPage = document.getElementById("product_page");
 let ordersPage = document.getElementById("orders_page");
 let reviewsPage = document.getElementById("reviews_page");
 let messagesPage = document.getElementById("messages_page");
 let revenuePage = document.getElementById("revenue_page");
+let usersPage = document.getElementById("users_page");
 let logOutPage = document.getElementById("logout_page");
 let main = document.querySelector("main");
+let currentUser;
 
 const STORAGE_KEYS = {
    products: "flowerInventory",
@@ -568,6 +572,125 @@ function updateMessageReply(messageId, reply) {
    renderMessagesTab();
 }
 
+function renderUsersTab() {
+   main.innerHTML = `
+       <section class="panel">
+           <div class="users-heading">
+               <div>
+                   <h2>Tài khoản Firebase</h2>
+                   <p class="users-description">Thông tin tài khoản và phương thức đăng nhập. Danh sách Firebase không trả về mật khẩu.</p>
+               </div>
+               <button class="primary-btn" id="refresh-users" type="button">Tải lại</button>
+           </div>
+           <div class="table-wrap">
+               <table class="users-table">
+                   <thead>
+                       <tr>
+                           <th>Tên</th>
+                           <th>Email</th>
+                           <th>Phương thức</th>
+                           <th>UID</th>
+                           <th>Tạo tài khoản</th>
+                           <th>Đăng nhập gần nhất</th>
+                           <th>Trạng thái</th>
+                       </tr>
+                   </thead>
+                   <tbody id="firebase-users"></tbody>
+               </table>
+           </div>
+           <p class="users-status" id="users-status" role="status" aria-live="polite"></p>
+           <button class="secondary-btn" id="load-more-users" type="button" hidden>Tải thêm</button>
+       </section>
+   `;
+   loadFirebaseUsers();
+
+   document.getElementById("refresh-users").addEventListener("click", () => loadFirebaseUsers());
+   document.getElementById("load-more-users").addEventListener("click", (event) => {
+       loadFirebaseUsers(event.currentTarget.dataset.pageToken);
+   });
+}
+
+function formatUserDate(value) {
+   if (!value) return "Chưa có";
+   const date = new Date(value);
+   return Number.isNaN(date.getTime()) ? "Không xác định" : date.toLocaleString("vi-VN");
+}
+
+async function loadFirebaseUsers(pageToken) {
+   const status = document.getElementById("users-status");
+   const tbody = document.getElementById("firebase-users");
+   const loadMore = document.getElementById("load-more-users");
+   const refresh = document.getElementById("refresh-users");
+   if (!status || !tbody || !loadMore || !refresh) return;
+
+   status.textContent = "Đang tải danh sách tài khoản...";
+   loadMore.hidden = true;
+   refresh.disabled = true;
+   try {
+       const idToken = await currentUser.getIdToken();
+       const httpResponse = await fetch("/api/admin/users", {
+           method: "POST",
+           headers: {
+               "Authorization": `Bearer ${idToken}`,
+               "Content-Type": "application/json"
+           },
+           body: JSON.stringify({
+           pageToken: pageToken || null
+           })
+       });
+       const data = await httpResponse.json();
+       if (!httpResponse.ok) {
+           const error = new Error(data.error || "Không thể tải danh sách tài khoản.");
+           error.code = data.code;
+           throw error;
+       }
+       const response = { data };
+       if (!pageToken) tbody.replaceChildren();
+
+       response.data.users.forEach((user) => {
+           const row = document.createElement("tr");
+           const providers = user.providers.length
+               ? user.providers.map((provider) => provider === "google.com" ? "Google" :
+                   provider === "password" ? "Email / mật khẩu" : provider).join(", ")
+               : "Không xác định";
+           [
+               user.displayName || "Chưa có tên",
+               user.email || "Chưa có email",
+               providers,
+               user.uid,
+               formatUserDate(user.creationTime),
+               formatUserDate(user.lastSignInTime),
+               user.disabled ? "Đã khóa" : "Đang hoạt động"
+           ].forEach((value) => {
+               const cell = document.createElement("td");
+               cell.textContent = value;
+               row.appendChild(cell);
+           });
+           tbody.appendChild(row);
+       });
+
+       const nextPageToken = response.data.nextPageToken;
+       if (nextPageToken) {
+           loadMore.dataset.pageToken = nextPageToken;
+           loadMore.hidden = false;
+       }
+       const totalShown = tbody.rows.length;
+       status.textContent = totalShown
+           ? `Đang hiển thị ${totalShown} tài khoản${nextPageToken ? " (có thể tải thêm)." : "."}`
+           : "Chưa có tài khoản Firebase nào.";
+   } catch (error) {
+       console.error("Không thể tải danh sách tài khoản Firebase:", error);
+       status.textContent = error.code === "permission-denied"
+           ? "Tài khoản hiện tại không có quyền xem danh sách."
+           : error.code === "admin-api-not-configured"
+               ? "API chưa được cấu hình khóa dịch vụ trong Vercel. Xem ADMIN-SETUP.md."
+               : "Không tải được danh sách tài khoản. Kiểm tra kết nối rồi thử lại.";
+   } finally {
+       refresh.disabled = false;
+   }
+}
+
+function bindAdminEvents(authApi) {
 if (productPage) {
    productPage.addEventListener("click", renderProductTab);
 }
@@ -588,10 +711,15 @@ if (revenuePage) {
    revenuePage.addEventListener("click", renderRevenueTab);
 }
 
+if (usersPage) {
+   usersPage.addEventListener("click", renderUsersTab);
+}
+
 if (logOutPage) {
-   logOutPage.addEventListener("click", () => {
+   logOutPage.addEventListener("click", async () => {
        localStorage.removeItem("loggedUser");
        localStorage.removeItem("loggedAdmin");
+       await authApi.signOut(authApi.auth);
        window.location.assign("./login.html");
    });
 }
@@ -637,6 +765,49 @@ main.addEventListener("submit", (event) => {
        addNewProduct(event);
    }
 });
+}
+
+async function initializeAdmin() {
+   try {
+       const [appSdk, authSdk] = await Promise.all([
+           import("https://www.gstatic.com/firebasejs/11.6.0/firebase-app.js"),
+           import("https://www.gstatic.com/firebasejs/11.6.0/firebase-auth.js")
+       ]);
+       const app = appSdk.getApps().length ? appSdk.getApp() : appSdk.initializeApp(firebaseConfig);
+       const auth = authSdk.getAuth(app);
+       currentUser = await new Promise((resolve, reject) => {
+           let unsubscribe = () => {};
+           unsubscribe = authSdk.onAuthStateChanged(auth, (user) => {
+               unsubscribe();
+               resolve(user);
+           }, (error) => {
+               unsubscribe();
+               reject(error);
+           });
+       });
+
+       if (!currentUser) {
+           window.location.replace("./login.html");
+           return;
+       }
+
+       const token = await currentUser.getIdTokenResult();
+       if (token.claims.admin !== true) {
+           await authSdk.signOut(auth);
+           localStorage.removeItem("loggedUser");
+           localStorage.removeItem("loggedAdmin");
+           window.location.replace("./login.html");
+           return;
+       }
+
+       bindAdminEvents({ auth, signOut: authSdk.signOut });
+       ensureStorage();
+       renderDashboard();
+   } catch (error) {
+       console.error("Không thể xác thực trang quản trị:", error);
+       main.textContent = "Không thể xác thực quyền quản trị. Kiểm tra cấu hình Firebase rồi tải lại trang.";
+   }
+}
 
 window.addEventListener("storage", (event) => {
    const activeHeading = main.querySelector(".panel h2");
@@ -645,5 +816,4 @@ window.addEventListener("storage", (event) => {
    }
 });
 
-ensureStorage();
-renderDashboard();
+initializeAdmin();

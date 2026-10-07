@@ -291,7 +291,10 @@ function renderProductTab() {
                                </td>
                                <td>${moneyFormat(item.price)}</td>
                                <td><input class="qty-input" data-id="${item.id}" type="number" min="0" value="${item.quantity || 0}"></td>
-                               <td><button class="save-qty" data-id="${item.id}">Lưu</button></td>
+                               <td class="product-actions">
+                                   <button class="save-qty" data-id="${item.id}">Lưu</button>
+                                   <button class="delete-record" data-record-type="products" data-record-id="${item.id}" type="button">Xóa</button>
+                               </td>
                            </tr>
                        `).join("")}
                    </tbody>
@@ -393,6 +396,7 @@ function renderOrdersTab() {
                                    `).join("")}
                                </select>
                                <button class="status-save" data-order-id="${order.id}">Cập nhật trạng thái</button>
+                               <button class="delete-record" data-record-type="orders" data-record-id="${order.id}" type="button">Xóa đơn hàng</button>
                            </div>
                        </div>
                    </div>
@@ -421,7 +425,10 @@ function renderReviewsTab() {
                                    <span>🕒 ${new Date(review.createdAt).toLocaleString("vi-VN")}</span>
                                </div>
                            </div>
-                           <span class="card-tag card-tag-review">Đánh giá</span>
+                           <div class="card-actions">
+                               <span class="card-tag card-tag-review">Đánh giá</span>
+                               <button class="delete-record" data-record-type="reviews" data-record-id="${review.id}" type="button">Xóa đánh giá</button>
+                           </div>
                        </div>
 
                        <div class="info-grid two-col">
@@ -469,7 +476,10 @@ function renderMessagesTab() {
                                    <span>🕒 ${new Date(message.createdAt).toLocaleString("vi-VN")}</span>
                                </div>
                            </div>
-                           <span class="card-tag card-tag-message">Phản hồi</span>
+                           <div class="card-actions">
+                               <span class="card-tag card-tag-message">Phản hồi</span>
+                               <button class="delete-record" data-record-type="messages" data-record-id="${message.id}" type="button">Xóa phản hồi</button>
+                           </div>
                        </div>
 
                        <div class="info-grid single-col">
@@ -570,6 +580,32 @@ function updateMessageReply(messageId, reply) {
    });
    localStorage.setItem(STORAGE_KEYS.messages, JSON.stringify(nextMessages));
    renderMessagesTab();
+}
+
+function deleteAdminRecord(type, id) {
+   const records = {
+       products: { key: STORAGE_KEYS.products, label: "sản phẩm", render: renderProductTab },
+       orders: { key: STORAGE_KEYS.orders, label: "đơn hàng", render: renderOrdersTab },
+       reviews: { key: STORAGE_KEYS.reviews, label: "đánh giá", render: renderReviewsTab },
+       messages: { key: STORAGE_KEYS.messages, label: "phản hồi", render: renderMessagesTab }
+   };
+   const record = records[type];
+   if (!record) {
+       console.error("Không thể xóa mục admin không hợp lệ:", type);
+       return;
+   }
+
+   if (!window.confirm(`Bạn có chắc muốn xóa ${record.label} này không?`)) return;
+
+   const savedRecords = JSON.parse(localStorage.getItem(record.key) || "[]");
+   const remainingRecords = savedRecords.filter((item) => String(item.id) !== String(id));
+   if (remainingRecords.length === savedRecords.length) {
+       console.error(`Không tìm thấy ${record.label} cần xóa:`, id);
+       return;
+   }
+
+   localStorage.setItem(record.key, JSON.stringify(remainingRecords));
+   record.render();
 }
 
 function renderUsersTab() {
@@ -725,6 +761,12 @@ if (logOutPage) {
 }
 
 main.addEventListener("click", (event) => {
+   const deleteButton = event.target.closest(".delete-record");
+   if (deleteButton) {
+       deleteAdminRecord(deleteButton.dataset.recordType, deleteButton.dataset.recordId);
+       return;
+   }
+
    const saveQty = event.target.closest(".save-qty");
    if (saveQty) {
        const id = saveQty.dataset.id;

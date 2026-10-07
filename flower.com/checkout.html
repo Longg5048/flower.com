@@ -1,0 +1,374 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Thanh toán</title>
+  <link rel="stylesheet" href="./headder.css">
+  <link rel="stylesheet" href="./index.css">
+  <link rel="stylesheet" href="./styles/dropdown.css">
+  <link rel="stylesheet" href="./styles/cart.css">
+  <link rel="stylesheet" href="./">
+</head>
+
+<body>
+  <div id="headder">
+    <div id="img-link">
+      <div>
+        <a href="#"><img style="width: 100px; padding-top: 10px"
+            src="https://images.contentstack.io/v3/assets/blt95e0138311135214/blt13b0f02cd71877df/5f08974a8b0e59084c9f7570/hd-logo-v3.svg?height=32&width=78"
+            alt="" />
+        </a>
+      </div>
+      <div>
+        <img style="width: 100px"
+          src="https://images.contentstack.io/v3/assets/blt95e0138311135214/bltac334446d6f9e89c/5f96fc4f2425cd7a8af6845e/pmall_svg-logo-v2.svg?height=32&width=78"
+          alt="" />
+      </div>
+      <div>
+        <img
+          src="https://images.contentstack.io/v3/assets/blt95e0138311135214/bltf0b1021465476e4f/5f08974b0d1d2008538ce15a/SharisLogo_r.svg?height=32&width=78"
+          alt="" />
+      </div>
+      <div>
+        <img
+          src="https://images.contentstack.io/v3/assets/blt95e0138311135214/bltac303abaae751c40/5f08974af394777f87099a07/18b-logo-v2.svg?height=32&width=78"
+          alt="" />
+      </div>
+      <div>
+        <img
+          src="https://images.contentstack.io/v3/assets/blt95e0138311135214/blt71adcb0696952e83/5f08974baa5d1801639286b4/sch-logo-v2.svg?height=32&width=78"
+          alt="" />
+      </div>
+      <div>
+        <img
+          src="https://images.contentstack.io/v3/assets/blt95e0138311135214/bltef2e14ec247ab827/5f08974a2cd8e87f92bdd257/fb-logo-v2.svg?height=32&width=78"
+          alt="" />
+      </div>
+      <div>
+        <img
+          src="https://images.contentstack.io/v3/assets/blt95e0138311135214/blte1e2eb25cfd09fb6/5f08974a91afb901b86d5251/cco-logo-v2.svg?height=32&width=78"
+          alt="" />
+      </div>
+      <div>
+        <img
+          src="https://images.contentstack.io/v3/assets/blt95e0138311135214/bltf9903ccf2408c217/5f0897552cd8e87f92bdd25b/tpf-logo-v2.svg?height=32&width=78"
+          alt="" />
+      </div>
+      <div>
+        <img
+          src="https://images.contentstack.io/v3/assets/blt95e0138311135214/blt7ef824d3f9f5074d/5f0897558b0e59084c9f7574/wlf-logo-v2.svg?height=32&width=78"
+          alt="" />
+      </div>
+      <div>
+        <img
+          src="https://images.contentstack.io/v3/assets/blt95e0138311135214/blta2ba2ac7606f6c15/5f08974bceebbf7e87c30215/sy-logo-v2.svg?height=32&width=78"
+          alt="" />
+      </div>
+      <div>
+        <img style="width: 85px; padding-top: 10px"
+          src="https://images.contentstack.io/v3/assets/blt0281495b20b504a0/blta4f709f645453ff0/61b4eeeea000c90ecc6e15bd/VC_Logo_w_tag.svg?height=32&width=78"
+          alt="" />
+      </div>
+    </div>
+
+    <div id="nav">
+      <div id="nav-left">
+        <img
+          src="https://images.contentstack.io/v3/assets/bltdd99f24e8a94d536/bltce6d6c480577e10e/5d4866eff9ece57fa9a82245/flowers.png?quality=60&auto=webp&optimize={medium}"
+          alt="" />
+      </div>
+      <div id="nav-center">
+        <input type="text" placeholder="Nhập tên hoa hoặc mã sản phẩm" />
+        <button>TÌM KIẾM</button>
+      </div>
+      <div id="nav-right">
+        <!-- <i class="fa-regular fa-user"></i>
+                    <i class="fa-regular fa-heart"></i>-->
+        <div class="signin">
+          <i><img
+              src="https://images.contentstack.io/v3/assets/bltdd99f24e8a94d536/blt88337dc20d1d8278/5e178293942caf0fc36b77ab/Header-Icon-PWA-profile.svg"
+              alt="" />
+          </i>
+          <h5>Đăng nhập</h5>
+        </div>
+        <div class="orders">
+          <i><img
+              src="https://images.contentstack.io/v3/assets/bltdd99f24e8a94d536/bltd7f3af8e242d37c1/5e1782936430b50f03d6ccc3/Header-Icon-PWA-truck.svg?height=25&width=44"
+              alt="" /></i>
+          <!-- <a href="./cart.html"> -->
+            <h5>Đơn hàng</h5>
+          <!-- </a> -->
+        </div>
+        <div class="bag">
+          <!-- <a href="./cart.html"> -->
+            <img
+              src="https://images.contentstack.io/v3/assets/bltdd99f24e8a94d536/blt7888ec93d3d5c1ec/5e17829300c38f0f022d3646/Header-Icon-PWA-bag.svg?height=25&width=44"
+              alt="" />
+            <h5><span id="cartTotal">(0)</span> Giỏ hàng</h5>
+          <!-- </a> -->
+        </div>
+      </div>
+    </div>
+
+    <nav>
+      <div id="options">
+        <ul>
+          <li id="birthday"><a href="./product.html">SINH NHẬT</a></li>
+          <li id="sympathy"><a href="./product.html">CHIA BUỒN</a></li>
+          <li id="occasion"><a href="./product.html">DỊP ĐẶC BIỆT</a></li>
+          <li id="flowers"><a href="./product.html">HOA TƯƠI</a></li>
+          <li id="plants"><a href="./product.html">CÂY CẢNH</a></li>
+          <li id="food"><a href="./product.html">GIỎ QUÀ & THỰC PHẨM</a></li>
+          <li id="gift"><a href="./product.html">QUÀ TẶNG & HƠN THẾ NỮA</a></li>
+          <li id="delivery"><a href="./product.html">GIAO HOA TRONG NGÀY</a></li>
+          <li id="sale"><a href="./product.html">ƯU ĐÃI</a></li>
+          <li id="community"><a href="./product.html">CỘNG ĐỒNG</a></li>
+        </ul>
+      </div>
+    </nav>
+  </div>
+
+  <div class="nav">
+    <div id="product-container" style="display: none;">
+      <!-- Here Append All the cart Products  -->
+    </div>
+
+    <div id="form">
+      <form id="checkout-form">
+        <h1>Thông tin khách hàng</h1>
+        <input type="text" name="customerName" autocomplete="name" placeholder="Họ và tên người nhận" required>
+        <input type="text" name="address" placeholder="Địa chỉ nhà" required>
+        <input type="text" name="ward" placeholder="Phường/xã" required>
+        <input type="text" name="city" placeholder="Thành phố" required>
+        <input type="tel" name="phone" pattern="\+?[0-9]{8,15}" placeholder="Số điện thoại" required>
+        <textarea name="orderNote" placeholder="Ghi chú cho cửa hàng (không bắt buộc)"></textarea>
+
+      </form>
+    </div>
+
+    <div id="payment">
+      <h1>Phương thức thanh toán</h1>
+      <div><label><input type="radio" name="paymentMethod" value="card" form="checkout-form" required>Thẻ ghi nợ/tín dụng/ATM</label></div>
+      <div><label><input type="radio" name="paymentMethod" value="cod" form="checkout-form">Thanh toán khi nhận hàng</label></div>
+      <button type="submit" form="checkout-form">Tiếp tục</button>
+    </div>
+
+  </div>
+
+
+
+  <div id="bottomtext">
+    <div class="bottompart">
+      <h4>Cách mua sắm khác</h4>
+      <p>Giao hoa trong ngày</p>
+      <p>Hoa bó nghệ thuật</p>
+      <p>Hoa và quà chia buồn</p>
+      <p>Hoa hồng</p>
+      <p>Hoa và quà sinh nhật</p>
+      <p>Đăng ký nhận hoa định kỳ</p>
+      <p>Cây cảnh</p>
+      <p>Giỏ quà và thực phẩm</p>
+      <p>Hoa Ngày của Mẹ</p>
+      <p>Giao hoa quốc tế</p>
+      <p>Tìm tiệm hoa gần bạn</p>
+      <p>Quà tặng doanh nghiệp</p>
+      <p>Dâu tây phủ sô-cô-la</p>
+      <p>Đối tác bán hàng</p>
+    </div>
+    <div class="bottompart">
+      <h4>Dịch vụ khách hàng</h4>
+      <p>Hỗ trợ khách hàng</p>
+      <p>Cập nhật COVID-19</p>
+      <p>Thẻ quà tặng điện tử</p>
+      <p>Liên hệ với chúng tôi</p>
+      <p>Không bán thông tin cá nhân của tôi</p>
+      <p>Cảnh báo dị ứng</p>
+      <p>Tư vấn hoa viếng và chia buồn</p>
+      <p>Cam kết hài lòng</p>
+      <h4>Ưu đãi dành cho cựu chiến binh</h4>
+      <p>Ưu đãi quân nhân độc quyền mỗi ngày</p>
+    </div>
+    <div class="bottompart">
+      <h4>Khám phá</h4>
+      <p>Tìm cửa hàng</p>
+      <p>Cơ hội nhượng quyền</p>
+      <p>Sự kiện tự làm tại địa phương</p>
+      <h4>Tài khoản</h4>
+      <p>Đăng nhập tài khoản</p>
+    </div>
+    <div class="bottompart">
+      <h4>Doanh nghiệp</h4>
+      <p>Về chúng tôi</p>
+      <p>Các thương hiệu</p>
+      <p>Trách nhiệm xã hội</p>
+      <p>Tuyển dụng</p>
+      <p>Tin tức và truyền thông</p>
+      <p>Quan hệ nhà đầu tư</p>
+    </div>
+    <div class="bottomicons">
+      <h4>Theo dõi chúng tôi</h4>
+      <div>
+        <div class="bicons">
+          <img
+            src="https://images.contentstack.io/v3/assets/bltdd99f24e8a94d536/blt787e53ec7675db95/5ee1016e26fd9f3b64a5abe7/social-icon-twitter.png"
+            alt="" />
+        </div>
+        <div class="bicons">
+          <img
+            src="https://images.contentstack.io/v3/assets/bltdd99f24e8a94d536/blt71c1a01174910073/5ee101831579a83a8b80b9ad/social-icon-facebook.png"
+            alt="" />
+        </div>
+        <div class="bicons">
+          <img
+            src="https://images.contentstack.io/v3/assets/bltdd99f24e8a94d536/blt78b7b39043ac2de3/5ee101965cffd6317204ad4a/social-icon-instagram.png"
+            alt="" />
+        </div>
+        <div class="bicons">
+          <img
+            src="https://images.contentstack.io/v3/assets/bltdd99f24e8a94d536/blt6ae8236f023d5359/5ee101a4f2c45903a4be0b8b/social-icon-pinterest.png"
+            alt="" />
+        </div>
+        <div class="bicons">
+          <img
+            src="https://images.contentstack.io/v3/assets/bltdd99f24e8a94d536/bltbd439ba082738790/5ee101b758284c442bf7faea/social-icon-youtube.png"
+            alt="" />
+        </div>
+      </div>
+    </div>
+  </div>
+  <div id="endline">
+    <div>
+      <p>
+        © 2023 1-800-Flowers.com, Inc., Jericho, NY. Các thương hiệu thuộc cùng hệ thống.
+        Điều khoản sử dụng · Quyền riêng tư · Khả năng tiếp cận
+      </p>
+    </div>
+  </div>
+
+</body>
+<script src="./product-names.js"></script>
+<script src="./currency.js?v=2"></script>
+<script>
+  // Write all necessery JS here
+
+  let CartContainer = document.getElementById("product-container");
+
+  let Cart = JSON.parse(localStorage.getItem("cart")) || [];
+
+  function DisplayProduct() {
+    let originalprice = document.getElementById("originalprice");
+    let savings = document.getElementById("savings");
+    let delivery = document.getElementById("deliveryCharge");
+    let tax = document.getElementById("tax");
+    let total = document.getElementById("total");
+
+    CartContainer.innerHTML = "";
+
+    Cart.forEach((product) => {
+      let image = document.createElement("img");
+      let details = document.createElement("p");
+      let price = document.createElement("h3");
+      let Remove = document.createElement("button");
+      let Increase = document.createElement("button");
+      let Decrease = document.createElement("button");
+      let card = document.createElement("div");
+      let quantity = document.createElement("span");
+
+      image.src = product.image;
+      details.textContent = getVietnameseProductName(product.title);
+      price.textContent = formatVnd(product.price);
+      Remove.textContent = "Xóa";
+      Increase.textContent = "+";
+      Decrease.textContent = "-";
+      quantity.textContent = Math.max(1, Number(product.quantity) || 1);
+
+      Decrease.addEventListener("click", () => {
+        if (product.quantity > 1) {
+          product.quantity--;
+          localStorage.setItem("cart", JSON.stringify(Cart));
+          DisplayProduct();
+        }
+      });
+      Increase.addEventListener("click", () => {
+        product.quantity++;
+        localStorage.setItem("cart", JSON.stringify(Cart));
+        DisplayProduct();
+      });
+      Remove.addEventListener("click", () => {
+        Cart = Cart.filter((ele) => {
+          return ele.id !== product.id;
+        });
+        localStorage.setItem("cart", JSON.stringify(Cart));
+        DisplayProduct();
+      });
+      card.append(
+        image,
+        details,
+        price,
+        Increase,
+        quantity,
+        Decrease,
+        Remove
+      );
+      CartContainer.append(card);
+    });
+
+    renderCartSummary(Cart);
+    }
+
+  DisplayProduct();
+
+  document.getElementById("checkout-form").addEventListener("submit", (event) => {
+    event.preventDefault();
+    if (!Cart.length) {
+      alert("Giỏ hàng đang trống.");
+      window.location.assign("./cart.html");
+      return;
+    }
+
+    const formData = new FormData(event.currentTarget);
+    const checkout = {
+      customerName: formData.get("customerName").trim(),
+      address: ["address", "ward", "city"]
+        .map((field) => formData.get(field).trim())
+        .join(", "),
+      phone: formData.get("phone").trim(),
+      paymentMethod: formData.get("paymentMethod"),
+      orderNote: formData.get("orderNote").trim()
+    };
+
+    try {
+      localStorage.setItem("flowerCheckout", JSON.stringify(checkout));
+      window.location.assign("./placeorder.html");
+    } catch (error) {
+      console.error("Không thể lưu thông tin thanh toán:", error);
+      alert("Không thể lưu thông tin đặt hàng trên trình duyệt này.");
+    }
+  });
+
+
+
+
+
+
+  let Total = document.getElementById("cartTotal");
+  Total.innerText = Cart.length
+
+
+  let order = document.querySelector(".orders");
+  order.onclick = () => {
+    location.href = "./wish.html";
+  };
+
+  let bag = document.querySelector(".bag");
+  bag.onclick = () => {
+    location.href = "./cart.html";
+  };
+
+  // Write all necessery JS here
+</script>
+<script src="./account-nav.js"></script>
+</html>

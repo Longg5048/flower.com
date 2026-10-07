@@ -8,32 +8,16 @@
   <link rel="stylesheet" href="./admin.css">
 </head>
 <body>
-    <nav >
-        <img src="" alt="Biểu trưng quản trị">
-        <div>
-        <p id="product_page">Sản phẩm</p>
-        <p id="add_product">THÊM SẢN PHẨM</p>
-        <p id="update_page">Cập nhật sản phẩm</p>
-        <p id="logout_page">Đăng xuất</p>
-    </div>
-
-    
-    </nav>
-    <main>
-       
-
-
-
-
-
-
-
-
-
-    </main>
-
-
+    <header class="admin-header">
+        <a class="brand" href="./index.html" aria-label="Về trang chủ">FLORA<span> / QUẢN TRỊ</span></a>
+        <nav aria-label="Điều hướng quản trị">
+            <button id="product_page" class="nav-button is-active" type="button">Sản phẩm</button>
+            <button id="add_product" class="nav-button" type="button">+ Thêm sản phẩm</button>
+            <a class="nav-button home-link" href="./index.html">Về cửa hàng</a>
+        </nav>
+    </header>
+    <main id="main" aria-live="polite"></main>
+    <script src="./currency.js"></script>
+    <script src="./admin.js"></script>
 </body>
 </html>
-<script src="./currency.js"></script>
-<script src="./admin.js"></script>

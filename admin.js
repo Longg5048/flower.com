@@ -1,304 +1,203 @@
-// get id's
+const productApi = "https://63cae32cf36cbbdfc76280f7.mockapi.io/data";
+const main = document.getElementById("main");
+const productPage = document.getElementById("product_page");
+const addProduct = document.getElementById("add_product");
 
-let productPage= document.getElementById("product_page");
-let addProduct=document.getElementById("add_product");
-let orderPage=document.getElementById("order_page");
-let updatePage=document.getElementById("update_page");
-let logOutPage=document.getElementById("logout_page");
+let products = [];
+let searchTerm = "";
 
-let main=document.querySelector("main");
-
-//All Api here
-let productApi="https://63cae32cf36cbbdfc76280f7.mockapi.io/data";
-const userApi="";
-
-
-// adEventLIstner here;
-
-//Product code here
-productPage.addEventListener("click",()=>{
-loadApi();
-})
-async function loadApi(){
-try {
-    let response=await fetch(productApi);
-    response=await response.json();
-    console.log(response);
-createCard(response);
-} catch (error) {
-    console.log(error);
-}
+function escapeHtml(value) {
+    return String(value ?? "").replace(/[&<>"']/g, (character) => ({
+        "&": "&amp;",
+        "<": "&lt;",
+        ">": "&gt;",
+        '"': "&quot;",
+        "'": "&#39;"
+    })[character]);
 }
 
-// product function 
-function createCard(data){
-    main.innerHTML="";
-    let card=`
-    <div class="productDiv">
-    ${data.map((item)=> getCard(item.id,item.image,item.title,item.price,item.description)).join("")}
-    </div>
-    `
-    main.innerHTML=card;
-
-    let removeBtn=document.querySelectorAll(".removeBtn");
-
-for (let i=0;i<removeBtn.length;i++){
-    removeBtn[i].addEventListener("click",()=>{
-        removeItem(removeBtn[i].id)
-    })
-}
-}
-//deleting item here
-
-async function removeItem(id){
-try {
-let deletingItem=await fetch(`${productApi}/${id}`,{
-    method:"DELETE",
-    headers:{
-        'Content-Type':'application/json'
-    } 
-})
-// console.log(deletingItem)
-if(deletingItem.ok){
-    alert("Đã xóa sản phẩm")
-   
-}else{
-    alert("Đã xảy ra lỗi khi xóa sản phẩm")
-
-}
-} catch (error) {
-    console.log(error);
+function getDescription(product) {
+    return product.description ?? product.discription ?? "";
 }
 
-    
+function setActiveNav(activeButton) {
+    [productPage, addProduct].forEach((button) => {
+        button.classList.toggle("is-active", button === activeButton);
+    });
 }
 
-
-
-function getCard(id,image,title,price,description){
-    let card=`
-    <div id=${id}>
-    <div>
-    <img src=${image} alt="Ảnh sản phẩm">
-    </div>
-    <div>
-    <p>${title}</p>
-    <p>${formatVnd(price)}</p>
-    <p>${description}</p>
-    <button id=${id} class="removeBtn">Xóa sản phẩm</button>
-    </div>
-    </div>
-    `
-    return card;
-}
-
-
-
-//customer page herer
-addProduct.addEventListener("click",()=>{
-    getForm();
-})
-
-function getForm(){
-    main.innerHTML="";
-    let add_product= `<form>
-    <input type="text" placeholder="Tên sản phẩm" id="AddProductTitle">
-    <input type="src" placeholder="Đường dẫn hình ảnh" id="AddProductImage">
-    <input type="number" step="1" placeholder="Giá (VNĐ)" id="AddProductPrice">
-    <input type="" placeholder="Mô tả" id="AddProductDescription">
-    <input type="submit" value="Lưu sản phẩm">
-</form>`
-main.innerHTML=add_product;
-
-let add_product_image= document.getElementById("AddProductImage");
-let add_product_title= document.getElementsByName("AddProductTitle");
-let add_product_price= document.getElementById("AddProductPrice");
-let add_product_description= document.getElementById("AddProductDescription");
-
-let form= document.querySelector("form");
-
-async function postData(){
-
+async function loadProducts() {
+    main.innerHTML = '<p class="page-message">Đang tải danh sách sản phẩm...</p>';
 
     try {
-        let obj={
-        title:add_product_title.value,
-        image:add_product_image.value,
-        price:usdFromVnd(add_product_price.value),
-        description:add_product_description.value
-    } 
-
-let postDetails=await fetch(`${productApi}`,{
-    method:"POST",
-    headers:{
-        'Content-Type':'application/json'
-    },
-    body:JSON.stringify(obj)
-})
-if(postDetails.ok){
-    alert("Đã thêm sản phẩm")
-    
-}else{
-    alert("Đã xảy ra lỗi")
-}
+        const response = await fetch(productApi);
+        if (!response.ok) throw new Error("Không thể tải danh sách sản phẩm.");
+        products = await response.json();
+        renderProducts();
     } catch (error) {
-        console.log(error);
+        main.innerHTML = `<section class="page-message error-message"><p>${escapeHtml(error.message)}</p><button class="button button-primary" type="button" data-action="reload">Thử lại</button></section>`;
     }
-    
 }
 
+function renderProducts() {
+    const normalizedSearch = searchTerm.trim().toLocaleLowerCase("vi");
+    const filteredProducts = products.filter((product) => {
+        const searchableText = `${product.title} ${getDescription(product)}`.toLocaleLowerCase("vi");
+        return searchableText.includes(normalizedSearch);
+    });
 
-form.addEventListener("submit",(e)=>{
-e.preventDefault();
-postData();
-
-
-})
-    
+    main.innerHTML = `
+        <section class="page-heading">
+            <div>
+                <p class="eyebrow">KHO SẢN PHẨM</p>
+                <h1>Quản lý sản phẩm</h1>
+                <p class="result-count">${filteredProducts.length} / ${products.length} sản phẩm</p>
+            </div>
+            <button class="button button-primary heading-add" type="button" data-action="new">+ Thêm sản phẩm</button>
+        </section>
+        <form class="search-bar" id="search-form" role="search">
+            <label class="visually-hidden" for="product-search">Tìm sản phẩm</label>
+            <input id="product-search" name="search" type="search" placeholder="Tìm theo tên hoặc mô tả..." value="${escapeHtml(searchTerm)}">
+            <button class="button button-secondary" type="submit">Tìm kiếm</button>
+            ${searchTerm ? '<button class="clear-search" type="button" data-action="clear-search">Xóa tìm kiếm</button>' : ""}
+        </form>
+        ${filteredProducts.length ? `
+            <section class="product-grid" aria-label="Danh sách sản phẩm">
+                ${filteredProducts.map((product) => `
+                    <article class="product-card">
+                        <div class="product-image-wrap">
+                            <img src="${escapeHtml(product.image)}" alt="${escapeHtml(product.title)}" loading="lazy">
+                        </div>
+                        <div class="product-info">
+                            <h2>${escapeHtml(product.title)}</h2>
+                            <p class="product-price">${escapeHtml(formatVnd(product.price))}</p>
+                            <p class="product-description">${escapeHtml(getDescription(product)) || "Chưa có mô tả."}</p>
+                            <div class="product-actions">
+                                <button class="button button-secondary" type="button" data-action="edit" data-id="${escapeHtml(product.id)}">Chỉnh sửa</button>
+                                <button class="button button-danger" type="button" data-action="delete" data-id="${escapeHtml(product.id)}">Xóa</button>
+                            </div>
+                        </div>
+                    </article>
+                `).join("")}
+            </section>
+        ` : '<p class="empty-state">Không tìm thấy sản phẩm phù hợp.</p>'}
+    `;
 }
 
+function renderForm(product = null) {
+    const isEditing = Boolean(product);
+    setActiveNav(isEditing ? productPage : addProduct);
+    main.innerHTML = `
+        <section class="form-page">
+            <button class="back-button" type="button" data-action="back">← Danh sách sản phẩm</button>
+            <p class="eyebrow">${isEditing ? "CẬP NHẬT KHO" : "BỔ SUNG VÀO KHO"}</p>
+            <h1>${isEditing ? "Chỉnh sửa sản phẩm" : "Thêm sản phẩm mới"}</h1>
+            <form id="product-form" data-id="${escapeHtml(product?.id ?? "")}">
+                <label for="product-title">Tên sản phẩm</label>
+                <input id="product-title" name="title" type="text" value="${escapeHtml(product?.title ?? "")}" required maxlength="120" placeholder="Ví dụ: Bó hoa mùa xuân">
 
+                <label for="product-image">Đường dẫn hình ảnh</label>
+                <input id="product-image" name="image" type="url" value="${escapeHtml(product?.image ?? "")}" required placeholder="https://...">
 
+                <label for="product-price">Giá bán (VNĐ)</label>
+                <input id="product-price" name="price" type="number" min="1" step="1" value="${product ? escapeHtml(toVndAmount(product.price)) : ""}" required placeholder="Ví dụ: 350000">
 
-//update page here
-updatePage.addEventListener("click",()=>{
+                <label for="product-description">Mô tả</label>
+                <textarea id="product-description" name="description" rows="5" required maxlength="1000" placeholder="Mô tả ngắn về sản phẩm">${escapeHtml(product ? getDescription(product) : "")}</textarea>
 
-forUpdateApi()
+                <div class="form-actions">
+                    <button class="button button-primary" type="submit">${isEditing ? "Lưu thay đổi" : "Thêm sản phẩm"}</button>
+                    <button class="button button-secondary" type="button" data-action="back">Hủy</button>
+                </div>
+                <p class="form-status" role="status"></p>
+            </form>
+        </section>
+    `;
+    document.getElementById("product-title").focus();
+}
 
-})
+async function deleteProduct(id) {
+    const product = products.find((item) => String(item.id) === String(id));
+    if (!product || !window.confirm(`Bạn có chắc muốn xóa “${product.title}”?`)) return;
 
-async function forUpdateApi(){
     try {
-        let response=await fetch(productApi);
-        response=await response.json();
-        console.log(response);
-        Update(response)
+        const response = await fetch(`${productApi}/${encodeURIComponent(id)}`, { method: "DELETE" });
+        if (!response.ok) throw new Error("Không thể xóa sản phẩm.");
+        await loadProducts();
     } catch (error) {
-        console.log(error);
+        window.alert(error.message);
     }
-
 }
 
-function Update(data){
-    main.innerHTML="";
-    let card=`
-    <div class="productDiv">
-    ${data.map((item)=> updateGetCard(item.id,item.image,item.title,item.price,item.description)).join("")}
-    </div>
-    `
-    main.innerHTML=card;
+async function saveProduct(form) {
+    const formData = new FormData(form);
+    const product = {
+        title: formData.get("title").trim(),
+        image: formData.get("image").trim(),
+        price: usdFromVnd(formData.get("price")),
+        description: formData.get("description").trim()
+    };
+    const id = form.dataset.id;
+    const status = form.querySelector(".form-status");
+    const submitButton = form.querySelector('[type="submit"]');
+    submitButton.disabled = true;
+    status.textContent = "Đang lưu...";
 
-    let updateBtn=document.querySelectorAll(".updateBtn");
-
-for (let i=0;i<updateBtn.length;i++){
-    updateBtn[i].addEventListener("click",()=>{
-        updateItem(updateBtn[i].id)
-    })
-}
-}
-
-
-// update product
-
-async function updateItem(id){
     try {
-    let updatingItem=await fetch(`${productApi}/${id}`)
-    updatingItem=await updatingItem.json();
-   puttingData(updatingItem.id,updatingItem.price,updatingItem.title,updatingItem.image,updatingItem.description);
-  
-  
+        const response = await fetch(id ? `${productApi}/${encodeURIComponent(id)}` : productApi, {
+            method: id ? "PUT" : "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(product)
+        });
+        if (!response.ok) throw new Error("Không thể lưu sản phẩm. Vui lòng thử lại.");
+        searchTerm = "";
+        setActiveNav(productPage);
+        await loadProducts();
     } catch (error) {
-        console.log(error);
+        status.textContent = error.message;
+        submitButton.disabled = false;
     }
-    
-        
+}
+
+main.addEventListener("click", (event) => {
+    const button = event.target.closest("[data-action]");
+    if (!button) return;
+
+    const { action, id } = button.dataset;
+    if (action === "new") renderForm();
+    if (action === "back") {
+        setActiveNav(productPage);
+        renderProducts();
     }
-function puttingData(id,price,title,image,description){
-    main.innerHTML="";
-    let add_product= `<form>
-    <p id="productId">${id}</p>
-    <input type="text" placeholder="Tên sản phẩm" value='${title}' id="AddProductTitle">
-    <input type="src" placeholder="Đường dẫn hình ảnh" value='${image}' id="AddProductImage">
-    <input type="number" step="1" placeholder="Giá (VNĐ)" value='${toVndAmount(price)}' id="AddProductPrice">
-    <input type="" placeholder="Mô tả" value='${description}' id="AddProductDescription">
-    <input type="submit" value="Lưu thay đổi">
-</form>`
-main.innerHTML=add_product;
-
-let form= document.querySelector("form")
-let productId=document.getElementById("productId").innerText;
-let updateImage= document.getElementById("AddProductImage");
-let updateTitle= document.getElementById("AddProductTitle");
-let updatePrice= document.getElementById("AddProductPrice");
-let updateDescription= document.getElementById("AddProductDescription");
-
-
-
-
-
-async function fetchingDataToApi(){
-try {
-    let obj={
-        title:updateTitle.value,
-        price:usdFromVnd(updatePrice.value),
-        image:updateImage.value,
-        description:updateDescription.value 
+    if (action === "edit") {
+        const product = products.find((item) => String(item.id) === String(id));
+        if (product) renderForm(product);
     }
-
-    let res=await fetch(`${productApi}/${productId}`,{
-        method:"PUT",
-        headers:{
-            'Content-Type':'application/json'
-        },body:JSON.stringify(obj)
-    })
-    if(res.ok){
-        console.log("Data updated")
-    }else{
-        console.log("Not")
+    if (action === "delete") deleteProduct(id);
+    if (action === "reload") loadProducts();
+    if (action === "clear-search") {
+        searchTerm = "";
+        renderProducts();
     }
-    
-} catch (error) {
-    console.log(error);
-}
-}
+});
 
-function puttingFinalData(){
+main.addEventListener("submit", (event) => {
+    if (event.target.id === "search-form") {
+        event.preventDefault();
+        searchTerm = new FormData(event.target).get("search");
+        renderProducts();
+    }
+    if (event.target.id === "product-form") {
+        event.preventDefault();
+        saveProduct(event.target);
+    }
+});
 
-}
+productPage.addEventListener("click", () => {
+    setActiveNav(productPage);
+    renderProducts();
+});
 
+addProduct.addEventListener("click", () => renderForm());
 
-
-form.addEventListener("submit",(e)=>{
-    e.preventDefault();
-fetchingDataToApi();
-})
-}
-
-
-    
-function updateGetCard(id,image,title,price,description){
-    let card=`
-    <div id=${id}>
-    <img src=${image} alt="Ảnh sản phẩm">
-    <p>${title}</p>
-    <p>${formatVnd(price)}</p>
-    <p>${description}</p>
-    <button id=${id} class="updateBtn">Chỉnh sửa</button>
-    </div>
-    `
-    return card;
-
-    
-}
-
-
-
-//order page here
-orderPage.addEventListener("click",()=>{
-    main.innerHTML="Hello order"
-})
-
-//logout page here
-logOutPage.addEventListener("click",()=>{
-    main.innerHTML="Hello logout"
-})
+loadProducts();

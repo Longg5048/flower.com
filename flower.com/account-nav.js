@@ -38,3 +38,22 @@ if (accountNav) {
         }
     });
 }
+
+const ordersNav = document.querySelector(".orders");
+if (ordersNav) {
+    ordersNav.setAttribute("role", "link");
+    ordersNav.setAttribute("tabindex", "0");
+    document.addEventListener("click", (event) => {
+        const orderTarget = event.target.closest?.(".orders");
+        if (!orderTarget) return;
+        event.preventDefault();
+        event.stopImmediatePropagation();
+        window.location.assign("./tracking.html");
+    }, true);
+    ordersNav.addEventListener("keydown", (event) => {
+        if (event.key === "Enter" || event.key === " ") {
+            event.preventDefault();
+            ordersNav.click();
+        }
+    });
+}

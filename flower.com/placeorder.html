@@ -111,7 +111,7 @@
             <h5>Đăng nhập</h5>
           </div>
           <div>
-            <a href="./cart.html"
+            <a href="./tracking.html"
               ><img
                 src="https://images.contentstack.io/v3/assets/bltdd99f24e8a94d536/bltd7f3af8e242d37c1/5e1782936430b50f03d6ccc3/Header-Icon-PWA-truck.svg?height=25&width=44"
                 alt=""
@@ -188,6 +188,7 @@
       const address = checkoutData.address;
 
       const orderId = Date.now();
+      const createdAt = new Date().toISOString();
       const subtotal = Cart.reduce((sum, item) => {
         return sum + Number(item.price) * Math.max(1, Number(item.quantity) || 1);
       }, 0);
@@ -197,8 +198,16 @@
         phone,
         address,
         email: loggedUser?.email || "",
-        createdAt: new Date().toISOString(),
+        createdAt,
         status: "Đặt hàng",
+        currentLocation: "Đơn hàng đã được gửi đến cửa hàng",
+        estimatedDelivery: "",
+        trackingHistory: [{
+          status: "Đặt hàng",
+          location: "Đơn hàng đã được gửi đến cửa hàng",
+          estimatedDelivery: "",
+          updatedAt: createdAt
+        }],
         total: toVndAmount(subtotal - subtotal * 0.05 + subtotal * 0.1),
         paymentMethod: checkoutData.paymentMethod,
         items: Cart.map((item) => ({
@@ -232,7 +241,7 @@
       localStorage.removeItem("cart");
       localStorage.removeItem("flowerCheckout");
       alert("Đặt hàng thành công! Đơn hàng đã được gửi tới admin.");
-      window.location.href = "./product.html";
+      window.location.href = `./tracking.html?id=${encodeURIComponent(orderId)}`;
     }
 
     let placeorder = document.querySelector(".placeorder>button");

@@ -8,7 +8,7 @@ let revenuePage = document.getElementById("revenue_page");
 let usersPage = document.getElementById("users_page");
 let logOutPage = document.getElementById("logout_page");
 let main = document.querySelector("main");
-let listUsers;
+let currentUser;
 
 const STORAGE_KEYS = {
    products: "flowerInventory",
@@ -627,9 +627,24 @@ async function loadFirebaseUsers(pageToken) {
    loadMore.hidden = true;
    refresh.disabled = true;
    try {
-       const response = await listUsers({
+       const idToken = await currentUser.getIdToken();
+       const httpResponse = await fetch("/api/admin/users", {
+           method: "POST",
+           headers: {
+               "Authorization": `Bearer ${idToken}`,
+               "Content-Type": "application/json"
+           },
+           body: JSON.stringify({
            pageToken: pageToken || null
+           })
        });
+       const data = await httpResponse.json();
+       if (!httpResponse.ok) {
+           const error = new Error(data.error || "Không thể tải danh sách tài khoản.");
+           error.code = data.code;
+           throw error;
+       }
+       const response = { data };
        if (!pageToken) tbody.replaceChildren();
 
        response.data.users.forEach((user) => {
@@ -665,9 +680,11 @@ async function loadFirebaseUsers(pageToken) {
            : "Chưa có tài khoản Firebase nào.";
    } catch (error) {
        console.error("Không thể tải danh sách tài khoản Firebase:", error);
-       status.textContent = error.code === "functions/permission-denied"
+       status.textContent = error.code === "permission-denied"
            ? "Tài khoản hiện tại không có quyền xem danh sách."
-           : "Không tải được danh sách. Kiểm tra Firebase Functions đã được triển khai và thử lại.";
+           : error.code === "admin-api-not-configured"
+               ? "API chưa được cấu hình khóa dịch vụ trong Vercel. Xem ADMIN-SETUP.md."
+               : "Không tải được danh sách tài khoản. Kiểm tra kết nối rồi thử lại.";
    } finally {
        refresh.disabled = false;
    }
@@ -752,14 +769,13 @@ main.addEventListener("submit", (event) => {
 
 async function initializeAdmin() {
    try {
-       const [appSdk, authSdk, functionsSdk] = await Promise.all([
+       const [appSdk, authSdk] = await Promise.all([
            import("https://www.gstatic.com/firebasejs/11.6.0/firebase-app.js"),
-           import("https://www.gstatic.com/firebasejs/11.6.0/firebase-auth.js"),
-           import("https://www.gstatic.com/firebasejs/11.6.0/firebase-functions.js")
+           import("https://www.gstatic.com/firebasejs/11.6.0/firebase-auth.js")
        ]);
        const app = appSdk.getApps().length ? appSdk.getApp() : appSdk.initializeApp(firebaseConfig);
        const auth = authSdk.getAuth(app);
-       const currentUser = await new Promise((resolve, reject) => {
+       currentUser = await new Promise((resolve, reject) => {
            let unsubscribe = () => {};
            unsubscribe = authSdk.onAuthStateChanged(auth, (user) => {
                unsubscribe();
@@ -784,7 +800,6 @@ async function initializeAdmin() {
            return;
        }
 
-       listUsers = functionsSdk.httpsCallable(functionsSdk.getFunctions(app), "listFirebaseUsers");
        bindAdminEvents({ auth, signOut: authSdk.signOut });
        ensureStorage();
        renderDashboard();

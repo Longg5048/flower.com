@@ -147,3 +147,14 @@ dmypy.json
 major project.code-workspace
 
 # End of https://www.gitignore.io/api/django
+
+# Firebase service-account credentials
+flower.com/.env*
+flower.com/node_modules/
+serviceAccountKey.json
+*.service-account.json
+*-firebase-adminsdk-*.json
+
+# Firebase service-account credentials
+serviceAccountKey.json
+*.service-account.json

@@ -1,33 +1,32 @@
-# Firebase admin account directory
+# Admin account directory
 
-The admin dashboard lists Firebase Authentication accounts and their sign-in providers. Passwords are never returned by Firebase Authentication's user-list API and are not shown in the dashboard.
+The admin dashboard lists Firebase Authentication accounts and their sign-in providers. Passwords are never returned by Firebase Authentication's user-list API and are not shown. The website uses a Vercel Function with the Firebase Admin SDK; it does not require Firebase Cloud Functions or a Firebase Blaze upgrade.
 
 ## One-time setup
 
 1. In Firebase Console, enable the sign-in providers required by the shop and create the admin account in **Authentication → Users**.
-2. Install the Firebase CLI, authenticate with an account that can deploy Cloud Functions, then deploy from the repository root:
+2. Add the Vercel production hostname under **Authentication → Settings → Authorized domains**.
+3. In Google Cloud Console for the same project, create a service account with the **Firebase Authentication Admin** role. Create a JSON key and store it only as a Vercel environment variable:
 
-   ```powershell
-   firebase login
-   firebase deploy --only functions
-   ```
+   - Open Vercel → project `flower-com` → **Settings → Environment Variables**.
+   - Add `FIREBASE_SERVICE_ACCOUNT_JSON` with the entire contents of the service-account JSON file. Select **Production** (and Preview too if preview deployments should have access).
+   - Add `FIREBASE_PROJECT_ID` with `web-ban-hoa-9fe0b`.
+   - Never paste the key into source code, commit it, or send it in chat. Restrict/delete the key if it is accidentally exposed.
 
-   Cloud Functions deployment may require the Firebase project's billing plan to support Functions.
-3. In a trusted local environment, authenticate Application Default Credentials with a project administrator. Install function dependencies and grant the admin claim to the existing Firebase user:
+4. Redeploy the Vercel project after saving those variables. Its Root Directory must remain `flower.com`; the API is at `/api/admin/users`.
+5. Grant the admin claim to the existing Firebase user from a trusted local terminal. Install Google Cloud CLI if needed, then authenticate Application Default Credentials as a project administrator:
 
    ```powershell
    gcloud auth application-default login
-   $env:GOOGLE_CLOUD_PROJECT = "web-ban-hoa-9fe0b"
-   npm install --prefix functions
+   npm install
    $env:ADMIN_EMAIL = "admin@example.com"
-   npm --prefix functions run set-admin
+   npm run set-admin
    Remove-Item Env:ADMIN_EMAIL
-   Remove-Item Env:GOOGLE_CLOUD_PROJECT
    ```
 
-   Do not commit service-account keys or credentials. The script preserves any existing custom claims.
-4. Sign out and sign back in with that account. Serve the site over HTTP(S), and add the site's hostname under **Authentication → Settings → Authorized domains**.
+   Run these commands from the `flower.com` directory. The script preserves existing custom claims and does not require downloading a service-account key.
+6. Sign out and sign back in with that account so Firebase refreshes its ID token, then open `/admin.html` and select **Tài khoản**.
 
 ## Admin access
 
-The admin page and callable function both require the Firebase ID token's `admin: true` custom claim. The function returns only UID, email, display name, provider IDs, creation/last-sign-in times, and disabled status. It uses 100-user pages; choose **Tải thêm** to fetch further accounts.
+The admin page and Vercel API both require the Firebase ID token's `admin: true` custom claim. The API verifies the token server-side and returns only UID, email, display name, provider IDs, creation/last-sign-in times, and disabled status. It uses 100-user pages; choose **Tải thêm** to fetch further accounts.

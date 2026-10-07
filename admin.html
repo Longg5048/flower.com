@@ -4,20 +4,28 @@
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Quản lý sản phẩm</title>
-  <link rel="stylesheet" href="./admin.css">
+    <title>Bảng điều khiển quản trị</title>
+    <link rel="stylesheet" href="./admin.css">
 </head>
 <body>
-    <header class="admin-header">
-        <a class="brand" href="./index.html" aria-label="Về trang chủ">FLORA<span> / QUẢN TRỊ</span></a>
-        <nav aria-label="Điều hướng quản trị">
-            <button id="product_page" class="nav-button is-active" type="button">Sản phẩm</button>
-            <button id="add_product" class="nav-button" type="button">+ Thêm sản phẩm</button>
-            <a class="nav-button home-link" href="./index.html">Về cửa hàng</a>
-        </nav>
-    </header>
-    <main id="main" aria-live="polite"></main>
-    <script src="./currency.js"></script>
-    <script src="./admin.js"></script>
+    <nav>
+        <img src="https://images.contentstack.io/v3/assets/bltdd99f24e8a94d536/bltce6d6c480577e10e/5d4866eff9ece57fa9a82245/flowers.png?quality=60&auto=webp&optimize={medium}" alt="logo" style="height:44px;">
+        <div>
+            <p id="product_page">Sản phẩm</p>
+            <p id="orders_page">Đơn hàng</p>
+            <p id="reviews_page">Đánh giá</p>
+            <p id="messages_page">Phản hồi</p>
+            <p id="revenue_page">Doanh thu</p>
+            <p id="logout_page" class="danger-btn">Đăng xuất</p>
+        </div>
+    </nav>
+    <main></main>
 </body>
 </html>
+<script>
+    const loggedUser = JSON.parse(localStorage.getItem("loggedUser") || "null");
+    if (!loggedUser || loggedUser.role !== "admin") {
+        window.location.replace("./login.html");
+    }
+</script>
+<script src="./admin.js"></script>

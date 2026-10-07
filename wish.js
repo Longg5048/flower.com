@@ -102,10 +102,6 @@ let Total=document.getElementById("cartTotal")
 Total.innerText=cart.length
 
 
-let user = document.querySelector(".signin");
-user.onclick = () => {
-  location.href = "./login.html";
-};
 let order = document.querySelector(".orders");
 order.onclick = () => {
   location.href = "./cart.html";
@@ -125,4 +121,3 @@ function checkdub(data){
   }
   return false
 }
-

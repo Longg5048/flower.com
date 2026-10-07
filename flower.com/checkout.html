@@ -13,7 +13,7 @@
   <link rel="stylesheet" href="./">
 </head>
 
-<body>
+<body class="checkout-page">
   <div id="headder">
     <div id="img-link">
       <div>
@@ -132,10 +132,6 @@
   </div>
 
   <div class="nav">
-    <div id="product-container" style="display: none;">
-      <!-- Here Append All the cart Products  -->
-    </div>
-
     <div id="form">
       <form id="checkout-form">
         <h1>Thông tin khách hàng</h1>
@@ -249,77 +245,10 @@
   </div>
 
 </body>
-<script src="./product-names.js"></script>
-<script src="./currency.js?v=2"></script>
 <script>
   // Write all necessery JS here
 
-  let CartContainer = document.getElementById("product-container");
-
   let Cart = JSON.parse(localStorage.getItem("cart")) || [];
-
-  function DisplayProduct() {
-    let originalprice = document.getElementById("originalprice");
-    let savings = document.getElementById("savings");
-    let delivery = document.getElementById("deliveryCharge");
-    let tax = document.getElementById("tax");
-    let total = document.getElementById("total");
-
-    CartContainer.innerHTML = "";
-
-    Cart.forEach((product) => {
-      let image = document.createElement("img");
-      let details = document.createElement("p");
-      let price = document.createElement("h3");
-      let Remove = document.createElement("button");
-      let Increase = document.createElement("button");
-      let Decrease = document.createElement("button");
-      let card = document.createElement("div");
-      let quantity = document.createElement("span");
-
-      image.src = product.image;
-      details.textContent = getVietnameseProductName(product.title);
-      price.textContent = formatVnd(product.price);
-      Remove.textContent = "Xóa";
-      Increase.textContent = "+";
-      Decrease.textContent = "-";
-      quantity.textContent = Math.max(1, Number(product.quantity) || 1);
-
-      Decrease.addEventListener("click", () => {
-        if (product.quantity > 1) {
-          product.quantity--;
-          localStorage.setItem("cart", JSON.stringify(Cart));
-          DisplayProduct();
-        }
-      });
-      Increase.addEventListener("click", () => {
-        product.quantity++;
-        localStorage.setItem("cart", JSON.stringify(Cart));
-        DisplayProduct();
-      });
-      Remove.addEventListener("click", () => {
-        Cart = Cart.filter((ele) => {
-          return ele.id !== product.id;
-        });
-        localStorage.setItem("cart", JSON.stringify(Cart));
-        DisplayProduct();
-      });
-      card.append(
-        image,
-        details,
-        price,
-        Increase,
-        quantity,
-        Decrease,
-        Remove
-      );
-      CartContainer.append(card);
-    });
-
-    renderCartSummary(Cart);
-    }
-
-  DisplayProduct();
 
   document.getElementById("checkout-form").addEventListener("submit", (event) => {
     event.preventDefault();

@@ -517,7 +517,7 @@ function renderReviewCard(review, showCompletionAction = true) {
                <div>
                    <div class="title-row">
                        <span class="card-icon">⭐</span>
-                       <strong>${review.customerName}</strong>
+                       <strong>${escapeHtml(review.customerName)}</strong>
                    </div>
                    <div class="review-meta">
                        <span>📞 ${review.phone}</span>
@@ -533,7 +533,7 @@ function renderReviewCard(review, showCompletionAction = true) {
            <div class="info-grid two-col">
                <div class="field">
                    <span class="field-label">Sản phẩm</span>
-                   <span class="field-value">${review.productName}</span>
+                   <span class="field-value">${escapeHtml(review.productName)}</span>
                </div>
                <div class="field">
                    <span class="field-label">Xếp hạng</span>
@@ -542,11 +542,11 @@ function renderReviewCard(review, showCompletionAction = true) {
            </div>
 
            <div class="section-label">Nội dung đánh giá</div>
-           <div class="detail-block quote-box">${review.comment || "Không có nhận xét"}</div>
+           <div class="detail-block quote-box">${escapeHtml(review.comment || "Không có nhận xét")}</div>
 
            <div class="reply-box">
                <label class="field-label">Phản hồi của bạn</label>
-               <textarea class="reply-input" data-review-id="${review.id}" placeholder="Nhập phản hồi cho khách hàng...">${review.reply || ""}</textarea>
+               <textarea class="reply-input" data-review-id="${review.id}" placeholder="Nhập phản hồi cho khách hàng...">${escapeHtml(review.reply || "")}</textarea>
                <button class="send-reply" data-review-id="${review.id}">Gửi phản hồi</button>
            </div>
        </div>
@@ -565,9 +565,9 @@ function renderReviewSummary(review) {
    return `
        <article class="record-summary">
            <div class="completed-order-info">
-               <strong>${review.customerName} · ${review.productName}</strong>
+               <strong>${escapeHtml(review.customerName)} · ${escapeHtml(review.productName)}</strong>
                <span class="rating-value">${"★".repeat(Number(review.rating || 0))}${"☆".repeat(5 - Number(review.rating || 0))}</span>
-               <span class="record-summary-preview"><b>Đánh giá:</b> ${review.comment || "Không có nhận xét"}</span>
+               <span class="record-summary-preview"><b>Đánh giá:</b> ${escapeHtml(review.comment || "Không có nhận xét")}</span>
                <span><b>Thời gian:</b> ${new Date(review.createdAt).toLocaleString("vi-VN")}</span>
            </div>
            <div class="record-summary-actions">
@@ -1149,6 +1149,9 @@ window.addEventListener("storage", (event) => {
    }
    if (event.key === STORAGE_KEYS.orders && activeHeading?.textContent === "Quản lý đơn hàng") {
        renderOrdersTab();
+   }
+   if (event.key === STORAGE_KEYS.reviews && activeHeading?.textContent === "Đánh giá khách hàng") {
+       renderReviewsTab();
    }
 });
 

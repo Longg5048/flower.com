@@ -58,9 +58,29 @@
                     <div class="tracking-products" id="tracking-products"></div>
                 </section>
             </div>
+
+            <section class="tracking-panel review-panel" id="review-panel" hidden>
+                <h2>Đánh giá đơn hàng</h2>
+                <form id="order-review-form">
+                    <fieldset class="review-rating">
+                        <legend>Chọn số sao</legend>
+                        <div class="rating-stars" role="group" aria-label="Đánh giá từ 1 đến 5 sao">
+                            <button type="button" class="rating-star" data-rating="1" aria-label="1 sao" aria-pressed="false">★</button>
+                            <button type="button" class="rating-star" data-rating="2" aria-label="2 sao" aria-pressed="false">★</button>
+                            <button type="button" class="rating-star" data-rating="3" aria-label="3 sao" aria-pressed="false">★</button>
+                            <button type="button" class="rating-star" data-rating="4" aria-label="4 sao" aria-pressed="false">★</button>
+                            <button type="button" class="rating-star" data-rating="5" aria-label="5 sao" aria-pressed="false">★</button>
+                        </div>
+                    </fieldset>
+                    <label class="review-comment-label" for="review-comment">Nhận xét của bạn</label>
+                    <textarea id="review-comment" name="comment" maxlength="1000" placeholder="Chia sẻ cảm nhận về đơn hàng..." required></textarea>
+                    <button class="review-submit" type="submit">Gửi đánh giá</button>
+                    <p class="review-feedback" id="review-feedback" role="status" aria-live="polite"></p>
+                </form>
+            </section>
         </section>
     </main>
 
-    <script src="./tracking.js"></script>
+    <script src="./tracking.js?v=2"></script>
 </body>
 </html>

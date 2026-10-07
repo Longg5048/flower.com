@@ -3,6 +3,13 @@ const orderIdInput = document.getElementById("tracking-order-id");
 const phoneInput = document.getElementById("tracking-phone");
 const message = document.getElementById("tracking-message");
 const results = document.getElementById("tracking-results");
+const reviewPanel = document.getElementById("review-panel");
+const reviewForm = document.getElementById("order-review-form");
+const reviewComment = document.getElementById("review-comment");
+const reviewFeedback = document.getElementById("review-feedback");
+const ratingStars = [...document.querySelectorAll(".rating-star")];
+let selectedRating = 0;
+let currentOrder = null;
 
 function makeElement(tagName, className, text) {
     const element = document.createElement(tagName);
@@ -82,7 +89,45 @@ function renderProducts(items) {
     });
 }
 
+function getStoredReviews() {
+    try {
+        const reviews = JSON.parse(localStorage.getItem("flowerReviews") || "[]");
+        return Array.isArray(reviews) ? reviews : [];
+    } catch (error) {
+        console.error("Không thể đọc đánh giá:", error);
+        return [];
+    }
+}
+
+function setSelectedRating(rating) {
+    selectedRating = rating;
+    ratingStars.forEach((star) => {
+        const value = Number(star.dataset.rating);
+        star.classList.toggle("is-selected", value <= selectedRating);
+        star.setAttribute("aria-pressed", String(value === selectedRating));
+    });
+}
+
+function renderReviewPanel(order) {
+    const canReview = order.status === "Hoàn thành chuyến";
+    reviewPanel.hidden = !canReview;
+    if (!canReview) return;
+
+    setSelectedRating(0);
+    reviewForm.reset();
+    reviewForm.hidden = false;
+    reviewFeedback.textContent = "";
+
+    const existingReview = getStoredReviews().find((review) => String(review.orderId) === String(order.id));
+    if (existingReview) {
+        reviewForm.hidden = true;
+        const stars = "★".repeat(Number(existingReview.rating) || 0);
+        reviewFeedback.textContent = `Bạn đã đánh giá đơn hàng này: ${stars}. ${existingReview.comment || ""}`;
+    }
+}
+
 function renderOrder(order) {
+    currentOrder = order;
     document.getElementById("result-order-id").textContent = `#${order.id}`;
     document.getElementById("result-status").textContent = order.status || "Đang xử lý";
     document.getElementById("result-location").textContent = order.currentLocation || "Cửa hàng chưa cập nhật vị trí vận chuyển.";
@@ -92,6 +137,7 @@ function renderOrder(order) {
     document.getElementById("result-address").textContent = order.address || "Chưa cập nhật";
     renderHistory(order);
     renderProducts(order.items);
+    renderReviewPanel(order);
     results.hidden = false;
     message.textContent = "";
 }
@@ -118,6 +164,53 @@ function searchOrder() {
 
     renderOrder(order);
 }
+
+ratingStars.forEach((star) => {
+    star.addEventListener("click", () => setSelectedRating(Number(star.dataset.rating)));
+});
+
+reviewForm.addEventListener("submit", (event) => {
+    event.preventDefault();
+    const comment = reviewComment.value.trim();
+
+    if (!currentOrder || currentOrder.status !== "Hoàn thành chuyến") {
+        reviewFeedback.textContent = "Chỉ có thể đánh giá đơn hàng đã hoàn thành chuyến.";
+        reviewPanel.hidden = true;
+        return;
+    }
+    if (!selectedRating) {
+        reviewFeedback.textContent = "Vui lòng chọn số sao đánh giá.";
+        return;
+    }
+    if (!comment) {
+        reviewComment.focus();
+        reviewFeedback.textContent = "Vui lòng nhập nhận xét trước khi gửi.";
+        return;
+    }
+
+    const reviews = getStoredReviews();
+    if (reviews.some((review) => String(review.orderId) === String(currentOrder.id))) {
+        renderReviewPanel(currentOrder);
+        return;
+    }
+
+    const review = {
+        id: Date.now(),
+        orderId: currentOrder.id,
+        customerName: currentOrder.customerName || "Khách hàng",
+        phone: currentOrder.phone || "",
+        productName: (currentOrder.items || []).map((item) => item.title).filter(Boolean).join(", ") || `Đơn hàng #${currentOrder.id}`,
+        rating: selectedRating,
+        comment,
+        createdAt: new Date().toISOString(),
+        reply: ""
+    };
+
+    reviews.push(review);
+    localStorage.setItem("flowerReviews", JSON.stringify(reviews));
+    renderReviewPanel(currentOrder);
+    reviewFeedback.textContent = "Cảm ơn bạn đã gửi đánh giá.";
+});
 
 searchForm.addEventListener("submit", (event) => {
     event.preventDefault();

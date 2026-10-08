@@ -439,7 +439,7 @@ function renderOrderCard(order, showCompletionAction = true) {
                        </label>
                        <label>
                            Dự kiến giao đến
-                           <input class="tracking-eta" data-order-id="${order.id}" type="datetime-local" value="${escapeHtml(toDateTimeLocal(order.estimatedDelivery))}">
+                           <input class="tracking-eta" data-order-id="${order.id}" type="date" value="${escapeHtml(toDateInput(order.estimatedDelivery))}">
                        </label>
                    </div>
                </div>
@@ -476,11 +476,11 @@ function escapeHtml(value) {
     })[character]);
 }
 
-function toDateTimeLocal(value) {
+function toDateInput(value) {
     if (!value) return "";
     const date = new Date(value);
     if (Number.isNaN(date.getTime())) return "";
-    return new Date(date.getTime() - date.getTimezoneOffset() * 60000).toISOString().slice(0, 16);
+    return new Date(date.getTime() - date.getTimezoneOffset() * 60000).toISOString().slice(0, 10);
 }
 
 function renderOrdersTab() {
@@ -726,7 +726,7 @@ function deleteProduct(id) {
 
 function updateOrderStatus(orderId, status, location, estimatedDelivery) {
    if (status === "Đã vận chuyển" && (!location || !estimatedDelivery)) {
-       alert("Vui lòng nhập vị trí hiện tại và thời gian dự kiến giao hàng.");
+       alert("Vui lòng nhập vị trí hiện tại và ngày dự kiến giao hàng.");
        return;
    }
 

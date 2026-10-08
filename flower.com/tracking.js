@@ -18,14 +18,14 @@ function makeElement(tagName, className, text) {
     return element;
 }
 
-function formatDate(value) {
+function formatDate(value, includeTime = true) {
     if (!value) return "Chưa cập nhật";
     const date = new Date(value);
     if (Number.isNaN(date.getTime())) return "Chưa cập nhật";
-    return new Intl.DateTimeFormat("vi-VN", {
-        dateStyle: "medium",
-        timeStyle: "short"
-    }).format(date);
+    const options = includeTime
+        ? { dateStyle: "medium", timeStyle: "short" }
+        : { dateStyle: "medium" };
+    return new Intl.DateTimeFormat("vi-VN", options).format(date);
 }
 
 function maskPhone(phone) {
@@ -60,7 +60,7 @@ function renderHistory(order) {
         copy.append(makeElement("strong", "", event.status || "Cập nhật đơn hàng"));
         if (event.location) copy.append(makeElement("p", "", event.location));
         if (event.estimatedDelivery) {
-            copy.append(makeElement("p", "", `Dự kiến giao: ${formatDate(event.estimatedDelivery)}`));
+            copy.append(makeElement("p", "", `Dự kiến giao: ${formatDate(event.estimatedDelivery, false)}`));
         }
         const time = makeElement("time", "", formatDate(event.updatedAt));
         if (event.updatedAt) time.dateTime = event.updatedAt;
@@ -131,7 +131,7 @@ function renderOrder(order) {
     document.getElementById("result-order-id").textContent = `#${order.id}`;
     document.getElementById("result-status").textContent = order.status || "Đang xử lý";
     document.getElementById("result-location").textContent = order.currentLocation || "Cửa hàng chưa cập nhật vị trí vận chuyển.";
-    document.getElementById("result-eta").textContent = formatDate(order.estimatedDelivery);
+    document.getElementById("result-eta").textContent = formatDate(order.estimatedDelivery, false);
     document.getElementById("result-customer").textContent = order.customerName || "Chưa cập nhật";
     document.getElementById("result-phone").textContent = maskPhone(order.phone);
     document.getElementById("result-address").textContent = order.address || "Chưa cập nhật";

@@ -20,90 +20,121 @@ function display(data) {
 
     container.innerHTML = ""
 
-    data.forEach((el, ind) => {
+    if (!data.length) {
+      const emptyState = document.createElement("p")
+      emptyState.className = "catalog-empty"
+      emptyState.textContent = "Không tìm thấy sản phẩm phù hợp."
+      container.append(emptyState)
+      return
+    }
 
-        // Creating 
-        let box = document.createElement("div")
-        let box2 = document.createElement("div")
-        let box3 = document.createElement("div")
+    data.forEach((el) => {
+
+        const productName = getVietnameseProductName(el.title || "Sản phẩm hoa")
+        const box = document.createElement("article")
+        const imageFrame = document.createElement("div")
         let img = document.createElement("img")
         let title = document.createElement("h2")
-        let price = document.createElement("h3")
+        let price = document.createElement("p")
         let stock = document.createElement("p")
-        let btn = document.createElement("button")
-        let btn2 = document.createElement("button")
-
-        // Assigning Data
-        img.src = el.image
-        title.innerText = getVietnameseProductName(el.title)
-        price.innerText = formatVnd(el.price)
+        let actions = document.createElement("div")
+        let orderButton = document.createElement("button")
+        let cartButton = document.createElement("button")
+        let wishlistButton = document.createElement("button")
         const quantity = Math.max(0, Number(el.quantity) || 0)
+
+        imageFrame.className = "product-image"
+        img.src = el.image || ""
+        img.alt = productName
+        img.loading = "lazy"
+        img.addEventListener("error", () => {
+          img.hidden = true
+          imageFrame.classList.add("image-unavailable")
+          imageFrame.setAttribute("aria-label", `Ảnh ${productName} hiện không khả dụng`)
+        }, { once: true })
+        title.innerText = productName
+        price.className = "product-price"
+        price.innerText = formatVnd(el.price)
         stock.className = quantity > 0 ? "stock-status" : "stock-status out-of-stock"
         stock.innerText = quantity > 0 ? `Còn hàng: ${quantity}` : "Hết hàng"
-        btn.innerText = quantity > 0 ? "Thêm vào giỏ hàng" : "Hết hàng"
-        btn.disabled = quantity === 0
-        btn2.innerText = "Thêm vào yêu thích"
+        orderButton.type = "button"
+        orderButton.className = "product-order"
+        orderButton.innerText = "Đặt hàng"
+        orderButton.disabled = quantity === 0
+        cartButton.type = "button"
+        cartButton.className = "product-add-to-cart"
+        cartButton.innerText = "Thêm vào giỏ"
+        cartButton.disabled = quantity === 0
+        wishlistButton.type = "button"
+        wishlistButton.className = "product-wishlist"
+        wishlistButton.innerText = "Thêm vào yêu thích"
 
-        // Clssess
-        box.className = "box";
-        box3.id = "wish";
+        box.className = "box product-card"
+        actions.className = "product-actions"
 
-        //Event Listner
-
-        btn.addEventListener("click", () => {
-          if(checkdub2(el)){
+        cartButton.addEventListener("click", () => {
+          if (checkdub2(el)) {
             Swal.fire({
-              position: 'center',
-              icon: 'error',
-              title: 'Sản phẩm đã có trong giỏ hàng',
+              position: "center",
+              icon: "error",
+              title: "Sản phẩm đã có trong giỏ hàng",
               showConfirmButton: false,
               timer: 1500
             })
-        }else{
-            cart.push({...el,quantity:1})
-            localStorage.setItem("cart", JSON.stringify(cart))
-            Total.innerText=cart.length
-            Swal.fire({
-              position: 'center',
-              icon: 'success',
-              title: 'Đã thêm vào giỏ hàng',
-              showConfirmButton: false,
-              timer: 1500
-            })
-        } 
-        })
-        btn2.addEventListener("click", () => {
+            return
+          }
 
-              if(checkdub(el)){
-                  Swal.fire({
-                    position: 'center',
-                    icon: 'error',
-                    title: 'Sản phẩm đã có trong danh sách yêu thích',
-                    showConfirmButton: false,
-                    timer: 1500
-                  })
-              }else{
-                  wish.push(el)
-                  localStorage.setItem("wish", JSON.stringify(wish))
-                  WishTotal.innerText = wish.length
-                  Swal.fire({
-                    position: 'center',
-                    icon: 'success',
-                    title: 'Đã thêm vào danh sách yêu thích',
-                    showConfirmButton: false,
-                    timer: 1500
-                  })
-              } 
+          addProductToCart(el)
+          Swal.fire({
+            position: "center",
+            icon: "success",
+            title: "Đã thêm vào giỏ hàng",
+            showConfirmButton: false,
+            timer: 1500
           })
+        })
 
+        orderButton.addEventListener("click", () => {
+          if (!checkdub2(el)) addProductToCart(el)
+          window.location.href = "./checkout.html"
+        })
 
-        // Appending to Main 
-        box2.append(img)
-        box3.append(btn, btn2)
-        box.append(box2, title, price, stock, box3)
+        wishlistButton.addEventListener("click", () => {
+          if (checkdub(el)) {
+            Swal.fire({
+              position: "center",
+              icon: "error",
+              title: "Sản phẩm đã có trong danh sách yêu thích",
+              showConfirmButton: false,
+              timer: 1500
+            })
+            return
+          }
+
+          wish.push(el)
+          localStorage.setItem("wish", JSON.stringify(wish))
+          WishTotal.innerText = wish.length
+          Swal.fire({
+            position: "center",
+            icon: "success",
+            title: "Đã thêm vào danh sách yêu thích",
+            showConfirmButton: false,
+            timer: 1500
+          })
+        })
+
+        imageFrame.append(img)
+        actions.append(orderButton, cartButton, wishlistButton)
+        box.append(imageFrame, title, price, stock, actions)
         container.append(box)
     });
 
+}
+
+function addProductToCart(product) {
+  cart.push({ ...product, quantity: 1 })
+  localStorage.setItem("cart", JSON.stringify(cart))
+  Total.innerText = cart.length
 }
 
 

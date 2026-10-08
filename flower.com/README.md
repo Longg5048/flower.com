@@ -59,11 +59,11 @@ Khi chưa điền cấu hình Firebase, nút Google sẽ giải thích cấu hì
 
 # Landing Page 
 
-Here you can see the landing page of our project:
+Hear you can see the landing page of our project :
 
 ![landing page](https://user-images.githubusercontent.com/119391188/221473747-b7ec099e-8b8d-48cc-a056-c6ca58d74e90.png)
 
-# Sign in / Sign up
+# Sign-In /Sign -Up
 
 ![sign-in](https://user-images.githubusercontent.com/119391188/221473861-fd28ed67-1162-45ae-ad24-c1dc5d85f5b7.png)
 
@@ -75,7 +75,7 @@ Here you can see the landing page of our project:
 
 ![Search Option](https://user-images.githubusercontent.com/119391188/221473808-9413f0b0-e811-4440-9c7d-1fb7a1685bff.png)
 
-# Wishlist
+# WishList
 
 ![Wishlist page](https://user-images.githubusercontent.com/119391188/221473831-ccef53c4-2a72-4400-b421-c4535bb5e00d.png)
 

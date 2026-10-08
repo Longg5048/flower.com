@@ -1,3 +1,5 @@
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Playfair+Display:wght@600;700&display=swap');
+
 .dashboard-page, .dashboard-page #wrapper, .dashboard-page #content { min-height: 100vh; background: #f4f8f5; }
 .dashboard-page { color: #1d3d35; font-family: 'DM Sans', sans-serif; }
 .dashboard-page #sidebar { width: 248px; background: #fff; color: #35544b; border-right: 1px solid #e4ece6; box-shadow: 5px 0 24px rgba(28,67,52,.035); }

@@ -1,0 +1,157 @@
+
+*{
+    margin: 0px;
+    padding: 0px;
+}
+#container{
+    padding-left: 20px;
+    padding-top: 20px;
+    padding-bottom: 20px;
+    width:80%;
+    margin:auto;
+    display: grid;
+    grid-template-columns: repeat(4,1fr);
+    row-gap: 30px;
+}
+.empty-wishlist{
+    grid-column: 1 / -1;
+    padding: 48px 20px;
+    text-align: center;
+    font-size: 18px;
+}
+.empty-wishlist a{
+    color: rgb(170, 53, 21);
+}
+#container>div{
+    box-shadow: rgba(0, 0, 0, 0.1) 0px 4px 12px;
+    padding-top: 20px;
+    display: grid;
+   align-content: space-around;
+   text-align: center;
+    width:90%;
+    border-radius: 10px;
+}
+#container>div :nth-child(2){
+    margin-top: 10px;
+}
+#container>div p{
+    text-align: left;
+    margin-left: 10px;
+}
+.boxcontainer img{
+    margin: auto;
+    width:200px;
+    height:150px;
+    object-fit: contain;
+    transition: .05;
+}
+#container img:hover{
+    transform: scale(1.1);
+}
+#wish img{
+    width: 30px;
+}
+#container>div>div>button{
+    background-color:rgb(231, 74, 12);
+    border-radius: 8px;
+    width:200px;
+    height:40px;
+    margin-bottom: 20px;
+    margin-left: 10px;
+    font-size: medium;
+}
+
+main{
+    display: flex;
+    margin-left: 30px;
+    justify-content: space-between;
+}
+#filter{
+    margin-top: 40px;
+}
+input{
+    margin-top: 10px;
+}
+#category-filter{
+    margin-top: 40px;
+}
+h1{
+    text-align: center;
+}
+
+main {
+    display: block;
+    width: 100%;
+    margin: 0;
+    padding: 16px;
+}
+
+#container {
+    width: 100%;
+    min-width: 0;
+    margin: 0;
+    padding: 20px 0;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+#container > div {
+    width: 100%;
+    min-width: 0;
+}
+
+#container h2,
+#container h3,
+main > h1 {
+    min-width: 0;
+    overflow-wrap: anywhere;
+}
+
+#container img {
+    display: block;
+    width: min(100%, 200px);
+    height: 150px;
+    object-fit: contain;
+    margin: 0 auto;
+}
+
+#container #wish {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 8px;
+    min-width: 0;
+}
+
+#container #wish button {
+    width: auto;
+    max-width: 100%;
+    min-height: 40px;
+    height: auto;
+    margin: 0 0 16px;
+    padding: 8px 12px;
+    white-space: normal;
+}
+
+@media (max-width: 1000px) {
+    #container {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+}
+
+@media (max-width: 600px) {
+    main {
+        padding: 12px;
+    }
+
+    #container {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 16px 8px;
+    }
+}
+
+@media (max-width: 420px) {
+    #container {
+        grid-template-columns: minmax(0, 1fr);
+    }
+}
+

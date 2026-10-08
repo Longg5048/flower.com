@@ -139,30 +139,56 @@ function addProductToCart(product) {
 
 
 const sortSelect = document.querySelector(".arrange")
-const filterSelect = document.getElementById("filter")
+const flowerTypeSelect = document.getElementById("flower-type")
+const priceFilterSelect = document.getElementById("price-filter")
+
+function normalizeSearchText(value) {
+  return value.toLocaleLowerCase("vi").normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/đ/g, "d")
+}
+
+function getFlowerTypes(product) {
+  const productDetails = `${product.title} ${product.description}`.toLocaleLowerCase("en")
+  const types = []
+  const typeKeywords = {
+    rose: /\broses?\b/,
+    orchid: /\borchids?\b/,
+    lily: /\blilies?\b|\blily\b/,
+    lavender: /\blavender\b/,
+    gerber: /\bgerbers?\b|\bdais(?:y|ies)\b/
+  }
+
+  Object.entries(typeKeywords).forEach(([type, keyword]) => {
+    if (keyword.test(productDetails)) types.push(type)
+  })
+
+  return types.length ? types : ["mixed"]
+}
 
 function renderProducts() {
-  const searchTerm = searchInput.value.trim().toLocaleLowerCase("vi")
-  const filterValue = filterSelect.value
+  const searchTerm = normalizeSearchText(searchInput.value.trim())
+  const flowerType = flowerTypeSelect.value
+  const priceFilter = priceFilterSelect.value
   const collator = new Intl.Collator("vi", { sensitivity: "base" })
   let visibleProducts = products.filter((product) => {
-    const englishName = product.title.toLocaleLowerCase("vi")
-    const vietnameseName = getVietnameseProductName(product.title).toLocaleLowerCase("vi")
-    const matchesSearch = !searchTerm || englishName.includes(searchTerm) || vietnameseName.includes(searchTerm)
+    const englishName = normalizeSearchText(product.title)
+    const vietnameseName = normalizeSearchText(getVietnameseProductName(product.title))
+    const matchesSearch = !searchTerm
+      || englishName.includes(searchTerm)
+      || vietnameseName.includes(searchTerm)
+      || String(product.id).includes(searchTerm)
+    const matchesFlowerType = !flowerType || getFlowerTypes(product).includes(flowerType)
     const priceInVnd = toVndAmount(product.price)
-    let matchesFilter = true
+    let matchesPrice = true
 
-    if (filterValue === "price-under-1500000") {
-      matchesFilter = priceInVnd < 1500000
-    } else if (filterValue === "price-1500000-2000000") {
-      matchesFilter = priceInVnd >= 1500000 && priceInVnd < 2000000
-    } else if (filterValue === "price-over-2000000") {
-      matchesFilter = priceInVnd >= 2000000
-    } else if (filterValue) {
-      matchesFilter = product.title === filterValue
+    if (priceFilter === "price-under-1500000") {
+      matchesPrice = priceInVnd < 1500000
+    } else if (priceFilter === "price-1500000-2000000") {
+      matchesPrice = priceInVnd >= 1500000 && priceInVnd < 2000000
+    } else if (priceFilter === "price-over-2000000") {
+      matchesPrice = priceInVnd >= 2000000
     }
 
-    return matchesSearch && matchesFilter
+    return matchesSearch && matchesFlowerType && matchesPrice
   })
 
   switch (sortSelect.value) {
@@ -186,12 +212,19 @@ function renderProducts() {
       break
   }
 
+  if (!visibleProducts.length) {
+    container.textContent = "Không tìm thấy sản phẩm phù hợp."
+    return
+  }
+
   display(visibleProducts)
 }
 
 sortSelect.addEventListener("change", renderProducts)
-filterSelect.addEventListener("change", renderProducts)
+flowerTypeSelect.addEventListener("change", renderProducts)
+priceFilterSelect.addEventListener("change", renderProducts)
 searchButton.addEventListener("click", renderProducts)
+searchInput.addEventListener("input", renderProducts)
 searchInput.addEventListener("keydown", (event) => {
   if (event.key === "Enter") renderProducts()
 })

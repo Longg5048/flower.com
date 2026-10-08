@@ -36,13 +36,19 @@ assert.strictEqual(restoredCatalog.find((item) => item.id === 2).quantity, 5);
 
 const fullCatalog = require('../flower.com/flower.json').flower;
 const restoredFullCatalog = mergeCatalogProducts(
-  [{ ...fullCatalog[0], quantity: 2 }, { id: 999, title: 'Hoa tùy chỉnh', quantity: 3 }],
+  [
+    { ...fullCatalog[0], quantity: 2 },
+    { ...fullCatalog[24], quantity: 7 },
+    { id: 999, title: 'Hoa tùy chỉnh', quantity: 3 },
+  ],
   fullCatalog
 );
 
 assert.strictEqual(fullCatalog.length, 48);
-assert.strictEqual(restoredFullCatalog.length, 49);
+assert.strictEqual(restoredFullCatalog.length, 25);
 assert.strictEqual(restoredFullCatalog.find((item) => item.id === fullCatalog[0].id).quantity, 2);
+assert.strictEqual(restoredFullCatalog.some((item) => item.id === fullCatalog[24].id), false);
 assert.strictEqual(restoredFullCatalog.find((item) => item.id === 999).title, 'Hoa tùy chỉnh');
+assert.strictEqual(new Set(restoredFullCatalog.map((item) => item.title)).size, restoredFullCatalog.length);
 
 console.log('product-store sync test passed');

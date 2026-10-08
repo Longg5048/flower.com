@@ -30,6 +30,18 @@
         };
     }
 
+    function deduplicateProducts(products) {
+        const uniqueProducts = new Map();
+        (Array.isArray(products) ? products : []).map(normalizeProduct).forEach((product) => {
+            const title = product.title.toLocaleLowerCase("vi");
+            const existing = uniqueProducts.get(title);
+            if (!existing || Number(product.id) < Number(existing.id)) {
+                uniqueProducts.set(title, product);
+            }
+        });
+        return Array.from(uniqueProducts.values());
+    }
+
     function mergeCatalogProducts(existing = [], catalog = []) {
         const merged = new Map((Array.isArray(existing) ? existing : []).map((item) => {
             const product = normalizeProduct(item);
@@ -39,12 +51,12 @@
             const product = normalizeProduct(item);
             if (!merged.has(String(product.id))) merged.set(String(product.id), product);
         });
-        return Array.from(merged.values());
+        return deduplicateProducts(Array.from(merged.values()));
     }
 
     function readProducts() {
         try {
-            return JSON.parse(storage()?.getItem(PRODUCT_KEY) || "[]");
+            return deduplicateProducts(JSON.parse(storage()?.getItem(PRODUCT_KEY) || "[]"));
         } catch (error) {
             console.warn("Không đọc được kho sản phẩm:", error);
             return [];
@@ -52,7 +64,7 @@
     }
 
     function cacheProducts(products, notify = true) {
-        const normalized = (Array.isArray(products) ? products : []).map(normalizeProduct);
+        const normalized = deduplicateProducts(products);
         storage()?.setItem(PRODUCT_KEY, JSON.stringify(normalized));
         if (notify) {
             window.dispatchEvent(new CustomEvent("flowerinventorychange", { detail: normalized }));

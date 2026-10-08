@@ -24,7 +24,7 @@ if (accountNav) {
     accountNav.addEventListener("click", () => {
         const currentAccount = getCurrentAccount();
         if (!currentAccount) {
-            window.location.assign("./account.html");
+            window.location.assign("./login.html");
         } else if (currentAccount.role === "admin") {
             window.location.assign("./admin.html");
         } else {

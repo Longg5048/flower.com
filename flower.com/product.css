@@ -281,6 +281,10 @@ select{
     background: #faf8f4;
 }
 
+.site-header .search-form input {
+    margin-top: 0;
+}
+
 .product-page #sidebar {
     position: sticky;
     top: 16px;

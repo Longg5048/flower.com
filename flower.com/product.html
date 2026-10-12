@@ -3,144 +3,77 @@
 
 <head>
   <meta charset="UTF-8">
-  <meta http-equiv="X-UA-Compatible" content="IE=edge">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Cửa hàng hoa</title>
-  <link rel="stylesheet" href="./product.css?v=4">
-  <link rel="stylesheet" href="headder.css" />
+  <meta name="theme-color" content="#fbf8f3">
+  <title>Cửa hàng hoa | Flowerflow</title>
+  <link rel="stylesheet" href="./homepage.css?v=1">
+  <link rel="stylesheet" href="./product.css?v=6">
 </head>
 
-<body>
+<body id="top">
+  <div class="announcement">
+    <span>Hoa tươi trao tận tay, yêu thương gửi tận lòng</span>
+    <a href="./product.html">Khám phá bộ sưu tập <span aria-hidden="true">→</span></a>
+  </div>
 
+  <header class="site-header">
+    <div class="header-main">
+      <a class="brand" href="./index.html" aria-label="Flowerflow - Trang chủ">
+        <img src="./images/flowerflow-logo.png" alt="">
+        <span>flowerflow</span>
+      </a>
 
-  <div id="headder">
-    <div id="img-link">
-      <div>
-        <a href="./index.html"
-          ><img
-            class="brand-logo"
-            src="./images/flowerflow-logo.png"
-            alt="Flowerflow"
-          />
+      <form class="search-form" action="./product.html" method="get" role="search">
+        <label class="sr-only" for="search">Tìm hoa và quà tặng</label>
+        <span class="search-icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24" focusable="false"><circle cx="10.8" cy="10.8" r="6.4"></circle><path d="m16 16 4.2 4.2"></path></svg>
+        </span>
+        <input id="search" type="search" name="search" placeholder="Bạn đang tìm loài hoa nào?" autocomplete="off">
+        <button id="sbtn" type="submit">Tìm kiếm</button>
+      </form>
+
+      <div class="header-actions">
+        <div class="header-action signin" role="button" tabindex="0">
+          <span class="action-icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" focusable="false"><circle cx="12" cy="8" r="3.5"></circle><path d="M5 20c.6-3.8 2.9-5.8 7-5.8s6.4 2 7 5.8"></path></svg>
+          </span>
+          <h5>Tài khoản</h5>
+        </div>
+        <a class="header-action orders" href="./tracking.html">
+          <span class="action-icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" focusable="false"><path d="M3 6.5h11v11H3zM14 10h4l3 3v4h-7z"></path><circle cx="7.5" cy="18.5" r="1.8"></circle><circle cx="17.5" cy="18.5" r="1.8"></circle></svg>
+          </span>
+          <span>Đơn hàng</span>
+        </a>
+        <a class="header-action bag" href="./cart.html">
+          <span class="action-icon bag-icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" focusable="false"><path d="M5 8h14l1 12H4L5 8Z"></path><path d="M9 9V6a3 3 0 0 1 6 0v3"></path></svg>
+            <span id="cartTotal">0</span>
+          </span>
+          <span>Giỏ hàng</span>
         </a>
       </div>
-      <div>
-        <img
-          style="width: 100px"
-          src="https://images.contentstack.io/v3/assets/blt95e0138311135214/bltac334446d6f9e89c/5f96fc4f2425cd7a8af6845e/pmall_svg-logo-v2.svg?height=32&width=78"
-          alt=""
-        />
-      </div>
-      <div>
-        <img
-          src="https://images.contentstack.io/v3/assets/blt95e0138311135214/bltf0b1021465476e4f/5f08974b0d1d2008538ce15a/SharisLogo_r.svg?height=32&width=78"
-          alt=""
-        />
-      </div>
-      <div>
-        <img
-          src="https://images.contentstack.io/v3/assets/blt95e0138311135214/bltac303abaae751c40/5f08974af394777f87099a07/18b-logo-v2.svg?height=32&width=78"
-          alt=""
-        />
-      </div>
-      <div>
-        <img
-          src="https://images.contentstack.io/v3/assets/blt95e0138311135214/blt71adcb0696952e83/5f08974baa5d1801639286b4/sch-logo-v2.svg?height=32&width=78"
-          alt=""
-        />
-      </div>
-      <div>
-        <img
-          src="https://images.contentstack.io/v3/assets/blt95e0138311135214/bltef2e14ec247ab827/5f08974a2cd8e87f92bdd257/fb-logo-v2.svg?height=32&width=78"
-          alt=""
-        />
-      </div>
-      <div>
-        <img
-          src="https://images.contentstack.io/v3/assets/blt95e0138311135214/blte1e2eb25cfd09fb6/5f08974a91afb901b86d5251/cco-logo-v2.svg?height=32&width=78"
-          alt=""
-        />
-      </div>
-      <div>
-        <img
-          src="https://images.contentstack.io/v3/assets/blt95e0138311135214/bltf9903ccf2408c217/5f0897552cd8e87f92bdd25b/tpf-logo-v2.svg?height=32&width=78"
-          alt=""
-        />
-      </div>
-      <div>
-        <img
-          src="https://images.contentstack.io/v3/assets/blt95e0138311135214/blt7ef824d3f9f5074d/5f0897558b0e59084c9f7574/wlf-logo-v2.svg?height=32&width=78"
-          alt=""
-        />
-      </div>
-      <div>
-        <img
-          src="https://images.contentstack.io/v3/assets/blt95e0138311135214/blta2ba2ac7606f6c15/5f08974bceebbf7e87c30215/sy-logo-v2.svg?height=32&width=78"
-          alt=""
-        />
-      </div>
-      <div>
-        <img
-          style="width: 85px; padding-top: 10px"
-          src="https://images.contentstack.io/v3/assets/blt0281495b20b504a0/blta4f709f645453ff0/61b4eeeea000c90ecc6e15bd/VC_Logo_w_tag.svg?height=32&width=78"
-          alt=""
-        />
-      </div>
+
+      <button class="menu-toggle" type="button" aria-expanded="false" aria-controls="primary-nav">
+        <span class="sr-only">Mở menu</span>
+        <span></span><span></span><span></span>
+      </button>
     </div>
 
-    <div id="nav">
-      <div id="nav-left"><a href="index.html">
-        <img 
-          src="https://images.contentstack.io/v3/assets/bltdd99f24e8a94d536/bltce6d6c480577e10e/5d4866eff9ece57fa9a82245/flowers.png?quality=60&auto=webp&optimize={medium}"
-          alt=""
-        /></a>
-      </div>
-      <div id="nav-center">
-        <input type="text" placeholder="Nhập tên hoa hoặc mã sản phẩm" id="search" />
-        <button style="margin-top: 9px;" id="sbtn">TÌM KIẾM</button>
-      </div>
-      <div id="nav-right">
-        <!-- <i class="fa-regular fa-user"></i>
-              <i class="fa-regular fa-heart"></i>-->
-        <div class="signin">
-          <i><img
-              src="https://images.contentstack.io/v3/assets/bltdd99f24e8a94d536/blt88337dc20d1d8278/5e178293942caf0fc36b77ab/Header-Icon-PWA-profile.svg"
-              alt=""
-          /></i>
-          <h5>Đăng nhập</h5>
-        </div>
-        <div class="orders">
-          <i
-            ><a href="./tracking.html">
-              <img
-              src="https://images.contentstack.io/v3/assets/bltdd99f24e8a94d536/bltd7f3af8e242d37c1/5e1782936430b50f03d6ccc3/Header-Icon-PWA-truck.svg?height=25&width=44"
-              alt=""
-          />
-            </a></i>
-          <h5>Đơn hàng</h5>
-        </div>
-        <div class="bag">
-          <!-- <a href="./cart.html"> -->
-              <img
-              src="https://images.contentstack.io/v3/assets/bltdd99f24e8a94d536/blt7888ec93d3d5c1ec/5e17829300c38f0f022d3646/Header-Icon-PWA-bag.svg?height=25&width=44"
-              alt=""
-          />
-          <h5><span id="cartTotal">(0)</span> Giỏ hàng</h5>
-        <!-- </a> -->
-        </div>
-      </div>
-    </div>
-  </div>
-  <!-- <h1>Product Page</h1> -->
-
-
-
+    <nav class="primary-nav" id="primary-nav" aria-label="Điều hướng chính">
+      <a href="./index.html#flower-categories">Danh mục hoa</a>
+      <a href="./product.html">Tất cả sản phẩm</a>
+      <a href="./product.html?flower=rose">Hoa hồng</a>
+      <a href="./product.html?flower=orchid">Hoa lan</a>
+      <a href="./product.html?flower=mixed">Hoa tổng hợp</a>
+      <a href="./index.html#footer">Về Flowerflow</a>
+    </nav>
+  </header>
 
   <main class="product-page">
-
     <div id="sidebar">
       <div id="plz-sort" class="sortfilter">
-        <label for="sort" class="select">Sắp xếp theo: </label>
+        <label for="sort" class="select">Sắp xếp theo:</label>
         <select name="sort" id="sort" class="select arrange">
           <option value="">Chọn</option>
           <option value="dsc-p">Giá: cao đến thấp</option>
@@ -149,8 +82,6 @@
           <option value="str-d">Tên: Z đến A</option>
         </select>
       </div>
-
-
 
       <div id="filtering" class="sortfilter">
         <label for="flower-type" class="select">Lọc theo loại hoa:</label>
@@ -174,7 +105,6 @@
           <option value="price-over-2000000">Từ 2.000.000 ₫</option>
         </select>
       </div>
-      <!-- <img class="canvaimage" src="Flower4Ucropped.gif" alt=""> -->
     </div>
 
     <section class="product-detail" id="product-detail" aria-labelledby="detail-name" hidden>
@@ -222,8 +152,7 @@
         <h1 id="catalog-title">Hoa tươi dành cho bạn</h1>
         <p>Chọn một bó hoa để gửi lời yêu thương.</p>
       </header>
-      <div id="container" aria-live="polite" aria-label="Danh sách sản phẩm hoa">
-      </div>
+      <div id="container" aria-live="polite" aria-label="Danh sách sản phẩm hoa"></div>
     </section>
   </main>
 
@@ -237,12 +166,13 @@
     </nav>
   </footer>
 
+  <script src="./product-names.js"></script>
+  <script src="./currency.js?v=3"></script>
+  <script src="./product-store.js?v=3"></script>
+  <script src="./homepage.js?v=2"></script>
+  <script src="./product.js?v=8"></script>
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <script src="./account-nav.js"></script>
 </body>
 
 </html>
-<script src="./product-names.js"></script>
-<script src="./currency.js?v=3"></script>
-<script src="./product-store.js?v=3"></script>
-<script src="./product.js?v=7"></script>
-<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-<script src="./account-nav.js"></script>

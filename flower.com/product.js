@@ -150,6 +150,14 @@ const productPage = document.querySelector(".product-page")
 const detailQuantity = document.getElementById("detail-quantity")
 const detailQuantityError = document.getElementById("detail-quantity-error")
 let selectedProduct = null
+const pageParams = new URLSearchParams(window.location.search)
+const initialSearch = pageParams.get("search") || pageParams.get("q") || ""
+const initialFlowerType = pageParams.get("flower") || ""
+
+if (initialSearch) searchInput.value = initialSearch
+if ([...flowerTypeSelect.options].some((option) => option.value === initialFlowerType)) {
+  flowerTypeSelect.value = initialFlowerType
+}
 
 const flowerCategoryLabels = {
   rose: "Hoa hồng",

@@ -253,6 +253,22 @@ a {
   font-weight: 700;
 }
 
+.favorite-nav .action-icon span {
+  position: absolute;
+  top: -4px;
+  right: -8px;
+  display: grid;
+  width: 16px;
+  height: 16px;
+  place-items: center;
+  border-radius: 50%;
+  color: #fff;
+  background: var(--berry);
+  font-family: var(--sans);
+  font-size: 0.62rem;
+  font-weight: 700;
+}
+
 .menu-toggle {
   display: none;
 }

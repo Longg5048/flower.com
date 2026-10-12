@@ -49,8 +49,10 @@ if (!account) {
     }
 }
 
-if (!account || account.role === "admin") {
-    window.location.replace(account?.role === "admin" ? "./admin.html" : "./login.html");
+if (!account || account.role === "admin" || account.role === "owner") {
+    window.location.replace(account?.role === "owner"
+        ? "./owner.html"
+        : account?.role === "admin" ? "./admin.html" : "./login.html");
 } else {
     document.getElementById("account-name").textContent = account.name || "Chưa cập nhật";
     document.getElementById("account-email").textContent = account.email || "Chưa cập nhật";

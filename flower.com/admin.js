@@ -9,6 +9,7 @@ let usersPage = document.getElementById("users_page");
 let logOutPage = document.getElementById("logout_page");
 let main = document.querySelector("main");
 let currentUser;
+let currentUserRole = "admin";
 let editingProductId = null;
 let productSearchTerm = "";
 
@@ -992,6 +993,22 @@ if (logOutPage) {
    });
 }
 
+if (currentUserRole === "owner") {
+   const ownerLink = document.createElement("p");
+   ownerLink.id = "owner_page";
+   ownerLink.textContent = "Owner · Quản lý quyền";
+   ownerLink.tabIndex = 0;
+   ownerLink.setAttribute("role", "link");
+   ownerLink.addEventListener("click", () => window.location.assign("./owner.html"));
+   ownerLink.addEventListener("keydown", (event) => {
+       if (event.key === "Enter" || event.key === " ") {
+           event.preventDefault();
+           window.location.assign("./owner.html");
+       }
+   });
+   logOutPage?.parentElement?.insertBefore(ownerLink, logOutPage);
+}
+
 main.addEventListener("click", (event) => {
    const detailsButton = event.target.closest(".show-record-details");
    if (detailsButton) {
@@ -1132,6 +1149,15 @@ async function initializeAdmin() {
            window.location.replace("./login.html");
            return;
        }
+
+       currentUserRole = token.claims.role === "owner" ? "owner" : "admin";
+       const storedAccount = JSON.parse(localStorage.getItem("loggedUser") || "{}");
+       localStorage.setItem("loggedUser", JSON.stringify({
+           ...storedAccount,
+           uid: currentUser.uid,
+           email: currentUser.email || "",
+           role: currentUserRole
+       }));
 
        bindAdminEvents({ auth, signOut: authSdk.signOut });
     await ensureStorage();

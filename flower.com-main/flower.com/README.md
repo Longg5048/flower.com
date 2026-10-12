@@ -1,6 +1,4 @@
 # casual-metal-9545
-netlify link - https://genuine-malabi-a05086.netlify.app/
-
 ## Kiến trúc hệ thống
 
 ### Tổng quan
@@ -45,7 +43,7 @@ flowchart LR
 
 ### Chạy và triển khai
 
-Vì ứng dụng tĩnh có tải JSON bằng `fetch`, hãy chạy qua máy chủ HTTP cục bộ. Bản triển khai hiện có trên Netlify: https://genuine-malabi-a05086.netlify.app/.
+Vì ứng dụng tĩnh có tải JSON bằng `fetch`, hãy chạy qua máy chủ HTTP cục bộ.
 
 ### Cấu hình Firebase Authentication
 

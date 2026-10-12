@@ -7,7 +7,7 @@
   <meta name="theme-color" content="#fbf8f3">
   <title>Cửa hàng hoa | Flowerflow</title>
   <link rel="stylesheet" href="./homepage.css?v=1">
-  <link rel="stylesheet" href="./product.css?v=6">
+  <link rel="stylesheet" href="./product.css?v=7">
 </head>
 
 <body id="top">
@@ -39,6 +39,13 @@
           </span>
           <h5>Tài khoản</h5>
         </div>
+        <a class="header-action favorite-nav" href="./wish.html" aria-label="Yêu thích">
+          <span class="action-icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" focusable="false"><path d="M20.8 8.8c0 5.2-8.8 11-8.8 11s-8.8-5.8-8.8-11a4.7 4.7 0 0 1 8.8-2.2 4.7 4.7 0 0 1 8.8 2.2Z"></path></svg>
+            <span class="favorite-count">0</span>
+          </span>
+          <span>Yêu thích</span>
+        </a>
         <a class="header-action orders" href="./tracking.html">
           <span class="action-icon" aria-hidden="true">
             <svg viewBox="0 0 24 24" focusable="false"><path d="M3 6.5h11v11H3zM14 10h4l3 3v4h-7z"></path><circle cx="7.5" cy="18.5" r="1.8"></circle><circle cx="17.5" cy="18.5" r="1.8"></circle></svg>
@@ -140,11 +147,24 @@
             <div class="detail-actions">
               <button class="detail-add-to-cart" id="detail-add-to-cart" type="button">Thêm vào giỏ</button>
               <button class="detail-buy-now" id="detail-buy-now" type="button">Mua ngay</button>
+              <button class="detail-wishlist" id="detail-wishlist" type="button" aria-pressed="false">♡ Thêm vào yêu thích</button>
             </div>
           </div>
         </div>
       </div>
     </section>
+
+    <section class="related-flowers" id="related-flowers" aria-labelledby="related-flowers-title" hidden>
+      <div class="related-flowers-heading">
+        <p class="catalog-eyebrow">GỢI Ý DÀNH RIÊNG CHO BẠN</p>
+        <h2 id="related-flowers-title">Những bó hoa có thể bạn sẽ thích</h2>
+        <p>Dựa trên danh mục và những mẫu hoa đang có trong cửa hàng.</p>
+      </div>
+      <p class="related-flowers-status" id="related-flowers-status" role="status" aria-live="polite"></p>
+      <div class="related-flowers-grid" id="related-flowers-grid"></div>
+    </section>
+
+    <p class="shopping-action-message" id="shopping-action-message" role="status" aria-live="polite" hidden></p>
 
     <section class="catalog" aria-labelledby="catalog-title">
       <header class="catalog-heading">
@@ -169,8 +189,10 @@
   <script src="./product-names.js"></script>
   <script src="./currency.js?v=3"></script>
   <script src="./product-store.js?v=3"></script>
+  <script src="./shopping-store.js?v=1"></script>
+  <script src="./related-products.js?v=1"></script>
   <script src="./homepage.js?v=2"></script>
-  <script src="./product.js?v=8"></script>
+  <script src="./product.js?v=9"></script>
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
   <script src="./account-nav.js"></script>
 </body>

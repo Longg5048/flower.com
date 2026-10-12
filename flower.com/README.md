@@ -1,6 +1,4 @@
 # casual-metal-9545
-netlify link - https://genuine-malabi-a05086.netlify.app/
-
 ## Kiến trúc hệ thống
 
 ### Tổng quan
@@ -25,8 +23,9 @@ flowchart LR
 | Khu vực | Tệp tiêu biểu | Trách nhiệm |
 | --- | --- | --- |
 | Trang chủ | `index.html`, `index.css` | Nội dung giới thiệu, danh mục và điều hướng |
-| Danh mục và chi tiết hoa | `product.html`, `product.js`, `product.css` | Tải catalog, tìm kiếm, lọc, sắp xếp; xem thư viện ảnh, mô tả, giá, tồn kho và đặt số lượng sản phẩm |
-| Wishlist | `wish.html`, `wish.js`, `wish.css` | Hiển thị, thêm vào giỏ và xóa sản phẩm yêu thích |
+| Danh mục và chi tiết hoa | `product.html`, `product.js`, `product.css`, `related-products.js` | Tải catalog, tìm kiếm, lọc, sắp xếp; xem chi tiết, gợi ý hoa cùng danh mục/loại hoa, thư viện ảnh, giá, tồn kho và số lượng |
+| Giỏ hàng và yêu thích | `shopping-store.js`, `wish.html`, `wish.js`, `wish.css` | Dùng chung `localStorage` `cart`/`wish` cho trang danh mục, chi tiết, wishlist và checkout; gộp dòng sản phẩm, kiểm tra tồn kho và hiển thị trạng thái yêu thích |
+| Kiểm thử trang sản phẩm | `tests/product-page.test.js`, `tests/product-related.test.js` | Kiểm tra tích hợp giao diện chi tiết, loại trùng hoa liên quan, ưu tiên danh mục/loại hoa và giới hạn kết quả (`node tests\\product-page.test.js`, `node tests\\product-related.test.js`) |
 | Giỏ hàng | `cart.html`, `styles/cart.css` | Cập nhật số lượng, xóa sản phẩm và tính tổng |
 | Thanh toán và theo dõi đơn | `checkout.html`, `placeorder.html`, `tracking.html` | Thu thập thông tin giao hàng, xác nhận đơn và tra cứu trạng thái/lịch trình |
 | Tài khoản demo | `login.html`, `login.js`, `account.html` | Đăng ký/đăng nhập, xem hồ sơ và đăng xuất |
@@ -41,11 +40,12 @@ flowchart LR
 - Nút tài khoản trên các trang cửa hàng mở trang hồ sơ khi đã đăng nhập; nếu chưa có phiên thì mở trang đăng nhập.
 - Checkout hiện là luồng minh họa phía frontend; không có xử lý thanh toán hoặc lưu đơn hàng phía máy chủ.
 - `admin.js` gọi API MockAPI riêng để CRUD catalog quản trị.
+- Trang `/owner.html` và API cấp/gỡ quyền admin hoạt động trên bản Vercel có cấu hình Firebase Admin. Xem [`../ADMIN-SETUP.md`](../ADMIN-SETUP.md) để cấu hình.
 - `product-names.js` chỉ ánh xạ tên sản phẩm khi hiển thị. `currency.js` định dạng giá catalog sang VND; catalog/API tiếp tục lưu giá nguồn bằng USD. Tỷ giá là giá trị snapshot cấu hình trong mã nguồn.
 
 ### Chạy và triển khai
 
-Vì ứng dụng tĩnh có tải JSON bằng `fetch`, hãy chạy qua máy chủ HTTP cục bộ. Bản triển khai hiện có trên Netlify: https://genuine-malabi-a05086.netlify.app/.
+Vì ứng dụng tĩnh có tải JSON bằng `fetch`, hãy chạy qua máy chủ HTTP cục bộ. Để triển khai trang cùng API quản trị, cấu hình Vercel theo hướng dẫn trong [`../ADMIN-SETUP.md`](../ADMIN-SETUP.md).
 
 ### Cấu hình Firebase Authentication
 

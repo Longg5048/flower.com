@@ -6,7 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Danh sách yêu thích</title>
     <link rel="stylesheet" href="./wish.css">
-    <link rel="stylesheet" href="headder.css">
+    <link rel="stylesheet" href="headder.css?v=2">
 </head>
 <body>
     <div id="headder">
@@ -92,7 +92,7 @@
             /></a>
           </div>
           <div id="nav-center">
-            <input type="text" placeholder="Nhập tên hoa hoặc mã sản phẩm" />
+            <input type="text" aria-label="Tìm kiếm hoa theo tên hoặc mã sản phẩm" placeholder="Tìm hoa / mã" />
             <button style="margin-top: 9px;">TÌM KIẾM</button>
           </div>
           <div id="nav-right">
@@ -107,6 +107,12 @@
               </i>
               <h5>Đăng nhập</h5>
             </div>
+            <a class="favorite-nav" href="./wish.html" aria-label="Yêu thích" aria-current="page">
+              <span class="nav-icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24"><path d="M20.8 8.8c0 5.2-8.8 11-8.8 11s-8.8-5.8-8.8-11a4.7 4.7 0 0 1 8.8-2.2 4.7 4.7 0 0 1 8.8 2.2Z"/></svg>
+              </span>
+              <h5>Yêu thích <span class="nav-count favorite-count">0</span></h5>
+            </a>
             <div class="orders">
               <i
                 ><img
@@ -121,13 +127,14 @@
                   src="https://images.contentstack.io/v3/assets/bltdd99f24e8a94d536/blt7888ec93d3d5c1ec/5e17829300c38f0f022d3646/Header-Icon-PWA-bag.svg?height=25&width=44"
                   alt=""
               /></i>
-              <h5><span id="cartTotal">(0)</span> Giỏ hàng</h5>
+              <h5><span id="cartTotal" class="nav-count">0</span> Giỏ hàng</h5>
             </div>
           </div>
         </div>
   
      <main>
       <h1>Danh sách yêu thích (<span id="wishTotal">0</span>)</h1>
+      <p class="wishlist-message" id="wishlist-message" role="status" aria-live="polite" hidden></p>
        <div id="container">
         </div> 
 </main> 
@@ -137,6 +144,8 @@
 </html>
 <script src="./product-names.js"></script>
 <script src="./currency.js?v=2"></script>
-<script src="./wish.js"></script>
+<script src="./product-store.js?v=4"></script>
+<script src="./shopping-store.js?v=1"></script>
+<script src="./wish.js?v=2"></script>
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script src="./account-nav.js"></script>

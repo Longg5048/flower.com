@@ -6,7 +6,7 @@
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Thanh toán</title>
-  <link rel="stylesheet" href="./headder.css">
+  <link rel="stylesheet" href="./headder.css?v=2">
   <link rel="stylesheet" href="./index.css">
   <link rel="stylesheet" href="./styles/dropdown.css">
   <link rel="stylesheet" href="./styles/cart.css">
@@ -80,7 +80,7 @@
           alt="" />
       </div>
       <div id="nav-center">
-        <input type="text" placeholder="Nhập tên hoa hoặc mã sản phẩm" />
+        <input type="text" aria-label="Tìm kiếm hoa theo tên hoặc mã sản phẩm" placeholder="Tìm hoa / mã" />
         <button>TÌM KIẾM</button>
       </div>
       <div id="nav-right">
@@ -93,6 +93,12 @@
           </i>
           <h5>Đăng nhập</h5>
         </div>
+        <a class="favorite-nav" href="./wish.html" aria-label="Yêu thích">
+          <span class="nav-icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24"><path d="M20.8 8.8c0 5.2-8.8 11-8.8 11s-8.8-5.8-8.8-11a4.7 4.7 0 0 1 8.8-2.2 4.7 4.7 0 0 1 8.8 2.2Z"/></svg>
+          </span>
+          <h5>Yêu thích <span class="nav-count favorite-count">0</span></h5>
+        </a>
         <div class="orders">
           <i><img
               src="https://images.contentstack.io/v3/assets/bltdd99f24e8a94d536/bltd7f3af8e242d37c1/5e1782936430b50f03d6ccc3/Header-Icon-PWA-truck.svg?height=25&width=44"
@@ -106,7 +112,7 @@
             <img
               src="https://images.contentstack.io/v3/assets/bltdd99f24e8a94d536/blt7888ec93d3d5c1ec/5e17829300c38f0f022d3646/Header-Icon-PWA-bag.svg?height=25&width=44"
               alt="" />
-            <h5><span id="cartTotal">(0)</span> Giỏ hàng</h5>
+            <h5><span id="cartTotal" class="nav-count">0</span> Giỏ hàng</h5>
           <!-- </a> -->
         </div>
       </div>
@@ -358,6 +364,9 @@
       const increase = document.createElement("button");
       const lineTotal = document.createElement("strong");
       const remove = document.createElement("button");
+      const stock = Number(product.stockQuantity);
+      const hasStockLimit = Number.isFinite(stock) && stock >= 0;
+      const exceedsStock = hasStockLimit && itemQuantity > stock;
 
       card.className = "checkout-item";
       image.src = product.image || "";
@@ -377,6 +386,7 @@
       increase.className = "quantity-button";
       increase.textContent = "+";
       increase.setAttribute("aria-label", `Tăng số lượng ${name.textContent}`);
+      increase.disabled = hasStockLimit && itemQuantity >= stock;
       lineTotal.className = "checkout-item-total";
       lineTotal.textContent = formatVnd(Number(product.price) * itemQuantity);
       remove.type = "button";
@@ -388,6 +398,10 @@
         saveCart();
       });
       increase.addEventListener("click", () => {
+        if (hasStockLimit && itemQuantity >= stock) {
+          checkoutMessage.textContent = `Chỉ còn ${stock} sản phẩm trong kho.`;
+          return;
+        }
         product.quantity = itemQuantity + 1;
         saveCart();
       });
@@ -397,14 +411,32 @@
       });
 
       controls.append(decrease, quantity, increase, remove);
-      details.append(name, unitPrice, controls);
+      details.append(name, unitPrice);
+      if (hasStockLimit) {
+        const stockMessage = document.createElement("p");
+        stockMessage.textContent = exceedsStock
+          ? `Số lượng trong giỏ vượt tồn kho (${stock}).`
+          : `Tồn kho: ${stock}`;
+        details.append(stockMessage);
+      }
+      details.append(controls);
       card.append(image, details, lineTotal);
       CartContainer.append(card);
     });
 
     const isCartEmpty = Cart.length === 0;
     document.getElementById("checkout-empty").hidden = !isCartEmpty;
-    checkoutForm.querySelector(".checkout-submit").disabled = isCartEmpty;
+    const hasOverstockItem = Cart.some((product) => {
+      const stock = Number(product.stockQuantity);
+      return Number.isFinite(stock) && stock >= 0
+        && Math.max(1, Number(product.quantity) || 1) > stock;
+    });
+    checkoutForm.querySelector(".checkout-submit").disabled = isCartEmpty || hasOverstockItem;
+    if (hasOverstockItem) {
+      checkoutMessage.textContent = "Giảm số lượng sản phẩm vượt tồn kho trước khi đặt hàng.";
+    } else if (checkoutMessage.textContent.includes("tồn kho")) {
+      checkoutMessage.textContent = "";
+    }
     renderCartSummary(Cart);
     const cartTotal = document.getElementById("cartTotal");
     if (cartTotal) cartTotal.textContent = Cart.length;
@@ -416,6 +448,14 @@
     event.preventDefault();
     if (!Cart.length) {
       checkoutMessage.textContent = "Giỏ hàng đang trống. Hãy chọn hoa trước khi đặt hàng.";
+      return;
+    }
+    if (Cart.some((product) => {
+      const stock = Number(product.stockQuantity);
+      return Number.isFinite(stock) && stock >= 0
+        && Math.max(1, Number(product.quantity) || 1) > stock;
+    })) {
+      checkoutMessage.textContent = "Giảm số lượng sản phẩm vượt tồn kho trước khi đặt hàng.";
       return;
     }
 

@@ -4,13 +4,62 @@
     <meta charset="UTF-8" />
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#fbf8f3" />
     <title>Giỏ hàng</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Playfair+Display:wght@500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="./homepage.css?v=1" />
     <link rel="stylesheet" href="headder.css?v=2" />
     <link rel="stylesheet" href="./styles/dropdown.css" />
     <link rel="stylesheet" href="./styles/cart.css" />
     <link rel="stylesheet" href="./store-footer.css?v=2" />
   </head>
   <body>
+    <div class="announcement">
+      <span>Hoa tươi trao tận tay, yêu thương gửi tận lòng</span>
+      <a href="./product.html">Khám phá bộ sưu tập <span aria-hidden="true">→</span></a>
+    </div>
+    <header class="site-header shop-header">
+      <div class="header-main">
+        <a class="brand" href="./index.html" aria-label="Flowerflow - Trang chủ">
+          <img src="./images/flowerflow-logo.png" alt="" />
+          <span>flowerflow</span>
+        </a>
+        <div class="header-actions">
+          <div class="header-action signin" role="button" tabindex="0">
+            <span class="action-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="3.5"></circle><path d="M5 20c.6-3.8 2.9-5.8 7-5.8s6.4 2 7 5.8"></path></svg></span>
+            <h5>Tài khoản</h5>
+          </div>
+          <a class="header-action favorite-nav" href="./wish.html" aria-label="Yêu thích">
+            <span class="action-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M20.8 8.8c0 5.2-8.8 11-8.8 11s-8.8-5.8-8.8-11a4.7 4.7 0 0 1 8.8-2.2 4.7 4.7 0 0 1 8.8 2.2Z"></path></svg><span class="favorite-count">0</span></span>
+            <span>Yêu thích</span>
+          </a>
+          <a class="header-action" href="./tracking.html">
+            <span class="action-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M3 6.5h11v11H3zM14 10h4l3 3v4h-7z"></path><circle cx="7.5" cy="18.5" r="1.8"></circle><circle cx="17.5" cy="18.5" r="1.8"></circle></svg></span>
+            <span>Đơn hàng</span>
+          </a>
+          <a class="header-action bag" href="./cart.html">
+            <span class="action-icon bag-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M5 8h14l1 12H4L5 8Z"></path><path d="M9 9V6a3 3 0 0 1 6 0v3"></path></svg><span id="cartTotal">0</span></span>
+            <span>Giỏ hàng</span>
+          </a>
+        </div>
+        <button class="menu-toggle" type="button" aria-expanded="false" aria-controls="primary-nav">
+          <span class="sr-only">Mở menu</span><span></span><span></span><span></span>
+        </button>
+      </div>
+      <nav class="primary-nav" id="primary-nav" aria-label="Điều hướng chính">
+        <a href="./product.html">Danh mục hoa</a>
+        <a href="./product.html">Tất cả sản phẩm</a>
+        <a href="./product.html?flower=rose">Hoa hồng</a>
+        <a href="./product.html?flower=orchid">Hoa lan</a>
+        <a href="./product.html?flower=mixed">Hoa tổng hợp</a>
+        <a href="./index.html#footer">Về Flowerflow</a>
+      </nav>
+    </header>
     <div id="headder">
       <div id="img-link">
         <div>
@@ -135,7 +184,7 @@
                 src="https://images.contentstack.io/v3/assets/bltdd99f24e8a94d536/blt7888ec93d3d5c1ec/5e17829300c38f0f022d3646/Header-Icon-PWA-bag.svg?height=25&width=44"
                 alt=""
             /></i>
-            <h5><span id="cartTotal" class="nav-count">0</span> Giỏ hàng</h5>
+            <h5><span class="nav-count">0</span> Giỏ hàng</h5>
           </div>
         </div>
       </div>
@@ -181,6 +230,7 @@
       </div>
     </div>
     <script src="./store-footer.js?v=2"></script>
+    <script src="./homepage.js?v=1"></script>
   </body>
   <script src="./product-names.js"></script>
   <script src="./currency.js?v=2"></script>

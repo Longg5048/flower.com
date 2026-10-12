@@ -1,9 +1,9 @@
 :root {
-    --ink: #000;
-    --muted: #000;
-    --rose: #a84e68;
-    --rose-dark: #853c53;
-    --line: #ddd;
+    --ink: #29272b;
+    --muted: #766f71;
+    --rose: #743e59;
+    --rose-dark: #593044;
+    --line: #e9e2dc;
     --surface: #fff;
 }
 
@@ -15,47 +15,15 @@ body {
     min-height: 100vh;
     margin: 0;
     padding: 0;
-    background: #fff;
-    color: #000;
-    font-family: Arial, sans-serif;
-}
-
-.tracking-header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    width: min(calc(100% - 40px), 1120px);
-    min-height: 76px;
-    margin: 0 auto;
-    border-bottom: 1px solid rgba(39, 58, 50, 0.12);
-}
-
-.tracking-brand {
-    display: inline-flex;
-    align-items: center;
-    gap: 10px;
+    background: #fbf8f3;
     color: var(--ink);
-    font-family: inherit;
-    font-size: 22px;
-    font-weight: 600;
-    text-decoration: none;
-}
-
-.tracking-brand span {
-    color: var(--rose);
-    font-size: 26px;
-}
-
-.back-to-shop {
-    color: var(--ink);
-    font-size: 13px;
-    font-weight: 700;
-    text-decoration: none;
+    font-family: "DM Sans", Arial, sans-serif;
+    -webkit-font-smoothing: antialiased;
 }
 
 .tracking-main {
     width: min(calc(100% - 40px), 1040px);
-    margin: 44px auto 0;
+    margin: 44px auto 64px;
 }
 
 .tracking-heading {
@@ -64,10 +32,10 @@ body {
 
 .tracking-eyebrow {
     margin: 0 0 8px;
-    color: var(--ink);
+    color: var(--rose);
     font-size: 11px;
     font-weight: 700;
-    letter-spacing: 0.08em;
+    letter-spacing: 0.12em;
 }
 
 h1,
@@ -78,8 +46,8 @@ h1,
 }
 
 .tracking-heading h1 {
-    color: #000;
-    font-family: "Times New Roman", Times, serif;
+    color: var(--rose-dark);
+    font-family: "Playfair Display", Georgia, serif;
     font-size: 36px;
 }
 
@@ -87,15 +55,16 @@ h1,
     margin: 8px 0 0;
     color: var(--muted);
     font-size: 14px;
+    line-height: 1.7;
 }
 
 .tracking-search,
 .tracking-panel,
 .tracking-overview {
-    border: 1px solid rgba(39, 58, 50, 0.1);
-    border-radius: 12px;
+    border: 1px solid #eee6e0;
+    border-radius: 14px;
     background: var(--surface);
-    box-shadow: 0 12px 30px rgba(39, 58, 50, 0.06);
+    box-shadow: 0 8px 24px rgb(61 43 49 / 6%);
 }
 
 .tracking-search {
@@ -107,7 +76,7 @@ h1,
 }
 
 .tracking-search label {
-    color: #000;
+    color: #51484b;
     font-size: 12px;
     font-weight: 700;
 }
@@ -117,34 +86,43 @@ h1,
     min-width: 0;
     height: 44px;
     padding: 10px 12px;
-    border: 1px solid #d9ded8;
+    border: 1px solid var(--line);
     border-radius: 8px;
-    background: #fff;
-    color: #000;
-    font: 16px Arial, sans-serif;
+    background: #fcfbf9;
+    color: var(--ink);
+    font: 16px "DM Sans", Arial, sans-serif;
+}
+
+.tracking-search input:focus,
+#review-comment:focus {
+    border-color: #b98ba0;
+    outline: 0;
+    box-shadow: 0 0 0 3px rgb(116 62 89 / 9%);
 }
 
 .tracking-search button {
     min-height: 44px;
     padding: 10px 16px;
-    border: 1px solid #000;
-    border-radius: 8px;
-    background: #fff;
-    color: #000;
-    font: 700 13px Arial, sans-serif;
+    border: 0;
+    border-radius: 999px;
+    background: var(--rose);
+    color: #fff;
+    font: 700 13px "DM Sans", Arial, sans-serif;
     font-size: 13px;
     font-weight: 700;
     cursor: pointer;
+    transition: background-color 160ms ease, transform 160ms ease;
 }
 
 .tracking-search button:hover {
-    background: #f5f5f5;
+    background: var(--rose-dark);
+    transform: translateY(-1px);
 }
 
 .tracking-message {
     min-height: 20px;
     margin: 10px 2px 0;
-    color: #000;
+    color: var(--rose-dark);
     font-size: 13px;
 }
 
@@ -159,7 +137,7 @@ h1,
     gap: 24px;
     margin-top: 8px;
     padding: 24px;
-    border-left: 4px solid var(--rose);
+    border-left: 4px solid #c58aa0;
 }
 
 .tracking-overview h2 {
@@ -181,7 +159,7 @@ h1,
 }
 
 .eta-block span {
-    color: #000;
+    color: var(--muted);
     font-size: 12px;
 }
 
@@ -252,8 +230,8 @@ h1,
 }
 
 .timeline-event.is-current .timeline-dot {
-    background: var(--rose);
-    box-shadow: 0 0 0 1px var(--rose);
+    background: #c58aa0;
+    box-shadow: 0 0 0 1px #c58aa0;
 }
 
 .timeline-copy strong {
@@ -263,14 +241,14 @@ h1,
 
 .timeline-copy p {
     margin: 4px 0;
-    color: #000;
+    color: var(--muted);
     font-size: 12px;
     line-height: 1.5;
     overflow-wrap: anywhere;
 }
 
 .timeline-copy time {
-    color: #000;
+    color: var(--muted);
     font-size: 11px;
 }
 
@@ -287,7 +265,7 @@ h1,
 }
 
 .order-details dt {
-    color: #000;
+    color: var(--muted);
     font-size: 12px;
 }
 
@@ -322,7 +300,7 @@ h1,
     width: 48px;
     height: 48px;
     border-radius: 8px;
-    background: #fff;
+    background: #fbf8f3;
     object-fit: cover;
 }
 
@@ -334,7 +312,7 @@ h1,
 }
 
 .tracking-product-quantity {
-    color: #000;
+    color: var(--muted);
     font-size: 11px;
     white-space: nowrap;
 }
@@ -357,7 +335,7 @@ h1,
 .review-rating legend,
 .review-comment-label {
     margin-bottom: 8px;
-    color: #000;
+    color: #51484b;
     font-size: 14px;
     font-weight: 700;
 }
@@ -379,7 +357,7 @@ h1,
 .rating-star.is-selected,
 .rating-star:hover,
 .rating-star:focus-visible {
-    color: #000;
+    color: #c58a45;
 }
 
 .review-comment-label {
@@ -391,11 +369,11 @@ h1,
     width: 100%;
     min-height: 128px;
     padding: 12px;
-    border: 1px solid #999;
+    border: 1px solid var(--line);
     border-radius: 8px;
     background: #fff;
-    color: #000;
-    font: 16px Arial, sans-serif;
+    color: var(--ink);
+    font: 16px "DM Sans", Arial, sans-serif;
     resize: vertical;
 }
 
@@ -403,22 +381,24 @@ h1,
     min-height: 42px;
     margin-top: 12px;
     padding: 10px 18px;
-    border: 1px solid #000;
-    border-radius: 8px;
-    background: #fff;
-    color: #000;
-    font: 700 14px Arial, sans-serif;
+    border: 0;
+    border-radius: 999px;
+    background: var(--rose);
+    color: #fff;
+    font: 700 14px "DM Sans", Arial, sans-serif;
     cursor: pointer;
+    transition: background-color 160ms ease, transform 160ms ease;
 }
 
 .review-submit:hover {
-    background: #f5f5f5;
+    background: var(--rose-dark);
+    transform: translateY(-1px);
 }
 
 .review-feedback {
     min-height: 20px;
     margin: 10px 0 0;
-    color: #000;
+    color: var(--rose-dark);
     font-size: 13px;
 }
 
@@ -433,19 +413,6 @@ h1,
 }
 
 @media (max-width: 640px) {
-    body {
-        padding: 0;
-    }
-
-    .tracking-header {
-        width: calc(100% - 28px);
-        min-height: 64px;
-    }
-
-    .tracking-brand {
-        font-size: 19px;
-    }
-
     .tracking-main {
         width: calc(100% - 28px);
         margin-top: 28px;
@@ -453,6 +420,10 @@ h1,
 
     .tracking-heading h1 {
         font-size: 30px;
+    }
+
+    .tracking-heading > p:last-child {
+        font-size: 13px;
     }
 
     .tracking-search,

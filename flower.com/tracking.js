@@ -28,6 +28,33 @@ function formatDate(value, includeTime = true) {
     return new Intl.DateTimeFormat("vi-VN", options).format(date);
 }
 
+function readStoredList(key, label) {
+    let storedValue;
+    try {
+        storedValue = localStorage.getItem(key);
+    } catch (error) {
+        console.error(`Không thể đọc ${label}:`, error);
+        throw new Error(`Không thể đọc ${label}. Vui lòng kiểm tra cài đặt trình duyệt rồi thử lại.`);
+    }
+
+    if (storedValue === null) return [];
+
+    let items;
+    try {
+        items = JSON.parse(storedValue);
+    } catch (error) {
+        console.error(`Dữ liệu ${label} bị lỗi định dạng:`, error);
+        throw new Error(`Dữ liệu ${label} bị lỗi định dạng. Vui lòng liên hệ cửa hàng để được hỗ trợ.`);
+    }
+
+    if (!Array.isArray(items) || items.some((item) => !item || typeof item !== "object" || Array.isArray(item))) {
+        console.error(`Dữ liệu ${label} không đúng cấu trúc.`);
+        throw new Error(`Dữ liệu ${label} không hợp lệ. Vui lòng liên hệ cửa hàng để được hỗ trợ.`);
+    }
+
+    return items;
+}
+
 function maskPhone(phone) {
     const digits = String(phone || "").replace(/\D/g, "");
     if (digits.length < 5) return phone || "";
@@ -90,13 +117,7 @@ function renderProducts(items) {
 }
 
 function getStoredReviews() {
-    try {
-        const reviews = JSON.parse(localStorage.getItem("flowerReviews") || "[]");
-        return Array.isArray(reviews) ? reviews : [];
-    } catch (error) {
-        console.error("Không thể đọc đánh giá:", error);
-        return [];
-    }
+    return readStoredList("flowerReviews", "danh sách đánh giá");
 }
 
 function setSelectedRating(rating) {
@@ -113,16 +134,30 @@ function renderReviewPanel(order) {
     reviewPanel.hidden = !canReview;
     if (!canReview) return;
 
+    let reviews;
+    try {
+        reviews = getStoredReviews();
+    } catch (error) {
+        reviewForm.hidden = true;
+        reviewFeedback.textContent = error.message;
+        return;
+    }
+
     setSelectedRating(0);
     reviewForm.reset();
     reviewForm.hidden = false;
     reviewFeedback.textContent = "";
 
-    const existingReview = getStoredReviews().find((review) => String(review.orderId) === String(order.id));
+    const existingReview = reviews.find((review) => String(review.orderId) === String(order.id));
     if (existingReview) {
         reviewForm.hidden = true;
-        const stars = "★".repeat(Number(existingReview.rating) || 0);
-        reviewFeedback.textContent = `Bạn đã đánh giá đơn hàng này: ${stars}. ${existingReview.comment || ""}`;
+        const rating = Math.min(5, Math.max(0, Number(existingReview.rating) || 0));
+        const stars = "★".repeat(rating);
+        const reviewText = `Bạn đã đánh giá đơn hàng này: ${stars}. ${existingReview.comment || ""}`;
+        const replyText = existingReview.reply
+            ? ` Phản hồi từ Flowerflow: ${existingReview.reply}`
+            : "";
+        reviewFeedback.textContent = `${reviewText}${replyText}`;
     }
 }
 
@@ -145,19 +180,25 @@ function renderOrder(order) {
 function searchOrder() {
     const orderId = orderIdInput.value.trim().replace(/^#/, "");
     const phone = phoneInput.value.replace(/\D/g, "");
-    let orders = [];
+    let orders;
 
     try {
-        orders = JSON.parse(localStorage.getItem("flowerOrders") || "[]");
+        orders = readStoredList("flowerOrders", "danh sách đơn hàng");
     } catch (error) {
-        console.error("Không thể đọc danh sách đơn hàng:", error);
+        currentOrder = null;
+        results.hidden = true;
+        reviewPanel.hidden = true;
+        message.textContent = error.message;
+        return;
     }
 
     const order = orders.find((item) => String(item.id) === orderId
         && String(item.phone || "").replace(/\D/g, "") === phone);
 
     if (!order) {
+        currentOrder = null;
         results.hidden = true;
+        reviewPanel.hidden = true;
         message.textContent = "Không tìm thấy đơn hàng. Hãy kiểm tra lại mã đơn và số điện thoại đặt hàng.";
         return;
     }
@@ -188,7 +229,14 @@ reviewForm.addEventListener("submit", (event) => {
         return;
     }
 
-    const reviews = getStoredReviews();
+    let reviews;
+    try {
+        reviews = getStoredReviews();
+    } catch (error) {
+        reviewFeedback.textContent = error.message;
+        return;
+    }
+
     if (reviews.some((review) => String(review.orderId) === String(currentOrder.id))) {
         renderReviewPanel(currentOrder);
         return;
@@ -207,9 +255,14 @@ reviewForm.addEventListener("submit", (event) => {
     };
 
     reviews.push(review);
-    localStorage.setItem("flowerReviews", JSON.stringify(reviews));
+    try {
+        localStorage.setItem("flowerReviews", JSON.stringify(reviews));
+    } catch (error) {
+        console.error("Không thể lưu đánh giá:", error);
+        reviewFeedback.textContent = "Không thể lưu đánh giá. Hãy kiểm tra dung lượng trình duyệt rồi thử lại.";
+        return;
+    }
     renderReviewPanel(currentOrder);
-    reviewFeedback.textContent = "Cảm ơn bạn đã gửi đánh giá.";
 });
 
 searchForm.addEventListener("submit", (event) => {
@@ -222,4 +275,5 @@ if (orderFromUrl) orderIdInput.value = orderFromUrl;
 
 window.addEventListener("storage", (event) => {
     if (event.key === "flowerOrders" && orderIdInput.value && phoneInput.value) searchOrder();
+    if (event.key === "flowerReviews" && currentOrder) renderReviewPanel(currentOrder);
 });

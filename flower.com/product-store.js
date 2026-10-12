@@ -26,6 +26,8 @@
             price,
             quantity: Number(product.quantity ?? product.stock ?? 10),
             image: product.image || "",
+            images: Array.isArray(product.images) ? product.images.filter((image) => typeof image === "string" && image) : [],
+            category: String(product.category || "").trim(),
             description: product.description || ""
         };
     }

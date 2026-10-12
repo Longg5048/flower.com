@@ -8,6 +8,9 @@ let container = document.getElementById("container")
 let searchButton = document.getElementById("sbtn")
 let searchInput = document.getElementById("search")
 let actionMessage = document.getElementById("shopping-action-message")
+const relatedFlowersSection = document.getElementById("related-flowers")
+const relatedFlowersStatus = document.getElementById("related-flowers-status")
+const relatedFlowersGrid = document.getElementById("related-flowers-grid")
 
 function showShoppingFeedback(title, icon, detail = "") {
   actionMessage.textContent = detail
@@ -64,6 +67,15 @@ function refreshWishlistButtons() {
   document.querySelectorAll(".product-wishlist[data-product-id]").forEach((button) => {
     const product = products.find((item) => String(item.id) === button.dataset.productId)
     if (product) updateWishlistButton(button, product)
+  })
+  document.querySelectorAll(".related-flower-favorite[data-product-id]").forEach((button) => {
+    const product = products.find((item) => String(item.id) === button.dataset.productId)
+    if (!product) return
+    const isWished = isProductWished(product)
+    button.classList.toggle("is-wished", isWished)
+    button.setAttribute("aria-pressed", String(isWished))
+    button.setAttribute("aria-label", `${isWished ? "Bỏ yêu thích" : "Thêm vào yêu thích"}: ${getVietnameseProductName(product.title)}`)
+    button.textContent = isWished ? "♥" : "♡"
   })
   if (selectedProduct) updateWishlistButton(document.getElementById("detail-wishlist"), selectedProduct)
 }
@@ -175,6 +187,102 @@ function display(data) {
         container.append(box)
     });
 
+}
+
+function setRelatedFlowersStatus(message, state = "") {
+  relatedFlowersStatus.textContent = message
+  relatedFlowersStatus.hidden = !message
+  relatedFlowersStatus.className = `related-flowers-status${state ? ` is-${state}` : ""}`
+  relatedFlowersGrid.replaceChildren()
+}
+
+function createRelatedFlowerCard(product) {
+  const card = document.createElement("article")
+  const imageLink = document.createElement("a")
+  const imageFrame = document.createElement("div")
+  const fallback = document.createElement("span")
+  const image = document.createElement("img")
+  const content = document.createElement("div")
+  const name = document.createElement("h3")
+  const price = document.createElement("p")
+  const stock = document.createElement("p")
+  const actions = document.createElement("div")
+  const detailLink = document.createElement("a")
+  const favoriteButton = document.createElement("button")
+  const productName = getVietnameseProductName(product.title || "Sản phẩm hoa")
+  const isAvailable = Number(product.quantity) > 0
+  const productUrl = `./product.html?id=${encodeURIComponent(product.id)}`
+
+  card.className = "related-flower-card"
+  imageLink.className = "related-flower-image-link"
+  imageLink.href = productUrl
+  imageLink.setAttribute("aria-label", `Xem ${productName}`)
+  imageFrame.className = "related-flower-image"
+  fallback.className = "related-flower-image-fallback"
+  fallback.setAttribute("aria-hidden", "true")
+  fallback.textContent = "✿"
+  image.src = product.image || ""
+  image.alt = productName
+  image.loading = "lazy"
+  image.addEventListener("error", () => {
+    image.hidden = true
+    imageFrame.classList.add("image-unavailable")
+  }, { once: true })
+  if (!product.image) {
+    image.hidden = true
+    imageFrame.classList.add("image-unavailable")
+  }
+  imageFrame.append(image, fallback)
+  imageLink.append(imageFrame)
+
+  content.className = "related-flower-content"
+  name.textContent = productName
+  price.className = "related-flower-price"
+  price.textContent = formatVnd(product.price)
+  stock.className = `related-flower-stock${isAvailable ? "" : " out-of-stock"}`
+  stock.textContent = isAvailable ? "Còn hàng" : "Tạm hết hàng"
+  actions.className = "related-flower-actions"
+  detailLink.className = "related-flower-details"
+  detailLink.href = productUrl
+  detailLink.textContent = "Xem sản phẩm"
+  favoriteButton.type = "button"
+  favoriteButton.className = "related-flower-favorite"
+  favoriteButton.dataset.productId = String(product.id)
+  favoriteButton.setAttribute("aria-label", `${isProductWished(product) ? "Bỏ yêu thích" : "Thêm vào yêu thích"}: ${productName}`)
+  favoriteButton.setAttribute("aria-pressed", String(isProductWished(product)))
+  favoriteButton.textContent = isProductWished(product) ? "♥" : "♡"
+  favoriteButton.addEventListener("click", () => {
+    toggleProductWishlist(product)
+    const isWished = isProductWished(product)
+    favoriteButton.setAttribute("aria-label", `${isWished ? "Bỏ yêu thích" : "Thêm vào yêu thích"}: ${productName}`)
+    favoriteButton.setAttribute("aria-pressed", String(isWished))
+    favoriteButton.textContent = isWished ? "♥" : "♡"
+  })
+  actions.append(detailLink, favoriteButton)
+  content.append(name, price, stock, actions)
+  card.append(imageLink, content)
+  return card
+}
+
+function renderRelatedFlowers(product) {
+  relatedFlowersSection.hidden = false
+  relatedFlowersGrid.replaceChildren()
+  relatedFlowersStatus.hidden = true
+
+  const relatedProducts = FlowerRelatedProducts.getRelatedProducts(products, product, 4)
+  if (!relatedProducts.length) {
+    setRelatedFlowersStatus(
+      products.length
+        ? "Hiện chưa có mẫu hoa liên quan. Hãy xem toàn bộ danh mục để khám phá thêm."
+        : "Chưa có dữ liệu hoa để gợi ý. Vui lòng thử tải lại trang.",
+      products.length ? "empty" : "error"
+    )
+    return
+  }
+
+  relatedProducts.forEach((relatedProduct) => {
+    relatedFlowersGrid.append(createRelatedFlowerCard(relatedProduct))
+  })
 }
 
 const sortSelect = document.querySelector(".arrange")
@@ -302,6 +410,8 @@ function navigateToProductDetail() {
   const productId = new URLSearchParams(window.location.search).get("id")
   if (!productId) {
     detailPage.hidden = true
+    relatedFlowersSection.hidden = true
+    relatedFlowersGrid.replaceChildren()
     productPage.classList.remove("is-detail-view")
     document.title = "Cửa hàng hoa | Flowerflow"
     return
@@ -309,11 +419,14 @@ function navigateToProductDetail() {
   const product = products.find((item) => String(item.id) === productId)
   if (!product) {
     detailPage.hidden = true
+    relatedFlowersSection.hidden = true
+    relatedFlowersGrid.replaceChildren()
     productPage.classList.remove("is-detail-view")
     container.textContent = "Không tìm thấy sản phẩm. Hãy quay lại danh sách hoa."
     return
   }
   renderProductDetail(product)
+  renderRelatedFlowers(product)
 }
 
 detailQuantity.addEventListener("input", () => {
@@ -453,6 +566,11 @@ window.addEventListener("flowerinventorychange", (event) => {
 })
 
 async function fetchAndRenderProducts() {
+  const requestedProductId = new URLSearchParams(window.location.search).get("id")
+  if (requestedProductId) {
+    relatedFlowersSection.hidden = false
+    setRelatedFlowersStatus("Đang tìm những bó hoa phù hợp...", "loading")
+  }
   try {
     products = await FlowerInventory.initialize()
     if (!products.length) throw new Error("Kho sản phẩm hiện chưa có dữ liệu hoặc dịch vụ danh mục đang không khả dụng.")
@@ -461,6 +579,9 @@ async function fetchAndRenderProducts() {
   } catch (error) {
     console.error("Không thể tải danh sách hoa:", error)
     container.textContent = "Chưa thể tải danh sách sản phẩm. Vui lòng tải lại trang."
+    if (requestedProductId) {
+      setRelatedFlowersStatus("Chưa thể tải gợi ý hoa lúc này. Vui lòng tải lại trang.", "error")
+    }
   }
 }
 

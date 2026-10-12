@@ -24,6 +24,25 @@ assert.strictEqual(
   739900
 );
 assert.strictEqual(normalizeProduct({ id: 9, title: 'Giỏ hoa', price: 73.99 }).price, 73.99);
+assert.deepStrictEqual(
+  normalizeProduct({
+    id: 10,
+    title: 'Hoa mẫu',
+    image: 'main.jpg',
+    images: ['detail-1.jpg', '', 42],
+    category: 'Hoa hồng',
+  }),
+  {
+    id: 10,
+    title: 'Hoa mẫu',
+    price: 0,
+    quantity: 10,
+    image: 'main.jpg',
+    images: ['detail-1.jpg'],
+    category: 'Hoa hồng',
+    description: '',
+  }
+);
 
 const partialRemote = [
   { id: 1, title: 'Hoa hồng cập nhật', price: 260000, quantity: 2, image: 'rose.jpg', description: 'Hoa hồng đỏ' },

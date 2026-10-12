@@ -25,7 +25,7 @@ flowchart LR
 | Khu vực | Tệp tiêu biểu | Trách nhiệm |
 | --- | --- | --- |
 | Trang chủ | `index.html`, `index.css` | Nội dung giới thiệu, danh mục và điều hướng |
-| Danh mục hoa | `product.html`, `product.js`, `product.css` | Tải catalog, tìm kiếm, lọc, sắp xếp và thêm sản phẩm |
+| Danh mục và chi tiết hoa | `product.html`, `product.js`, `product.css` | Tải catalog, tìm kiếm, lọc, sắp xếp; xem thư viện ảnh, mô tả, giá, tồn kho và đặt số lượng sản phẩm |
 | Wishlist | `wish.html`, `wish.js`, `wish.css` | Hiển thị, thêm vào giỏ và xóa sản phẩm yêu thích |
 | Giỏ hàng | `cart.html`, `styles/cart.css` | Cập nhật số lượng, xóa sản phẩm và tính tổng |
 | Thanh toán và theo dõi đơn | `checkout.html`, `placeorder.html`, `tracking.html` | Thu thập thông tin giao hàng, xác nhận đơn và tra cứu trạng thái/lịch trình |

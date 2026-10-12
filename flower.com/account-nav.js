@@ -8,6 +8,31 @@ function getCurrentAccount() {
     }
 }
 
+function updateShoppingHeaderCounts() {
+    try {
+        const cart = JSON.parse(localStorage.getItem("cart") || "[]");
+        const wishlist = JSON.parse(localStorage.getItem("wish") || "[]");
+        if (!Array.isArray(cart) || !Array.isArray(wishlist)) {
+            throw new Error("Dữ liệu giỏ hàng hoặc yêu thích không hợp lệ.");
+        }
+
+        const cartCount = document.getElementById("cartTotal");
+        if (cartCount) cartCount.textContent = String(cart.length);
+        document.querySelectorAll(".favorite-count").forEach((count) => {
+            count.textContent = String(wishlist.length);
+        });
+    } catch (error) {
+        console.error("Không thể cập nhật số lượng giỏ hàng và yêu thích:", error);
+    }
+}
+
+updateShoppingHeaderCounts();
+window.addEventListener("storage", (event) => {
+    if (event.key === "cart" || event.key === "wish" || event.key === null) {
+        updateShoppingHeaderCounts();
+    }
+});
+
 const accountNav = document.querySelector(".signin");
 if (accountNav) {
     const account = getCurrentAccount();

@@ -33,6 +33,9 @@ function showShoppingError(error) {
 function updateShoppingCounts() {
   Total.textContent = cart.length
   if (WishTotal) WishTotal.textContent = wish.length
+  document.querySelectorAll(".favorite-count").forEach((count) => {
+    count.textContent = String(wish.length)
+  })
 }
 
 try {

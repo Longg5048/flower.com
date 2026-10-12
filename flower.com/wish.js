@@ -32,6 +32,9 @@ function resolveProduct(wishedProduct) {
 
 function renderWishlist() {
   wishTotal.textContent = wishlist.length;
+  document.querySelectorAll(".favorite-count").forEach((count) => {
+    count.textContent = String(wishlist.length);
+  });
   container.replaceChildren();
 
   if (!wishlist.length) {

@@ -166,6 +166,35 @@ h1,
     font-size: 24px;
 }
 
+.order-status-badge {
+    display: inline-flex;
+    margin-top: 8px;
+    padding: 7px 12px;
+    border-radius: 999px;
+    font-size: 14px !important;
+    font-weight: 700;
+}
+
+.order-status-badge.is-pending {
+    background: #fff2d6;
+    color: #805500;
+}
+
+.order-status-badge.is-shipping {
+    background: #e8f1ff;
+    color: #24589a;
+}
+
+.order-status-badge.is-delivered {
+    background: #e8f6ed;
+    color: #21623b;
+}
+
+.order-status-badge.is-cancelled {
+    background: #fdebec;
+    color: #9b3038;
+}
+
 .current-location {
     margin: 8px 0 0;
     color: var(--muted);

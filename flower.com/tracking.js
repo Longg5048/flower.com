@@ -1,3 +1,5 @@
+import { normalizeOrderStatus } from "./order-status.mjs";
+
 const searchForm = document.getElementById("tracking-search");
 const orderIdInput = document.getElementById("tracking-order-id");
 const phoneInput = document.getElementById("tracking-phone");
@@ -35,10 +37,15 @@ function maskPhone(phone) {
 }
 
 function getOrderHistory(order) {
-    const history = Array.isArray(order.trackingHistory) ? [...order.trackingHistory] : [];
+    const history = Array.isArray(order.trackingHistory)
+        ? order.trackingHistory.map((event) => ({
+            ...event,
+            status: normalizeOrderStatus(event.status || order.status)
+        }))
+        : [];
     if (!history.length) {
         history.push({
-            status: order.status || "Đặt hàng",
+            status: normalizeOrderStatus(order.status),
             location: order.currentLocation || "Đơn hàng đã được tạo",
             estimatedDelivery: order.estimatedDelivery || "",
             updatedAt: order.createdAt || ""
@@ -109,7 +116,7 @@ function setSelectedRating(rating) {
 }
 
 function renderReviewPanel(order) {
-    const canReview = order.status === "Hoàn thành chuyến";
+    const canReview = normalizeOrderStatus(order.status) === "Đã giao";
     reviewPanel.hidden = !canReview;
     if (!canReview) return;
 
@@ -129,7 +136,17 @@ function renderReviewPanel(order) {
 function renderOrder(order) {
     currentOrder = order;
     document.getElementById("result-order-id").textContent = `#${order.id}`;
-    document.getElementById("result-status").textContent = order.status || "Đang xử lý";
+    const status = normalizeOrderStatus(order.status);
+    const statusElement = document.getElementById("result-status");
+    statusElement.textContent = status;
+    statusElement.className = "order-status-badge";
+    const statusClasses = {
+        "Chờ xác nhận": "is-pending",
+        "Đang giao": "is-shipping",
+        "Đã giao": "is-delivered",
+        "Đã hủy": "is-cancelled"
+    };
+    statusElement.classList.add(statusClasses[status] || "is-pending");
     document.getElementById("result-location").textContent = order.currentLocation || "Cửa hàng chưa cập nhật vị trí vận chuyển.";
     document.getElementById("result-eta").textContent = formatDate(order.estimatedDelivery);
     document.getElementById("result-customer").textContent = order.customerName || "Chưa cập nhật";
@@ -173,8 +190,8 @@ reviewForm.addEventListener("submit", (event) => {
     event.preventDefault();
     const comment = reviewComment.value.trim();
 
-    if (!currentOrder || currentOrder.status !== "Hoàn thành chuyến") {
-        reviewFeedback.textContent = "Chỉ có thể đánh giá đơn hàng đã hoàn thành chuyến.";
+    if (!currentOrder || normalizeOrderStatus(currentOrder.status) !== "Đã giao") {
+        reviewFeedback.textContent = "Chỉ có thể đánh giá đơn hàng đã giao.";
         reviewPanel.hidden = true;
         return;
     }

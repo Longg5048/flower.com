@@ -39,9 +39,11 @@ if (accountNav) {
     const label = accountNav.querySelector("h5");
 
     if (account && label) {
-        label.textContent = account.role === "admin"
-            ? "Quản trị"
-            : account.name || account.email || "Tài khoản";
+        label.textContent = account.role === "owner"
+            ? "Chủ cửa hàng"
+            : account.role === "admin"
+                ? "Quản trị"
+                : account.name || account.email || "Tài khoản";
     }
 
     accountNav.setAttribute("role", "link");
@@ -50,6 +52,8 @@ if (accountNav) {
         const currentAccount = getCurrentAccount();
         if (!currentAccount) {
             window.location.assign("./login.html");
+        } else if (currentAccount.role === "owner") {
+            window.location.assign("./owner.html");
         } else if (currentAccount.role === "admin") {
             window.location.assign("./admin.html");
         } else {

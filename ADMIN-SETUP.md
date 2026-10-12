@@ -1,6 +1,12 @@
 # Admin account directory
 
-The admin dashboard lists Firebase Authentication accounts and their sign-in providers. Passwords are never returned by Firebase Authentication's user-list API and are not shown. The website uses a Vercel Function with the Firebase Admin SDK; it does not require Firebase Cloud Functions or a Firebase Blaze upgrade.
+The admin dashboard lists Firebase Authentication accounts and their sign-in providers. Passwords are never returned by Firebase Authentication's user-list API and are not shown. The admin and Owner APIs use Vercel Functions with the Firebase Admin SDK; they do not require Firebase Cloud Functions or a Firebase Blaze upgrade.
+
+## Deployment target
+
+Deploy the `flower.com` directory as the Vercel project root to use the admin account list and Owner role-management page. The `api/` directory contains only request handlers; shared Firebase Admin code is in `lib/` so it is bundled as a library, not exposed as another API route.
+
+For local testing, run Vercel CLI from `flower.com` with `vercel dev` after linking the project and configuring the required environment variables. A plain static HTTP server can serve the pages but cannot run `/api/admin/users` or `/api/owner/users`.
 
 ## One-time setup
 
@@ -13,20 +19,22 @@ The admin dashboard lists Firebase Authentication accounts and their sign-in pro
    - Add `FIREBASE_PROJECT_ID` with `web-ban-hoa-9fe0b`.
    - Never paste the key into source code, commit it, or send it in chat. Restrict/delete the key if it is accidentally exposed.
 
-4. Redeploy the Vercel project after saving those variables. Its Root Directory must remain `flower.com`; the API is at `/api/admin/users`.
-5. Grant the admin claim to the existing Firebase user from a trusted local terminal. Install Google Cloud CLI if needed, then authenticate Application Default Credentials as a project administrator:
+4. Redeploy the Vercel project after saving those variables. Its Root Directory must remain `flower.com`; the APIs are at `/api/admin/users` and `/api/owner/users`.
+5. Bootstrap the first Owner for the existing Firebase user from a trusted local terminal. Install Google Cloud CLI if needed, then authenticate Application Default Credentials as a project administrator:
 
    ```powershell
    gcloud auth application-default login
    npm install
-   $env:ADMIN_EMAIL = "admin@example.com"
-   npm run set-admin
-   Remove-Item Env:ADMIN_EMAIL
+   $env:OWNER_EMAIL = "owner@example.com"
+   npm run set-owner
+   Remove-Item Env:OWNER_EMAIL
    ```
 
-   Run these commands from the `flower.com` directory. The script preserves existing custom claims and does not require downloading a service-account key.
-6. Sign out and sign back in with that account so Firebase refreshes its ID token, then open `/admin.html` and select **Tài khoản**.
+   Run these commands from the `flower.com` directory. The script preserves existing custom claims, revokes the user's refresh tokens, and does not require downloading a service-account key. To identify the account by UID instead, set `OWNER_UID` and leave `OWNER_EMAIL` unset. The account must sign in again.
+6. Deploy the Vercel project. The Owner page is `/owner.html`; it can grant or remove `admin` access, but cannot create or modify Owner accounts. Use the trusted bootstrap process above for Owner changes.
 
-## Admin access
+## Roles and access
 
-The admin page and Vercel API both require the Firebase ID token's `admin: true` custom claim. The API verifies the token server-side and returns only UID, email, display name, provider IDs, creation/last-sign-in times, and disabled status. It uses 100-user pages; choose **Tải thêm** to fetch further accounts.
+The admin page and Vercel admin API require the Firebase ID token's `admin: true` custom claim. Owner accounts have both `role: "owner"` and `admin: true`; the separate Owner API requires `role: "owner"` and verifies token revocation. The Owner page can grant or remove admin access, and each role change revokes the target user's refresh tokens. It does not allow creating Owners or changing the signed-in Owner's role. Admin account listing is paginated in batches of 100.
+
+Do not share one Owner login among a group. Bootstrap one trusted Owner, then let that Owner grant `admin` to each teammate's individual Firebase account.

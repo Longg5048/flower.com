@@ -40,11 +40,12 @@ flowchart LR
 - Nút tài khoản trên các trang cửa hàng mở trang hồ sơ khi đã đăng nhập; nếu chưa có phiên thì mở trang đăng nhập.
 - Checkout hiện là luồng minh họa phía frontend; không có xử lý thanh toán hoặc lưu đơn hàng phía máy chủ.
 - `admin.js` gọi API MockAPI riêng để CRUD catalog quản trị.
+- Trang `/owner.html` và API cấp/gỡ quyền admin hoạt động trên bản Vercel có cấu hình Firebase Admin. Xem [`../ADMIN-SETUP.md`](../ADMIN-SETUP.md) để cấu hình.
 - `product-names.js` chỉ ánh xạ tên sản phẩm khi hiển thị. `currency.js` định dạng giá catalog sang VND; catalog/API tiếp tục lưu giá nguồn bằng USD. Tỷ giá là giá trị snapshot cấu hình trong mã nguồn.
 
 ### Chạy và triển khai
 
-Vì ứng dụng tĩnh có tải JSON bằng `fetch`, hãy chạy qua máy chủ HTTP cục bộ. Bản triển khai hiện có trên Netlify: https://genuine-malabi-a05086.netlify.app/.
+Vì ứng dụng tĩnh có tải JSON bằng `fetch`, hãy chạy qua máy chủ HTTP cục bộ. Để triển khai trang cùng API quản trị, cấu hình Vercel theo hướng dẫn trong [`../ADMIN-SETUP.md`](../ADMIN-SETUP.md).
 
 ### Cấu hình Firebase Authentication
 

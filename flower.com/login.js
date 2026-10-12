@@ -127,6 +127,24 @@ function saveCustomerSession(user, provider) {
 
 async function saveAuthenticatedSession(user, provider) {
     const token = await user.getIdTokenResult();
+    if (token.claims.role === "owner") {
+        try {
+            localStorage.setItem("loggedUser", JSON.stringify({
+                name: user.displayName || "Owner",
+                email: user.email || "",
+                uid: user.uid || "",
+                authProvider: provider,
+                role: "owner"
+            }));
+            localStorage.setItem("loggedAdmin", "true");
+            window.location.assign("./owner.html");
+        } catch (error) {
+            console.error("Không thể lưu phiên Owner:", error);
+            showMessage("Đăng nhập được nhưng không thể lưu phiên trên trình duyệt này.");
+        }
+        return;
+    }
+
     if (token.claims.admin === true) {
         try {
             localStorage.setItem("loggedUser", JSON.stringify({

@@ -445,10 +445,12 @@ select{
 .product-detail-info h1 {
     margin: 8px 0 18px;
     color: #273a32;
-    font-family: "Playfair Display", Georgia, serif;
+    font-family: "Segoe UI", Arial, sans-serif;
     font-size: clamp(28px, 3.5vw, 42px);
+    font-weight: 600;
     line-height: 1.15;
     text-align: left;
+    font-synthesis: none;
 }
 
 .detail-category {
@@ -696,11 +698,13 @@ select{
 #container .product-card h2 {
     margin: 0;
     color: #273a32;
-    font-family: "Playfair Display", Georgia, serif;
+    font-family: "Segoe UI", Arial, sans-serif;
     font-size: 17px;
+    font-weight: 600;
     line-height: 1.35;
     overflow-wrap: normal;
     word-break: normal;
+    font-synthesis: none;
 }
 
 #container .product-price {

@@ -8,7 +8,7 @@ let wish = JSON.parse(localStorage.getItem('wish')) || []
 let Total = document.getElementById("cartTotal")
 Total.innerText = cart.length
 let WishTotal = document.getElementById("wishTotal")
-WishTotal.innerText = wish.length
+if (WishTotal) WishTotal.innerText = wish.length
 
 console.log(cart.length)
 let container = document.getElementById("container")
@@ -117,7 +117,7 @@ function display(data) {
 
           wish.push(el)
           localStorage.setItem("wish", JSON.stringify(wish))
-          WishTotal.innerText = wish.length
+          if (WishTotal) WishTotal.innerText = wish.length
           Swal.fire({
             position: "center",
             icon: "success",
@@ -446,10 +446,6 @@ fetchAndRenderProducts()
 
 
 
-let wishlistLink = document.querySelector(".wishlist");
-wishlistLink.onclick = () => {
-  location.href = "./wish.html";
-};
 let order = document.querySelector(".orders");
 order.onclick = () => {
   location.href = "./tracking.html";

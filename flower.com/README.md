@@ -26,7 +26,7 @@ flowchart LR
 | --- | --- | --- |
 | Trang chủ | `index.html`, `index.css` | Nội dung giới thiệu, danh mục và điều hướng |
 | Danh mục và chi tiết hoa | `product.html`, `product.js`, `product.css` | Tải catalog, tìm kiếm, lọc, sắp xếp; xem thư viện ảnh, mô tả, giá, tồn kho và đặt số lượng sản phẩm |
-| Wishlist | `wish.html`, `wish.js`, `wish.css` | Hiển thị, thêm vào giỏ và xóa sản phẩm yêu thích |
+| Giỏ hàng và yêu thích | `shopping-store.js`, `wish.html`, `wish.js`, `wish.css` | Dùng chung `localStorage` `cart`/`wish` cho trang danh mục, chi tiết, wishlist và checkout; gộp dòng sản phẩm, kiểm tra tồn kho và hiển thị trạng thái yêu thích |
 | Giỏ hàng | `cart.html`, `styles/cart.css` | Cập nhật số lượng, xóa sản phẩm và tính tổng |
 | Thanh toán và theo dõi đơn | `checkout.html`, `placeorder.html`, `tracking.html` | Thu thập thông tin giao hàng, xác nhận đơn và tra cứu trạng thái/lịch trình |
 | Tài khoản demo | `login.html`, `login.js`, `account.html` | Đăng ký/đăng nhập, xem hồ sơ và đăng xuất |

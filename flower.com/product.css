@@ -566,6 +566,24 @@ select{
     color: #fff;
 }
 
+.detail-actions .detail-wishlist {
+    grid-column: 1 / -1;
+    border-color: #e9e8df;
+    color: #617b69;
+}
+
+.detail-actions .detail-buy-now {
+    grid-column: 2;
+    grid-row: 1;
+}
+
+.detail-actions .detail-wishlist.is-wished,
+#container .product-actions .product-wishlist.is-wished {
+    border-color: #e6c2cc;
+    background: #fff4f6;
+    color: #a23f5c;
+}
+
 .detail-actions button:disabled {
     border-color: #d3d3d3;
     background: #eee;
@@ -777,6 +795,39 @@ select{
     min-height: 34px;
     border-color: #e9e8df;
     color: #617b69;
+}
+
+#container .product-actions .product-wishlist.is-wished {
+    border-color: #e6c2cc;
+    background: #fff4f6;
+    color: #a23f5c;
+}
+
+#container .product-actions .product-wishlist:focus-visible,
+.detail-actions .detail-wishlist:focus-visible {
+    outline: 3px solid rgba(168, 78, 104, .2);
+    outline-offset: 2px;
+}
+
+.shopping-action-message {
+    margin: 0 0 12px;
+    padding: 10px 12px;
+    border: 1px solid #cfe6d5;
+    border-radius: 8px;
+    background: #f0faf2;
+    color: #28613a;
+    font-size: 13px;
+}
+
+.product-page.is-detail-view > .shopping-action-message {
+    width: min(1180px, 100%);
+    margin: 14px auto 0;
+}
+
+.shopping-action-message.is-error {
+    border-color: #efc7c7;
+    background: #fff3f3;
+    color: #9b3038;
 }
 
 #container .product-actions button:hover:not(:disabled) {

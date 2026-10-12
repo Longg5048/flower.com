@@ -358,6 +358,9 @@
       const increase = document.createElement("button");
       const lineTotal = document.createElement("strong");
       const remove = document.createElement("button");
+      const stock = Number(product.stockQuantity);
+      const hasStockLimit = Number.isFinite(stock) && stock >= 0;
+      const exceedsStock = hasStockLimit && itemQuantity > stock;
 
       card.className = "checkout-item";
       image.src = product.image || "";
@@ -377,6 +380,7 @@
       increase.className = "quantity-button";
       increase.textContent = "+";
       increase.setAttribute("aria-label", `Tăng số lượng ${name.textContent}`);
+      increase.disabled = hasStockLimit && itemQuantity >= stock;
       lineTotal.className = "checkout-item-total";
       lineTotal.textContent = formatVnd(Number(product.price) * itemQuantity);
       remove.type = "button";
@@ -388,6 +392,10 @@
         saveCart();
       });
       increase.addEventListener("click", () => {
+        if (hasStockLimit && itemQuantity >= stock) {
+          checkoutMessage.textContent = `Chỉ còn ${stock} sản phẩm trong kho.`;
+          return;
+        }
         product.quantity = itemQuantity + 1;
         saveCart();
       });
@@ -397,14 +405,32 @@
       });
 
       controls.append(decrease, quantity, increase, remove);
-      details.append(name, unitPrice, controls);
+      details.append(name, unitPrice);
+      if (hasStockLimit) {
+        const stockMessage = document.createElement("p");
+        stockMessage.textContent = exceedsStock
+          ? `Số lượng trong giỏ vượt tồn kho (${stock}).`
+          : `Tồn kho: ${stock}`;
+        details.append(stockMessage);
+      }
+      details.append(controls);
       card.append(image, details, lineTotal);
       CartContainer.append(card);
     });
 
     const isCartEmpty = Cart.length === 0;
     document.getElementById("checkout-empty").hidden = !isCartEmpty;
-    checkoutForm.querySelector(".checkout-submit").disabled = isCartEmpty;
+    const hasOverstockItem = Cart.some((product) => {
+      const stock = Number(product.stockQuantity);
+      return Number.isFinite(stock) && stock >= 0
+        && Math.max(1, Number(product.quantity) || 1) > stock;
+    });
+    checkoutForm.querySelector(".checkout-submit").disabled = isCartEmpty || hasOverstockItem;
+    if (hasOverstockItem) {
+      checkoutMessage.textContent = "Giảm số lượng sản phẩm vượt tồn kho trước khi đặt hàng.";
+    } else if (checkoutMessage.textContent.includes("tồn kho")) {
+      checkoutMessage.textContent = "";
+    }
     renderCartSummary(Cart);
     const cartTotal = document.getElementById("cartTotal");
     if (cartTotal) cartTotal.textContent = Cart.length;
@@ -416,6 +442,14 @@
     event.preventDefault();
     if (!Cart.length) {
       checkoutMessage.textContent = "Giỏ hàng đang trống. Hãy chọn hoa trước khi đặt hàng.";
+      return;
+    }
+    if (Cart.some((product) => {
+      const stock = Number(product.stockQuantity);
+      return Number.isFinite(stock) && stock >= 0
+        && Math.max(1, Number(product.quantity) || 1) > stock;
+    })) {
+      checkoutMessage.textContent = "Giảm số lượng sản phẩm vượt tồn kho trước khi đặt hàng.";
       return;
     }
 

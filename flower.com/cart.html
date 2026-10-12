@@ -214,6 +214,7 @@
         let Decrease = document.createElement("button");
         let card = document.createElement("div");
         let quantity = document.createElement("span");
+        let stockNote = document.createElement("p");
 
         image.src = product.image;
         details.textContent = getVietnameseProductName(product.title);
@@ -222,7 +223,15 @@
         Increase.textContent = "+";
         Decrease.textContent = "-";
         const productQuantity = Math.max(1, Number(product.quantity) || 1);
+        const stockQuantity = Number(product.stockQuantity);
+        const hasStockLimit = Number.isFinite(stockQuantity) && stockQuantity >= 0;
         quantity.textContent = productQuantity;
+        Increase.disabled = hasStockLimit && productQuantity >= stockQuantity;
+        stockNote.textContent = hasStockLimit
+          ? productQuantity > stockQuantity
+            ? `Số lượng trong giỏ vượt tồn kho (${stockQuantity}).`
+            : `Tồn kho: ${stockQuantity}`
+          : "";
 
         Decrease.addEventListener("click", () => {
           if (productQuantity > 1) {
@@ -232,6 +241,7 @@
           }
         });
         Increase.addEventListener("click", () => {
+          if (hasStockLimit && productQuantity >= stockQuantity) return;
           product.quantity = productQuantity + 1;
           localStorage.setItem("cart", JSON.stringify(Cart));
           DisplayProduct();
@@ -256,6 +266,7 @@
           image,
           price,
           details,
+          stockNote,
           Increase,
           quantity,
           Decrease,

@@ -1,106 +1,117 @@
+const container = document.getElementById("container");
+const wishTotal = document.getElementById("wishTotal");
+const cartTotal = document.getElementById("cartTotal");
+let wishlist = [];
+let products = [];
 
-// Localstorage 
-let cart=JSON.parse(localStorage.getItem('cart'))||[]
-let wish=JSON.parse(localStorage.getItem('wish'))||[]
-let Cart = JSON.parse(localStorage.getItem("cart")) || [];
-
-
-
-
-// Fetching the data
-
-let container=document.getElementById("container")
-let wishTotal=document.getElementById("wishTotal")
-
-display(wish)
-function display(wish){
-  wishTotal.innerText=wish.length
-    container.innerHTML=""
-
-  if(wish.length===0){
-    container.innerHTML='<p class="empty-wishlist">Danh sách yêu thích đang trống. <a href="./product.html">Khám phá các loài hoa</a></p>'
-    return
-  }
-   
-    wish.forEach((el,ind) => {
-
-        // Creating 
-        let box=document.createElement("div")
-        let box2=document.createElement("div")
-        let box3=document.createElement("div")
-        let img=document.createElement("img")
-        let title=document.createElement("h2")
-        let price=document.createElement("h3")
-        let btn=document.createElement("button")
-        let btn2=document.createElement("button")
-
-        // Assigning Data
-        img.src=el.image
-        title.innerText=getVietnameseProductName(el.title)
-        price.innerText=formatVnd(el.price)
-        btn.innerText="Thêm vào giỏ hàng"
-        btn2.innerText="Xóa"
-
-        // Clssess
-        box.className="box";
-        box3.id="wish";
-
-        //Event Listner
-
-        btn.addEventListener("click",()=>{
-
-          if(checkdub(el)){
-              Swal.fire({
-                position: 'center',
-                icon: 'error',
-                title: 'Sản phẩm đã có trong giỏ hàng',
-                showConfirmButton: false,
-                timer: 1500
-              })
-          }else{
-
-            Swal.fire({
-              position: 'center',
-              icon: 'success',
-              title: 'Đã thêm sản phẩm vào giỏ hàng',
-              showConfirmButton: false,
-              timer: 1500
-            })
-
-              cart.push({...el,quantity:1})
-              localStorage.setItem("cart",JSON.stringify(cart))
-              wish.splice(ind,1)
-              localStorage.setItem("wish",JSON.stringify(wish))
-              wishTotal.innerText=wish.length
-              display(wish)
-              
-          } 
-      })
-      btn2.addEventListener("click",()=>{
-            Swal.fire({
-              position: 'center',
-              icon: 'success',
-              title: 'Đã xóa khỏi danh sách yêu thích',
-              showConfirmButton: false,
-              timer: 1500
-            })
-           wish.splice(ind,1)
-            localStorage.setItem("wish",JSON.stringify(wish))
-            wishTotal.innerText=wish.length
-            display(wish)
-    })
-
-
-        // Appending to Main 
-        box2.append(img)
-        box3.append(btn,btn2)
-        box.append(box2,title,price,box3)
-        container.append(box)
+function showWishlistFeedback(title, icon, detail = "") {
+  const message = document.getElementById("wishlist-message");
+  message.textContent = detail;
+  message.hidden = !detail;
+  message.classList.toggle("is-error", icon === "error");
+  if (typeof Swal !== "undefined") {
+    Swal.fire({
+      position: "center",
+      icon,
+      title,
+      text: detail,
+      showConfirmButton: false,
+      timer: 1800
     });
+  }
 }
-let Total=document.getElementById("cartTotal")
-Total.innerText=cart.length
 
+function showWishlistError(error) {
+  console.error("Không thể cập nhật danh sách yêu thích hoặc giỏ hàng:", error);
+  showWishlistFeedback("Chưa thể hoàn tất thao tác", "error", error.message || "Vui lòng thử lại.");
+}
+
+function resolveProduct(wishedProduct) {
+  return products.find((product) => String(product.id) === String(wishedProduct.id)) || wishedProduct;
+}
+
+function renderWishlist() {
+  wishTotal.textContent = wishlist.length;
+  container.replaceChildren();
+
+  if (!wishlist.length) {
+    const emptyMessage = document.createElement("p");
+    const browseLink = document.createElement("a");
+    emptyMessage.className = "empty-wishlist";
+    emptyMessage.append("Danh sách yêu thích đang trống. ");
+    browseLink.href = "./product.html";
+    browseLink.textContent = "Khám phá các loài hoa";
+    emptyMessage.append(browseLink);
+    container.append(emptyMessage);
+    return;
+  }
+
+  wishlist.forEach((savedProduct) => {
+    const product = resolveProduct(savedProduct);
+    const card = document.createElement("article");
+    const image = document.createElement("img");
+    const name = document.createElement("h2");
+    const price = document.createElement("p");
+    const stock = document.createElement("p");
+    const actions = document.createElement("div");
+    const addToCartButton = document.createElement("button");
+    const removeButton = document.createElement("button");
+    const quantity = Math.max(0, Number(product.quantity) || 0);
+
+    card.className = "wishlist-card";
+    image.src = product.image || "";
+    image.alt = getVietnameseProductName(product.title || "Sản phẩm hoa");
+    image.loading = "lazy";
+    image.addEventListener("error", () => image.remove(), { once: true });
+    name.textContent = getVietnameseProductName(product.title || "Sản phẩm hoa");
+    price.textContent = formatVnd(product.price);
+    stock.className = quantity ? "wishlist-stock" : "wishlist-stock out-of-stock";
+    stock.textContent = quantity ? `Còn hàng · ${quantity} sản phẩm` : "Hiện đã hết hàng";
+    actions.className = "wishlist-card-actions";
+    addToCartButton.type = "button";
+    addToCartButton.className = "wishlist-add-to-cart";
+    addToCartButton.textContent = "Thêm vào giỏ";
+    addToCartButton.disabled = quantity === 0;
+    addToCartButton.addEventListener("click", () => {
+      try {
+        const updatedCart = FlowerShoppingStore.addToCart(resolveProduct(savedProduct), 1);
+        cartTotal.textContent = updatedCart.length;
+        showWishlistFeedback("Đã thêm vào giỏ hàng", "success");
+      } catch (error) {
+        showWishlistError(error);
+      }
+    });
+    removeButton.type = "button";
+    removeButton.className = "wishlist-remove";
+    removeButton.textContent = "Bỏ yêu thích";
+    removeButton.addEventListener("click", () => {
+      try {
+        wishlist = FlowerShoppingStore.removeFromWishlist(savedProduct.id);
+        renderWishlist();
+        showWishlistFeedback("Đã xóa khỏi yêu thích", "success");
+      } catch (error) {
+        showWishlistError(error);
+      }
+    });
+
+    actions.append(addToCartButton, removeButton);
+    card.append(image, name, price, stock, actions);
+    container.append(card);
+  });
+}
+
+function loadWishlist() {
+  try {
+    wishlist = FlowerShoppingStore.readWishlist();
+    cartTotal.textContent = FlowerShoppingStore.readCart().length;
+    renderWishlist();
+  } catch (error) {
+    container.textContent = error.message || "Không thể tải danh sách yêu thích.";
+    console.error("Không thể tải danh sách yêu thích:", error);
+  }
+}
+
+loadWishlist();
 
 let order = document.querySelector(".orders");
 order.onclick = () => {
@@ -112,12 +123,20 @@ bag.onclick = () => {
   location.href = "./cart.html";
 };
 
-
-function checkdub(data){
-  for(i=0;i<cart.length;i++){
-      if(cart[i].id==data.id){
-          return true
-      }
+window.addEventListener("storage", (event) => {
+  if (event.key === "wish" || event.key === "cart") loadWishlist();
+  if (event.key === "flowerInventory") {
+    products = FlowerInventory.readProducts();
+    renderWishlist();
   }
-  return false
-}
+});
+
+FlowerInventory.initialize()
+  .then((inventory) => {
+    products = inventory;
+    renderWishlist();
+  })
+  .catch((error) => {
+    console.error("Không thể đồng bộ sản phẩm trong danh sách yêu thích:", error);
+    showWishlistFeedback("Chưa thể đồng bộ thông tin sản phẩm", "error", "Kiểm tra kết nối rồi tải lại trang.");
+  });

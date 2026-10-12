@@ -1,19 +1,96 @@
 
 let products = []
-
-// Localstorage 
-let cart = JSON.parse(localStorage.getItem('cart')) || []
-let wish = JSON.parse(localStorage.getItem('wish')) || []
-
+let cart = []
+let wish = []
 let Total = document.getElementById("cartTotal")
-Total.innerText = cart.length
 let WishTotal = document.getElementById("wishTotal")
-if (WishTotal) WishTotal.innerText = wish.length
-
-console.log(cart.length)
 let container = document.getElementById("container")
 let searchButton = document.getElementById("sbtn")
 let searchInput = document.getElementById("search")
+let actionMessage = document.getElementById("shopping-action-message")
+
+function showShoppingFeedback(title, icon, detail = "") {
+  actionMessage.textContent = detail
+  actionMessage.hidden = !detail
+  actionMessage.classList.toggle("is-error", icon === "error")
+  if (typeof Swal !== "undefined") {
+    Swal.fire({
+      position: "center",
+      icon,
+      title,
+      text: detail,
+      showConfirmButton: false,
+      timer: 1800
+    })
+  }
+}
+
+function showShoppingError(error) {
+  console.error("Không thể cập nhật giỏ hàng hoặc yêu thích:", error)
+  showShoppingFeedback("Chưa thể hoàn tất thao tác", "error", error.message || "Vui lòng thử lại.")
+}
+
+function updateShoppingCounts() {
+  Total.textContent = cart.length
+  if (WishTotal) WishTotal.textContent = wish.length
+}
+
+try {
+  cart = FlowerShoppingStore.readCart()
+  wish = FlowerShoppingStore.readWishlist()
+} catch (error) {
+  console.error("Không thể tải giỏ hàng hoặc danh sách yêu thích:", error)
+  actionMessage.textContent = error.message
+  actionMessage.hidden = false
+  actionMessage.classList.add("is-error")
+}
+updateShoppingCounts()
+
+function isProductWished(product) {
+  return wish.some((item) => String(item.id) === String(product.id))
+}
+
+function updateWishlistButton(button, product) {
+  const isWished = isProductWished(product)
+  button.classList.toggle("is-wished", isWished)
+  button.setAttribute("aria-pressed", String(isWished))
+  button.textContent = isWished ? "♥ Đã yêu thích" : "♡ Thêm vào yêu thích"
+}
+
+function refreshWishlistButtons() {
+  document.querySelectorAll(".product-wishlist[data-product-id]").forEach((button) => {
+    const product = products.find((item) => String(item.id) === button.dataset.productId)
+    if (product) updateWishlistButton(button, product)
+  })
+  if (selectedProduct) updateWishlistButton(document.getElementById("detail-wishlist"), selectedProduct)
+}
+
+function toggleProductWishlist(product) {
+  try {
+    const result = FlowerShoppingStore.toggleWishlist(product)
+    wish = result.wishlist
+    updateShoppingCounts()
+    refreshWishlistButtons()
+    showShoppingFeedback(
+      result.added ? "Đã thêm vào yêu thích" : "Đã xóa khỏi yêu thích",
+      "success"
+    )
+  } catch (error) {
+    showShoppingError(error)
+  }
+}
+
+function addProductToCart(product, quantity = 1) {
+  try {
+    cart = FlowerShoppingStore.addToCart(product, quantity)
+    updateShoppingCounts()
+    showShoppingFeedback("Đã thêm vào giỏ hàng", "success")
+    return true
+  } catch (error) {
+    showShoppingError(error)
+    return false
+  }
+}
 
 
 function display(data) {
@@ -68,7 +145,8 @@ function display(data) {
         cartButton.disabled = quantity === 0
         wishlistButton.type = "button"
         wishlistButton.className = "product-wishlist"
-        wishlistButton.innerText = "Thêm vào yêu thích"
+        wishlistButton.dataset.productId = String(el.id)
+        updateWishlistButton(wishlistButton, el)
         detailsButton.className = "product-view-details"
         detailsButton.href = `./product.html?id=${encodeURIComponent(el.id)}`
         detailsButton.textContent = "Xem chi tiết"
@@ -77,54 +155,15 @@ function display(data) {
         actions.className = "product-actions"
 
         cartButton.addEventListener("click", () => {
-          if (checkdub2(el)) {
-            Swal.fire({
-              position: "center",
-              icon: "error",
-              title: "Sản phẩm đã có trong giỏ hàng",
-              showConfirmButton: false,
-              timer: 1500
-            })
-            return
-          }
-
           addProductToCart(el)
-          Swal.fire({
-            position: "center",
-            icon: "success",
-            title: "Đã thêm vào giỏ hàng",
-            showConfirmButton: false,
-            timer: 1500
-          })
         })
 
         orderButton.addEventListener("click", () => {
-          if (!checkdub2(el)) addProductToCart(el)
-          window.location.href = "./checkout.html"
+          if (addProductToCart(el)) window.location.assign("./checkout.html")
         })
 
         wishlistButton.addEventListener("click", () => {
-          if (checkdub(el)) {
-            Swal.fire({
-              position: "center",
-              icon: "error",
-              title: "Sản phẩm đã có trong danh sách yêu thích",
-              showConfirmButton: false,
-              timer: 1500
-            })
-            return
-          }
-
-          wish.push(el)
-          localStorage.setItem("wish", JSON.stringify(wish))
-          if (WishTotal) WishTotal.innerText = wish.length
-          Swal.fire({
-            position: "center",
-            icon: "success",
-            title: "Đã thêm vào danh sách yêu thích",
-            showConfirmButton: false,
-            timer: 1500
-          })
+          toggleProductWishlist(el)
         })
 
         imageFrame.append(img)
@@ -134,13 +173,6 @@ function display(data) {
     });
 
 }
-
-function addProductToCart(product) {
-  cart.push({ ...product, quantity: 1 })
-  localStorage.setItem("cart", JSON.stringify(cart))
-  Total.innerText = cart.length
-}
-
 
 const sortSelect = document.querySelector(".arrange")
 const flowerTypeSelect = document.getElementById("flower-type")
@@ -180,6 +212,15 @@ function renderProductDetail(product) {
   const images = getProductImages(product)
   const thumbnails = document.getElementById("detail-thumbnails")
   const stock = Math.max(0, Number(product.quantity) || 0)
+  let quantityInCart = 0
+  try {
+    cart = FlowerShoppingStore.readCart()
+    quantityInCart = cart
+      .filter((item) => String(item.id) === String(product.id))
+      .reduce((sum, item) => sum + Number(item.quantity ?? 1), 0)
+  } catch (error) {
+    showShoppingError(error)
+  }
   const selectedImageIndex = Math.max(0, images.indexOf(previousImage))
 
   productPage.classList.add("is-detail-view")
@@ -193,9 +234,9 @@ function renderProductDetail(product) {
   document.getElementById("detail-description").textContent = product.description || "Sản phẩm hoa tươi được tuyển chọn và sắp xếp chỉn chu để gửi trao những lời yêu thương."
 
   detailQuantity.min = "1"
-  detailQuantity.max = String(stock)
+  detailQuantity.max = String(Math.max(0, stock - quantityInCart))
   detailQuantity.value = stock > 0 ? "1" : "0"
-  detailQuantity.disabled = stock === 0
+  detailQuantity.disabled = stock === 0 || quantityInCart >= stock
   detailQuantityError.textContent = ""
   thumbnails.replaceChildren()
   mainImage.hidden = images.length === 0
@@ -233,8 +274,9 @@ function renderProductDetail(product) {
   })
 
   const outOfStock = stock === 0
-  document.getElementById("detail-add-to-cart").disabled = outOfStock
-  document.getElementById("detail-buy-now").disabled = outOfStock
+  document.getElementById("detail-add-to-cart").disabled = outOfStock || quantityInCart >= stock
+  document.getElementById("detail-buy-now").disabled = outOfStock || quantityInCart >= stock
+  updateWishlistButton(document.getElementById("detail-wishlist"), product)
   document.title = `${productName} | Flowerflow`
 }
 
@@ -245,36 +287,12 @@ function showQuantityError(text) {
 
 function getRequestedQuantity() {
   const quantity = Number(detailQuantity.value)
-  const stock = Math.max(0, Number(selectedProduct?.quantity) || 0)
-  const currentCartQuantity = cart
-    .filter((item) => String(item.id) === String(selectedProduct?.id))
-    .reduce((sum, item) => sum + Math.max(0, Number(item.quantity) || 0), 0)
-
   if (!Number.isInteger(quantity) || quantity < 1) {
     showQuantityError("Số lượng phải là số nguyên lớn hơn 0.")
     return null
   }
-  if (quantity + currentCartQuantity > stock) {
-    const remainingStock = Math.max(0, stock - currentCartQuantity)
-    showQuantityError(currentCartQuantity
-      ? `Giỏ hàng đã có ${currentCartQuantity} sản phẩm. Chỉ còn ${remainingStock} sản phẩm có thể thêm.`
-      : `Số lượng vượt quá tồn kho. Hiện có ${stock} sản phẩm.`)
-    return null
-  }
-
   showQuantityError("")
   return quantity
-}
-
-function addSelectedProductToCart(quantity) {
-  const existingItem = cart.find((item) => String(item.id) === String(selectedProduct.id))
-  if (existingItem) {
-    existingItem.quantity = Math.max(0, Number(existingItem.quantity) || 0) + quantity
-  } else {
-    cart.push({ ...selectedProduct, quantity })
-  }
-  localStorage.setItem("cart", JSON.stringify(cart))
-  Total.innerText = cart.length
 }
 
 function navigateToProductDetail() {
@@ -304,22 +322,18 @@ document.getElementById("detail-add-to-cart").addEventListener("click", () => {
   if (!selectedProduct) return
   const quantity = getRequestedQuantity()
   if (quantity === null) return
-  addSelectedProductToCart(quantity)
-  Swal.fire({
-    position: "center",
-    icon: "success",
-    title: "Đã thêm vào giỏ hàng",
-    showConfirmButton: false,
-    timer: 1500
-  })
+  if (addProductToCart(selectedProduct, quantity)) renderProductDetail(selectedProduct)
+})
+
+document.getElementById("detail-wishlist").addEventListener("click", () => {
+  if (selectedProduct) toggleProductWishlist(selectedProduct)
 })
 
 document.getElementById("detail-buy-now").addEventListener("click", () => {
   if (!selectedProduct) return
   const quantity = getRequestedQuantity()
   if (quantity === null) return
-  addSelectedProductToCart(quantity)
-  window.location.assign("./checkout.html")
+  if (addProductToCart(selectedProduct, quantity)) window.location.assign("./checkout.html")
 })
 
 function normalizeSearchText(value) {
@@ -416,6 +430,17 @@ window.addEventListener("storage", (event) => {
     renderProducts()
     navigateToProductDetail()
   }
+  if (event.key === "cart" || event.key === "wish") {
+    try {
+      cart = FlowerShoppingStore.readCart()
+      wish = FlowerShoppingStore.readWishlist()
+      updateShoppingCounts()
+      refreshWishlistButtons()
+      if (selectedProduct) renderProductDetail(selectedProduct)
+    } catch (error) {
+      showShoppingError(error)
+    }
+  }
 })
 
 window.addEventListener("flowerinventorychange", (event) => {
@@ -427,6 +452,7 @@ window.addEventListener("flowerinventorychange", (event) => {
 async function fetchAndRenderProducts() {
   try {
     products = await FlowerInventory.initialize()
+    if (!products.length) throw new Error("Kho sản phẩm hiện chưa có dữ liệu hoặc dịch vụ danh mục đang không khả dụng.")
     renderProducts()
     navigateToProductDetail()
   } catch (error) {
@@ -436,16 +462,6 @@ async function fetchAndRenderProducts() {
 }
 
 fetchAndRenderProducts()
-// console.log(data)
-
-
-
-
-
-
-
-
-
 let order = document.querySelector(".orders");
 order.onclick = () => {
   location.href = "./tracking.html";
@@ -468,56 +484,6 @@ order.onclick = () => {
   bag.onclick = () => {
     location.href = "./cart.html";
   };
-
-
-  function checkdub(data){
-    for(let i=0;i<wish.length;i++){
-        if(wish[i].id==data.id){
-            return true
-        }
-    }
-    return false
-  }
-  function checkdub2(data){
-    for(let i=0;i<cart.length;i++){
-        if(cart[i].id==data.id){
-            return true
-        }
-    }
-    return false
-  }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 // let filterBy = document.getElementById("filter")

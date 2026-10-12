@@ -190,7 +190,13 @@
       </div>
 
 
-      <div class="nav">
+      <main class="cart-page">
+        <header class="cart-heading">
+          <p class="cart-eyebrow">FLOWERFLOW · GIỎ HÀNG</p>
+          <h1>Giỏ hàng của bạn</h1>
+          <p>Kiểm tra sản phẩm trước khi tiếp tục thanh toán.</p>
+        </header>
+        <div class="nav">
         <div id="product-container">
           <!-- Here Append All the cart Products  -->
         </div>
@@ -228,6 +234,7 @@
           </div>
         </div>
       </div>
+      </main>
     </div>
     <script src="./store-footer.js?v=2"></script>
     <script src="./homepage.js?v=1"></script>
@@ -247,53 +254,78 @@
 
       CartContainer.innerHTML = "";
 
-      Cart.forEach((product) => {
-        let image = document.createElement("img");
-        let details = document.createElement("p");
-        let price = document.createElement("h3");
-        let Remove = document.createElement("button");
-        let Increase = document.createElement("button");
-        let Decrease = document.createElement("button");
-        let card = document.createElement("div");
-        let quantity = document.createElement("span");
-        let stockNote = document.createElement("p");
+      if (Cart.length === 0) {
+        const emptyState = document.createElement("div");
+        emptyState.className = "cart-empty";
+        emptyState.innerHTML = `
+          <span class="cart-empty-icon" aria-hidden="true">♡</span>
+          <h2>Giỏ hàng đang trống</h2>
+          <p>Hãy chọn một bó hoa thật đẹp để gửi lời yêu thương.</p>
+          <a href="./product.html">Khám phá các mẫu hoa <span aria-hidden="true">→</span></a>
+        `;
+        CartContainer.append(emptyState);
+      }
 
-        image.src = product.image;
-        details.textContent = getVietnameseProductName(product.title);
-        price.textContent = formatVnd(product.price);
-        Remove.textContent = "Xóa";
-        Increase.textContent = "+";
-        Decrease.textContent = "-";
+      Cart.forEach((product) => {
+        const image = document.createElement("img");
+        const details = document.createElement("div");
+        const name = document.createElement("h2");
+        const price = document.createElement("p");
+        const actions = document.createElement("div");
+        const remove = document.createElement("button");
+        const increase = document.createElement("button");
+        const decrease = document.createElement("button");
+        const card = document.createElement("article");
+        const quantity = document.createElement("span");
+        const stockNote = document.createElement("p");
         const productQuantity = Math.max(1, Number(product.quantity) || 1);
         const stockQuantity = Number(product.stockQuantity);
         const hasStockLimit = Number.isFinite(stockQuantity) && stockQuantity >= 0;
+
+        card.className = "cart-item";
+        image.src = product.image || "";
+        image.alt = getVietnameseProductName(product.title);
+        image.loading = "lazy";
+        details.className = "cart-item-details";
+        name.className = "cart-item-name";
+        name.textContent = getVietnameseProductName(product.title);
+        price.className = "cart-item-price";
+        price.textContent = formatVnd(product.price);
+        actions.className = "cart-item-actions";
+        remove.type = "button";
+        remove.className = "cart-remove";
+        remove.textContent = "Xóa";
+        increase.type = "button";
+        decrease.type = "button";
         quantity.textContent = productQuantity;
-        Increase.disabled = hasStockLimit && productQuantity >= stockQuantity;
+        increase.disabled = hasStockLimit && productQuantity >= stockQuantity;
+        increase.setAttribute("aria-label", `Tăng số lượng ${name.textContent}`);
+        increase.textContent = "+";
+        decrease.disabled = productQuantity <= 1;
+        decrease.setAttribute("aria-label", `Giảm số lượng ${name.textContent}`);
+        decrease.textContent = "−";
+        stockNote.className = "cart-stock-note";
         stockNote.textContent = hasStockLimit
           ? productQuantity > stockQuantity
             ? `Số lượng trong giỏ vượt tồn kho (${stockQuantity}).`
             : `Tồn kho: ${stockQuantity}`
           : "";
 
-        Decrease.addEventListener("click", () => {
+        decrease.addEventListener("click", () => {
           if (productQuantity > 1) {
             product.quantity = productQuantity - 1;
             localStorage.setItem("cart", JSON.stringify(Cart));
             DisplayProduct();
           }
         });
-        Increase.addEventListener("click", () => {
+        increase.addEventListener("click", () => {
           if (hasStockLimit && productQuantity >= stockQuantity) return;
           product.quantity = productQuantity + 1;
           localStorage.setItem("cart", JSON.stringify(Cart));
           DisplayProduct();
         });
-        Remove.addEventListener("click", () => {
-          Cart = Cart.filter((ele) => {
-            return ele.id !== product.id;       
-            location.reload()
-          });
-          
+        remove.addEventListener("click", () => {
+          Cart = Cart.filter((item) => item.id !== product.id);
           localStorage.setItem("cart", JSON.stringify(Cart));
           DisplayProduct();
           Swal.fire({
@@ -304,16 +336,9 @@
               timer: 1500
             })
         });
-        card.append(
-          image,
-          price,
-          details,
-          stockNote,
-          Increase,
-          quantity,
-          Decrease,
-          Remove
-        );
+        actions.append(decrease, quantity, increase, remove);
+        details.append(name, price, stockNote, actions);
+        card.append(image, details);
         CartContainer.append(card);
       });
 

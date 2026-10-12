@@ -830,6 +830,238 @@ select{
     color: #9b3038;
 }
 
+.related-flowers {
+    width: min(1180px, 100%);
+    margin: clamp(36px, 6vw, 72px) auto 0;
+    padding-top: clamp(24px, 4vw, 40px);
+    border-top: 1px solid #e9e4dc;
+}
+
+.related-flowers[hidden] {
+    display: none;
+}
+
+.related-flowers-heading {
+    margin-bottom: 22px;
+}
+
+.related-flowers-heading h2 {
+    margin: 0;
+    color: #273a32;
+    font-family: "Playfair Display", Georgia, serif;
+    font-size: clamp(23px, 3vw, 32px);
+    font-weight: 600;
+    line-height: 1.2;
+}
+
+.related-flowers-heading > p:last-child {
+    margin: 8px 0 0;
+    color: #718078;
+    font-size: 14px;
+    line-height: 1.6;
+}
+
+.related-flowers-status {
+    margin: 0;
+    padding: 18px;
+    border: 1px solid #e9e4dc;
+    border-radius: 12px;
+    background: #fffefa;
+    color: #647168;
+    font-size: 14px;
+    text-align: center;
+}
+
+.related-flowers-status[hidden] {
+    display: none;
+}
+
+.related-flowers-status.is-loading::before {
+    display: inline-block;
+    width: 14px;
+    height: 14px;
+    margin-right: 9px;
+    border: 2px solid #eadde1;
+    border-top-color: #a84e68;
+    border-radius: 50%;
+    content: "";
+    vertical-align: -2px;
+    animation: related-flower-spin .75s linear infinite;
+}
+
+.related-flowers-status.is-error {
+    border-color: #efc7c7;
+    background: #fff7f7;
+    color: #9b3038;
+}
+
+.related-flowers-grid {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 18px;
+}
+
+.related-flower-card {
+    position: relative;
+    display: flex;
+    min-width: 0;
+    flex-direction: column;
+    overflow: hidden;
+    border: 1px solid #e9e4dc;
+    border-radius: 14px;
+    background: #fffefa;
+    box-shadow: 0 8px 24px rgba(39, 58, 50, .06);
+    transition: transform .18s ease, box-shadow .18s ease;
+}
+
+.related-flower-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 14px 30px rgba(39, 58, 50, .12);
+}
+
+.related-flower-image-link {
+    display: block;
+    color: inherit;
+    text-decoration: none;
+}
+
+.related-flower-image {
+    position: relative;
+    display: grid;
+    height: clamp(150px, 19vw, 220px);
+    overflow: hidden;
+    place-items: center;
+    background: #f6f1eb;
+}
+
+.related-flower-image img {
+    width: 100%;
+    height: 100%;
+    padding: 12px;
+    object-fit: contain;
+    transition: transform .2s ease;
+}
+
+.related-flower-card:hover .related-flower-image img {
+    transform: scale(1.04);
+}
+
+.related-flower-image.image-unavailable {
+    background: radial-gradient(circle at 50% 45%, #fff8f4, #f3e8e5);
+}
+
+.related-flower-image-fallback {
+    display: none;
+    color: #a84e68;
+    font-size: 54px;
+}
+
+.related-flower-image.image-unavailable .related-flower-image-fallback {
+    display: block;
+}
+
+.related-flower-content {
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    align-items: flex-start;
+    padding: 14px;
+}
+
+.related-flower-content h3 {
+    display: -webkit-box;
+    min-height: 2.7em;
+    margin: 0;
+    overflow: hidden;
+    color: #273a32;
+    font-family: "Segoe UI", Arial, sans-serif;
+    font-size: 16px;
+    font-weight: 600;
+    line-height: 1.35;
+    overflow-wrap: anywhere;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+}
+
+.related-flower-price {
+    margin: 9px 0 0;
+    color: #a84e68;
+    font-size: 17px;
+    font-weight: 700;
+}
+
+.related-flower-stock {
+    margin: 7px 0 14px;
+    color: #39734b;
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.related-flower-stock.out-of-stock {
+    color: #a33;
+}
+
+.related-flower-actions {
+    display: grid;
+    width: 100%;
+    grid-template-columns: minmax(0, 1fr) 42px;
+    gap: 8px;
+    margin-top: auto;
+}
+
+.related-flower-details,
+.related-flower-favorite {
+    display: grid;
+    min-height: 40px;
+    place-items: center;
+    border: 1px solid #a84e68;
+    border-radius: 8px;
+    background: #fff;
+    color: #853c53;
+    font-family: "Segoe UI", Arial, sans-serif;
+    font-size: 13px;
+    font-weight: 700;
+    text-decoration: none;
+    cursor: pointer;
+}
+
+.related-flower-details:hover,
+.related-flower-details:focus-visible,
+.related-flower-favorite:hover,
+.related-flower-favorite:focus-visible {
+    outline: 2px solid rgb(168 78 104 / 18%);
+    outline-offset: 2px;
+    background: #fff4f6;
+}
+
+.related-flower-favorite {
+    padding: 0;
+    font-size: 20px;
+}
+
+.related-flower-favorite.is-wished {
+    border-color: #e6c2cc;
+    background: #fff4f6;
+    color: #a23f5c;
+}
+
+@keyframes related-flower-spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .related-flowers-status.is-loading::before {
+        animation: none;
+    }
+
+    .related-flower-card,
+    .related-flower-image img {
+        transition: none;
+    }
+}
+
 #container .product-actions button:hover:not(:disabled) {
     filter: brightness(.95);
 }
@@ -855,6 +1087,15 @@ select{
 }
 
 @media (max-width: 800px) {
+    .related-flowers-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 14px;
+    }
+
+    .related-flower-image {
+        height: clamp(150px, 31vw, 220px);
+    }
+
     .product-page {
         grid-template-columns: minmax(0, 1fr);
         padding: 16px;
@@ -922,6 +1163,44 @@ select{
 }
 
 @media (max-width: 560px) {
+    .related-flowers {
+        margin-top: 36px;
+        padding-top: 26px;
+    }
+
+    .related-flowers-heading {
+        margin-bottom: 16px;
+    }
+
+    .related-flowers-heading > p:last-child {
+        font-size: 13px;
+    }
+
+    .related-flowers-grid {
+        gap: 10px;
+    }
+
+    .related-flower-content {
+        padding: 11px;
+    }
+
+    .related-flower-content h3 {
+        font-size: 14px;
+    }
+
+    .related-flower-price {
+        font-size: 15px;
+    }
+
+    .related-flower-actions {
+        grid-template-columns: minmax(0, 1fr) 38px;
+        gap: 6px;
+    }
+
+    .related-flower-details {
+        font-size: 12px;
+    }
+
     #container {
         grid-template-columns: repeat(2, minmax(0, 1fr));
         gap: 12px;

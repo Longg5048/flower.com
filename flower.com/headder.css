@@ -42,11 +42,11 @@
  }
  #nav{
      display: grid;
-     grid-template-columns: 110px minmax(220px, 1fr) minmax(320px, 390px);
-     gap: clamp(12px, 2vw, 28px);
+     grid-template-columns: minmax(76px, 100px) minmax(180px, min(48vw, 620px)) minmax(280px, 390px);
+     gap: clamp(8px, 1.5vw, 22px);
      margin: 12px auto 0;
      align-items: center;
-     justify-content: initial;
+     justify-content: space-between;
      box-shadow: rgba(9, 30, 66, 0.25) 0px 4px 8px -2px, rgba(9, 30, 66, 0.08) 0px 0px 0px 1px;
      height:78px;
      width: 100%;
@@ -74,24 +74,52 @@
    #nav-center{
      width:100%;
      display: flex;
+     height: 48px;
      margin: 0;
-       min-width: 0;
+     min-width: 0;
+     overflow: hidden;
+     border: 1px solid #ded8da;
+     border-radius: 9px;
+     background: #fff;
+     transition: border-color 160ms ease, box-shadow 160ms ease;
+  }
+  #nav-center:focus-within {
+     border-color: #9b536d;
+     box-shadow: 0 0 0 3px rgb(155 83 109 / 14%);
   }
   #nav-center input{
      flex: 1 1 auto;
      width: 0;
-       min-width: 0;
-       box-sizing: border-box;
-       padding: 10px 12px;
-       border: 1px solid #ded8da;
-       border-radius: 8px 0 0 8px;
+     min-width: 0;
+     box-sizing: border-box;
+     padding: 0 14px;
+     border: 0;
+     outline: 0;
+     background: transparent;
+     color: #3b2f3b;
+     font: inherit;
+     font-size: clamp(0.8rem, 1.1vw, 0.95rem);
+     text-overflow: ellipsis;
+  }
+  #nav-center input::placeholder {
+     color: #82777c;
+     opacity: 1;
   }
   #nav-center button {
-     flex: 0 0 auto;
+     flex: 0 0 112px;
+     min-width: 0;
+     height: 100%;
      margin-top: 0 !important;
-     padding: 10px 16px;
-     border-radius: 0 8px 8px 0;
+     padding: 0 12px;
+     border-radius: 0;
      background: #83566a;
+     font-size: 0.82rem;
+     font-weight: 700;
+     letter-spacing: 0.02em;
+     white-space: nowrap;
+  }
+  #nav-center button:hover {
+     background: #704457;
   }
   #nav-right{
      display: grid;
@@ -314,6 +342,7 @@
       grid-column: 2;
       grid-row: 1;
       width: auto;
+      height: 44px;
       margin: 0;
    }
 
@@ -359,7 +388,9 @@
    }
 
    #nav-center button {
-      padding: 10px 12px;
+      flex-basis: 88px;
+      padding: 0 8px;
+      font-size: 0.72rem;
    }
 
    #nav-right {

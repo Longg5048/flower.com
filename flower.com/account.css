@@ -15,9 +15,10 @@
 body {
     min-height: 100vh;
     margin: 0;
-    padding: 36px 18px;
-    display: grid;
-    place-items: center;
+    padding: 36px 0 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
     background:
         radial-gradient(ellipse at 9% 12%, rgba(226, 190, 177, 0.32), transparent 34%),
         radial-gradient(ellipse at 94% 88%, rgba(193, 210, 191, 0.4), transparent 34%),
@@ -27,7 +28,9 @@ body {
 }
 
 .account-shell {
-    width: min(100%, 620px);
+    width: min(calc(100% - 36px), 620px);
+    margin: auto;
+    flex: 0 0 auto;
 }
 
 .brand {

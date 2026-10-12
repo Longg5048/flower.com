@@ -14,7 +14,7 @@
 body {
     min-height: 100vh;
     margin: 0;
-    padding: 0 20px 48px;
+    padding: 0;
     background: #fff;
     color: #000;
     font-family: Arial, sans-serif;
@@ -24,7 +24,7 @@ body {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    width: min(100%, 1120px);
+    width: min(calc(100% - 40px), 1120px);
     min-height: 76px;
     margin: 0 auto;
     border-bottom: 1px solid rgba(39, 58, 50, 0.12);
@@ -54,7 +54,7 @@ body {
 }
 
 .tracking-main {
-    width: min(100%, 1040px);
+    width: min(calc(100% - 40px), 1040px);
     margin: 44px auto 0;
 }
 
@@ -434,10 +434,11 @@ h1,
 
 @media (max-width: 640px) {
     body {
-        padding: 0 14px 32px;
+        padding: 0;
     }
 
     .tracking-header {
+        width: calc(100% - 28px);
         min-height: 64px;
     }
 
@@ -446,6 +447,7 @@ h1,
     }
 
     .tracking-main {
+        width: calc(100% - 28px);
         margin-top: 28px;
     }
 

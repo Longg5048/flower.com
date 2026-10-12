@@ -24,10 +24,11 @@ html {
 body {
 	min-height: 100vh;
 	margin: 0;
-	padding: 34px 5vw 48px;
+	padding: 34px 0 0;
 	display: flex;
+	flex-direction: column;
 	align-items: center;
-	justify-content: center;
+	justify-content: flex-start;
 	background:
 		radial-gradient(ellipse at 9% 12%, rgba(226, 190, 177, 0.32), transparent 34%),
 		radial-gradient(ellipse at 94% 88%, rgba(193, 210, 191, 0.4), transparent 34%),
@@ -42,7 +43,8 @@ input {
 }
 
 #background_img {
-	width: min(100%, 1080px);
+	width: min(calc(100% - 10vw), 1080px);
+	flex: 0 0 auto;
 }
 
 .login-header {

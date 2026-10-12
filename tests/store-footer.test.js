@@ -41,4 +41,23 @@ assert.match(footerStyles, /\.store-footer--checkout\s*\{[^}]*background:\s*#382
 assert.match(footerStyles, /\.store-footer--checkout\s+\.store-footer-main\s*\{[^}]*repeat\(2,\s*minmax\(0,\s*1fr\)\)/s);
 assert.match(footerStyles, /@media \(max-width: 640px\)[\s\S]*?\.store-footer--checkout \.store-footer-main[\s\S]*?grid-template-columns: minmax\(0, 1fr\)/);
 
+for (const stylesheet of [
+  "account.css",
+  "forgot-password.css",
+  "homepage.css",
+  "login.css",
+  "product.css",
+  "store-footer.css",
+  "styles/checkout.css"
+]) {
+  const styles = fs.readFileSync(path.join(root, stylesheet), "utf8");
+  if (styles.includes("Playfair Display")) {
+    assert.match(
+      styles,
+      /Playfair Display", "Segoe UI", Arial, serif/,
+      `${stylesheet} should fall back to a Vietnamese-capable font`
+    );
+  }
+}
+
 console.log("store-footer test passed");

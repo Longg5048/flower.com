@@ -39,7 +39,7 @@ body {
     gap: 10px;
     margin: 0 0 18px 6px;
     color: var(--ink);
-    font-family: "Playfair Display", Georgia, serif;
+    font-family: "Playfair Display", "Segoe UI", Arial, serif;
     font-size: 23px;
     font-weight: 600;
     text-decoration: none;
@@ -85,7 +85,7 @@ body {
 
 h1 {
     margin: 0;
-    font-family: "Playfair Display", Georgia, serif;
+    font-family: "Playfair Display", "Segoe UI", Arial, serif;
     font-size: clamp(32px, 6vw, 42px);
     letter-spacing: -0.04em;
 }

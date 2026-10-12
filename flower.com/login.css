@@ -60,7 +60,7 @@ input {
 	align-items: center;
 	gap: 10px;
 	color: var(--ink);
-	font-family: "Playfair Display", Georgia, serif;
+	font-family: "Playfair Display", "Segoe UI", Arial, serif;
 	font-size: 24px;
 	font-weight: 600;
 	letter-spacing: -0.04em;
@@ -163,7 +163,7 @@ form {
 form h1 {
 	margin: 0;
 	color: var(--ink);
-	font-family: "Playfair Display", Georgia, serif;
+	font-family: "Playfair Display", "Segoe UI", Arial, serif;
 	font-size: clamp(32px, 4vw, 43px);
 	font-weight: 600;
 	letter-spacing: -0.045em;
@@ -391,7 +391,7 @@ button:active {
 
 .overlay-panel h2 {
 	margin: 0;
-	font-family: "Playfair Display", Georgia, serif;
+	font-family: "Playfair Display", "Segoe UI", Arial, serif;
 	font-size: clamp(33px, 4.2vw, 48px);
 	font-weight: 500;
 	letter-spacing: -0.045em;

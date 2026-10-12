@@ -1,6 +1,4 @@
 # casual-metal-9545
-netlify link - https://genuine-malabi-a05086.netlify.app/
-
 ## Kiến trúc hệ thống
 
 ### Tổng quan

@@ -101,7 +101,7 @@ function getFirebaseErrorMessage(error) {
         "auth/popup-closed-by-user": "Bạn đã đóng cửa sổ đăng nhập Google.",
         "auth/popup-blocked": "Trình duyệt đã chặn cửa sổ đăng nhập. Hãy cho phép cửa sổ bật lên rồi thử lại.",
         "auth/too-many-requests": "Bạn đã thử quá nhiều lần. Vui lòng thử lại sau.",
-        "auth/unauthorized-domain": "Tên miền trang web chưa được cấp phép. Trong Firebase Console, vào Authentication → Settings → Authorized domains và thêm tên miền hiện tại (ví dụ: localhost hoặc tên miền Netlify; không nhập http:// hay đường dẫn).",
+        "auth/unauthorized-domain": "Tên miền trang web chưa được cấp phép. Trong Firebase Console, vào Authentication → Settings → Authorized domains và thêm tên miền hiện tại (ví dụ: localhost hoặc domain triển khai; không nhập http:// hay đường dẫn).",
         "auth/weak-password": "Mật khẩu cần có ít nhất 6 ký tự."
     };
     return messages[error.code] || "Đăng nhập chưa thành công. Vui lòng thử lại.";

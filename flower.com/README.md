@@ -15,10 +15,9 @@ flowchart LR
 	Checkout["checkout.html / placeorder.html"] -->|Tạo đơn, trạng thái Chờ xác nhận| Storage
 	AdminOrders["quanly_donhang · Quản lý đơn hàng"] <-->|Cập nhật Chờ xác nhận / Đang giao / Đã giao / Đã hủy| Storage
 	Tracking["tracking.html"] <-->|Tra cứu và xem lịch sử| Storage
-	Product["product.js"] --> Names["product-names.js"]
-	Product --> Currency["currency.js"]
-	Names --> UI[Giao diện]
-	Currency --> UI
+	Product["product.js"] --> Catalog["flower.json"]
+Product --> Currency["currency.js"]
+Currency --> UI
 ```
 
 ### Các khu vực chính
@@ -45,7 +44,7 @@ flowchart LR
 - Checkout hiện là luồng minh họa phía frontend; đơn hàng được lưu trong `localStorage`, không có xử lý thanh toán hoặc lưu đơn hàng phía máy chủ. Đơn mới ở trạng thái **Chờ xác nhận**; quản trị viên có thể cập nhật thành **Đang giao**, **Đã giao** hoặc **Đã hủy**. Khách tra cứu đơn bằng mã đơn hàng và số điện thoại trên trang theo dõi.
 - `admin.js` gọi API MockAPI riêng để CRUD catalog quản trị.
 - Trang `/owner.html` và API cấp/gỡ quyền admin hoạt động trên bản Vercel có cấu hình Firebase Admin. Xem [`../core/ADMIN-SETUP.md`](../core/ADMIN-SETUP.md) để cấu hình.
-- `product-names.js` chỉ ánh xạ tên sản phẩm khi hiển thị. `currency.js` định dạng giá catalog sang VND; catalog/API tiếp tục lưu giá nguồn bằng USD. Tỷ giá là giá trị snapshot cấu hình trong mã nguồn.
+- Product names and descriptions are stored directly in `flower.json` in Vietnamese. `currency.js` formats catalog prices as VND; catalog/API prices remain in USD.
 
 ### Chạy và triển khai
 

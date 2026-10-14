@@ -45,7 +45,6 @@
     </main>
 
     <script src="./store-footer.js?v=2"></script>
-    <script src="./product-names.js"></script>
     <script src="./currency.js?v=8"></script>
     <script>
       let CartContainer = document.getElementById("product-container");
@@ -70,7 +69,7 @@
           let stockNote = document.createElement("p");
 
           image.src = product.image;
-          details.textContent = getVietnameseProductName(product.title);
+          details.textContent = product.title;
           price.textContent = formatVnd(product.price);
           Remove.textContent = "Xóa";
           Increase.textContent = "+";

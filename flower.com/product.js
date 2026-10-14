@@ -73,7 +73,7 @@ function refreshWishlistButtons() {
     const isWished = isProductWished(product)
     button.classList.toggle("is-wished", isWished)
     button.setAttribute("aria-pressed", String(isWished))
-    button.setAttribute("aria-label", `${isWished ? "Bỏ yêu thích" : "Thêm vào yêu thích"}: ${getVietnameseProductName(product.title)}`)
+    button.setAttribute("aria-label", `${isWished ? "Bỏ yêu thích" : "Thêm vào yêu thích"}: ${product.title}`)
     button.textContent = isWished ? "♥" : "♡"
   })
   if (selectedProduct) updateWishlistButton(document.getElementById("detail-wishlist"), selectedProduct)
@@ -121,7 +121,7 @@ function display(data) {
 
     data.forEach((el) => {
 
-        const productName = getVietnameseProductName(el.title || "Sản phẩm hoa")
+        const productName = el.title || "Sản phẩm hoa"
         const box = document.createElement("article")
         const imageFrame = document.createElement("div")
         let img = document.createElement("img")
@@ -224,7 +224,7 @@ function createRelatedFlowerCard(product) {
   const actions = document.createElement("div")
   const detailLink = document.createElement("a")
   const favoriteButton = document.createElement("button")
-  const productName = getVietnameseProductName(product.title || "Sản phẩm hoa")
+  const productName = product.title || "Sản phẩm hoa"
   const isAvailable = Number(product.quantity) > 0
   const productUrl = `./product.html?id=${encodeURIComponent(product.id)}`
 
@@ -398,7 +398,7 @@ function renderProductDetail(product) {
     ? mainImage.getAttribute("src")
     : ""
   selectedProduct = product
-  const productName = getVietnameseProductName(product.title || "Sản phẩm hoa")
+  const productName = product.title || "Sản phẩm hoa"
   const images = getProductImages(product)
   const thumbnails = document.getElementById("detail-thumbnails")
   const stock = Math.max(0, Number(product.quantity) || 0)
@@ -560,7 +560,7 @@ function renderProducts() {
   const collator = new Intl.Collator("vi", { sensitivity: "base" })
   let visibleProducts = products.filter((product) => {
     const englishName = normalizeSearchText(product.title)
-    const vietnameseName = normalizeSearchText(getVietnameseProductName(product.title))
+    const vietnameseName = normalizeSearchText(product.title)
     const matchesSearch = !searchTerm
       || englishName.includes(searchTerm)
       || vietnameseName.includes(searchTerm)
@@ -591,14 +591,14 @@ function renderProducts() {
       break
     case "str-i":
       visibleProducts.sort((first, second) => collator.compare(
-        getVietnameseProductName(first.title),
-        getVietnameseProductName(second.title)
+        first.title,
+        second.title
       ))
       break
     case "str-d":
       visibleProducts.sort((first, second) => collator.compare(
-        getVietnameseProductName(second.title),
-        getVietnameseProductName(first.title)
+        second.title,
+        first.title
       ))
       break
   }

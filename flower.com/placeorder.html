@@ -21,7 +21,6 @@
   </main>
 
   <script src="./store-footer.js?v=2"></script>
-  <script src="./product-names.js"></script>
   <script src="./currency.js?v=8"></script>
   <script>
     let CartContainer = document.getElementById("product-container");
@@ -119,7 +118,7 @@
 
         image.src = product.image;
         const productQuantity = Math.max(1, Number(product.quantity) || 1);
-        details.textContent = getVietnameseProductName(product.title);
+        details.textContent = product.title;
         price.textContent = formatVnd(Number(product.price) * productQuantity);
         quantity.textContent = `${productQuantity} sản phẩm`;
 

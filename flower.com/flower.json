@@ -1,360 +1,360 @@
- {
+{
   "flower": [
     {
-      "id" : 1,
-      "image": "https://img-src2.akamaized.net/img/p/GEN/lgwt/1103.jpg",
-      "title": "Vibrant Spring Basket",
+      "id": 1,
+      "image": "./images/flower-01.webp",
+      "title": "Gi? hoa xu?n d?u d?ng",
       "price": 73.99,
-      "description": "Happy Birthday! Uplift spirits with this positively gorgeous blend of pink and purple blossoms. Praise the power of flowers--so pretty!"
+      "description": "Thi?t k? Flowerflow k?t h?p c?c tana, c?m ch??ng v?i gam h?ng ph?n v? t?m, tuy?n ch?n v? c?m th? c?ng. Nh?ng s?c hoa g?i g?m nh? nh?ng, t??i m?i; m?u g?m b? v?a, kho?ng 25?30 c?nh. Ph? h?p l?m qu? sinh nh?t ho?c th?m h?i. Hoa t??i c? th? thay ??i nh? theo m?a nh?ng v?n gi? tinh th?n thi?t k?."
     },
     {
-      "id" : 2,
-      "image": "https://img-src2.akamaized.net/img/p/GEN/lgwt/2344.jpg",
-      "title": "Floral Jewels Arrangement",
+      "id": 2,
+      "image": "./images/flower-02.webp",
+      "title": "B? hoa s?c m?u r?c r?",
       "price": 64.99,
-      "description": "Vibrant, velvety roses and fresh flowers of red, white, blue and yellow burst from this spectacular arrangement. Surprise a friend or loved one with this stunning, attention-grabbing bouquet!"
+      "description": "Thi?t k? Flowerflow k?t h?p hoa h?ng, c?m ch??ng v? c?c v?i gam ??, tr?ng, v?ng v? xanh, tuy?n ch?n v? c?m th? c?ng. Nh?ng s?c hoa g?i g?m ?m ?p, g?n k?t; m?u g?m b? v?a, kho?ng 24?28 c?nh. Ph? h?p l?m qu? ch?c m?ng ho?c k? ni?m. Hoa t??i c? th? thay ??i nh? theo m?a nh?ng v?n gi? tinh th?n thi?t k?."
     },
     {
-      "id" : 3,
-      "image": "https://img-src2.akamaized.net/img/p/GEN/lgwt/2976.jpg",
-      "title": "Lovely Lavender Bouquet",
+      "id": 3,
+      "image": "./images/flower-03.webp",
+      "title": "B? o?i h??ng t?m m?ng m?",
       "price": 59.99,
-      "description": "Lovely and lavender! Praise the richness and vivid beauty of purple flowers with this brilliant bouquet radiating elegance, luxury, and poignant sentiment. Have a professional florist arrange a delivery--send today!"
+      "description": "Thi?t k? Flowerflow k?t h?p o?i h??ng v? c?c tana v?i gam t?m lavender v? tr?ng, tuy?n ch?n v? c?m th? c?ng. Nh?ng s?c hoa g?i g?m th? th?i, th?y chung; m?u g?m b? v?a, kho?ng 20?25 c?nh. Ph? h?p l?m qu? sinh nh?t ho?c c?m ?n. Hoa t??i c? th? thay ??i nh? theo m?a nh?ng v?n gi? tinh th?n thi?t k?."
     },
     {
-      "id" : 4,
-      "image": "https://img-src2.akamaized.net/img/p/GEN/lgwt/8501.jpg",
-      "title": "Rising Star",
+      "id": 4,
+      "image": "./images/flower-04.webp",
+      "title": "Hoa ly h?ng ?nh sao",
       "price": 69.99,
-      "description": "Take the center stage and set your hopes high and your dreams big to be the next luck Rising Star! All pink aromatic stargazers lilies charm that special someone in the most sensual way. Give the gift of love and affection for evey moment counts."
+      "description": "Thi?t k? Flowerflow k?t h?p hoa ly k?p v?i gam h?ng ph?n, tuy?n ch?n v? c?m th? c?ng. Nh?ng s?c hoa g?i g?m ki?u h?nh v? y?u th??ng; m?u g?m b? l?n, 10?12 c?nh ly. Ph? h?p l?m qu? ch?c m?ng ho?c k? ni?m. Hoa t??i c? th? thay ??i nh? theo m?a nh?ng v?n gi? tinh th?n thi?t k?."
     },
     {
-      "id" : 5,
-      "image": "https://img-src2.akamaized.net/img/p/GEN/lgwt/9098.jpg",
-      "title": "Rainbows of Glimmer",
+      "id": 5,
+      "image": "./images/flower-05.webp",
+      "title": "B? hoa c?u v?ng t??i vui",
       "price": 59.99,
-      "description": "Hip Hip Hooray for Rainbows of Glimmer! Its time for a party with those closest friends and family for the season fo warmth and celebration has arrived. Enjoy those greatful moments at the beach, at a picnic, or a day out on the town! A party perfect bouquet of ravishing purple, dashing orange, energizing green, and hot pink blossoms exude excitement in the air for its time for a thrilling gathering!"
+      "description": "Thi?t k? Flowerflow k?t h?p ??ng ti?n, c?c v? c?m ch??ng v?i gam t?m, cam, xanh v? h?ng, tuy?n ch?n v? c?m th? c?ng. Nh?ng s?c hoa g?i g?m l?c quan, vui t??i; m?u g?m b? l?n, kho?ng 30 c?nh. Ph? h?p l?m qu? sinh nh?t ho?c khai tr??ng. Hoa t??i c? th? thay ??i nh? theo m?a nh?ng v?n gi? tinh th?n thi?t k?."
     },
     {
-      "id" : 6,
-      "image": "https://img-src2.akamaized.net/img/p/GEN/lgwt/4820.jpg",
-      "title": "Basket Of Wishes",
+      "id": 6,
+      "image": "./images/flower-06.webp",
+      "title": "Gi? hoa v?ng l?i ch?c l?nh",
       "price": 49.99,
-      "description": "The sweetness of buttery yellow blossoms clustered with creamy gold roses is carried in this hearty homespun brown basket, certain convey your most warmhearted wishes."
+      "description": "Thi?t k? Flowerflow k?t h?p hoa h?ng v?ng v? c?c v?i gam v?ng b? v? kem, tuy?n ch?n v? c?m th? c?ng. Nh?ng s?c hoa g?i g?m ni?m vui, l?i ch?c t?t l?nh; m?u g?m gi? v?a, kho?ng 22?26 c?nh. Ph? h?p l?m qu? ch?c m?ng ho?c t?n gia. Hoa t??i c? th? thay ??i nh? theo m?a nh?ng v?n gi? tinh th?n thi?t k?."
     },
     {
-      "id" : 7,
-      "image": "https://img-src2.akamaized.net/img/p/GEN/lgwt/3767.jpg",
-      "title": "A Dash of Vibrance",
+      "id": 7,
+      "image": "./images/flower-01.webp",
+      "title": "B? hoa ?? t?m sang tr?ng",
       "price": 69.99,
-      "description": "Overflowing with the spirit of abundance, ravishing red, mystical purple, and shimmering white luxurious floral come together in ultimate harmony to make for the perfect statement. Stun them with the bold beauty of vibrant shimmer for an elegant style of high-fashion florals is truly in this season of splendor!"
+      "description": "Thi?t k? Flowerflow k?t h?p hoa h?ng, c?t t??ng v? lan v?i gam ??, t?m v? tr?ng, tuy?n ch?n v? c?m th? c?ng. Nh?ng s?c hoa g?i g?m sang tr?ng, n?ng nhi?t; m?u g?m b? l?n, kho?ng 28?32 c?nh. Ph? h?p l?m qu? k? ni?m ho?c ch?c m?ng. Hoa t??i c? th? thay ??i nh? theo m?a nh?ng v?n gi? tinh th?n thi?t k?."
     },
     {
-      "id" : 8,
-      "image": "https://img-src2.akamaized.net/img/p/GEN/lgwt/9187.jpg",
-      "title": "Tons of Love",
+      "id": 8,
+      "image": "./images/flower-02.webp",
+      "title": "B? hoa h?ng t?m y?u th??ng",
       "price": 69.99,
-      "description": "Extend your warmest love and affection to that special someone on that unforgettable day. Bright striking blooms in ravishing red, hot pink, and deep purple collaborate well together for a midst of bold love and affections. Be the talk of the room and show them with a bold statement that will never be forgotten."
+      "description": "Thi?t k? Flowerflow k?t h?p hoa h?ng, c?m ch??ng v? c?c v?i gam ??, h?ng v? t?m, tuy?n ch?n v? c?m th? c?ng. Nh?ng s?c hoa g?i g?m y?u th??ng ?ong ??y; m?u g?m b? l?n, kho?ng 30 c?nh. Ph? h?p l?m qu? t? t?nh ho?c k? ni?m. Hoa t??i c? th? thay ??i nh? theo m?a nh?ng v?n gi? tinh th?n thi?t k?."
     },
     {
-      "id" : 9,
-      "image": "https://img-src2.akamaized.net/img/p/GEN/lgwt/5934.jpg",
-      "title": "A Touch of Softness",
+      "id": 9,
+      "image": "./images/flower-03.webp",
+      "title": "B? hoa h?ng ph?n d?u d?ng",
       "price": 84.99,
-      "description": "Breathtaking and exquisite, this artistic pink and purple bouquet of flattering flowers truly lights up the room. A Touch of Softness will highlight any moment to that delicate occasion. A picture perfect bouquet meant to shower them with exquisite affection."
+      "description": "Thi?t k? Flowerflow k?t h?p hoa h?ng v? c?m ch??ng v?i gam h?ng ph?n v? t?m nh?t, tuy?n ch?n v? c?m th? c?ng. Nh?ng s?c hoa g?i g?m d?u d?ng, tr?n qu?; m?u g?m b? v?a, kho?ng 24 c?nh. Ph? h?p l?m qu? sinh nh?t ho?c ng?y c?a m?. Hoa t??i c? th? thay ??i nh? theo m?a nh?ng v?n gi? tinh th?n thi?t k?."
     },
     {
-      "id" : 10,
-      "image": "https://img-src2.akamaized.net/img/p/GEN/lgwt/3427.jpg",
-      "title": "I'll Fly Away",
+      "id": 10,
+      "image": "./images/flower-04.webp",
+      "title": "B? hoa h?ng t?m bay b?ng",
       "price": 59.99,
-      "description": "Take their breath away with a vibrant picturesque of hot pink, green, and purple flowers customed designed especially for the one that on your mind. I'll Fly Away is what they will say when that perfect surprise land on their doorstep."
+      "description": "Thi?t k? Flowerflow k?t h?p hoa h?ng, ??ng ti?n v? c?c tana v?i gam h?ng ??m, xanh v? t?m, tuy?n ch?n v? c?m th? c?ng. Nh?ng s?c hoa g?i g?m t??i vui, gi?u s?c s?ng; m?u g?m b? v?a, kho?ng 25?30 c?nh. Ph? h?p l?m qu? ch?c m?ng ho?c sinh nh?t. Hoa t??i c? th? thay ??i nh? theo m?a nh?ng v?n gi? tinh th?n thi?t k?."
     },
     {
-      "id" : 11,
-      "image": "https://img-src2.akamaized.net/img/p/GEN/lgwt/6246.jpg",
-      "title": "Assorted Sunshine Gerbers",
+      "id": 11,
+      "image": "./images/flower-05.webp",
+      "title": "B? ??ng ti?n n?ng mai",
       "price": 54.99,
-      "description": "Make the room glow with color and luminous beauty! This breathtaking bouquet of assorted daisies truly radiates fresh air and energy�a most marvelous birthday gift!"
+      "description": "Thi?t k? Flowerflow k?t h?p hoa ??ng ti?n v? c?c tana v?i gam v?ng, cam v? tr?ng, tuy?n ch?n v? c?m th? c?ng. Nh?ng s?c hoa g?i g?m ni?m vui, may m?n; m?u g?m b? v?a, kho?ng 25 c?nh. Ph? h?p l?m qu? sinh nh?t ho?c khai tr??ng. Hoa t??i c? th? thay ??i nh? theo m?a nh?ng v?n gi? tinh th?n thi?t k?."
     },
     {
-      "id" : 12,
-      "image": "https://img-src2.akamaized.net/img/p/GEN/lgwt/1118.jpg",
-      "title": "French Country Bouquet",
+      "id": 12,
+      "image": "./images/flower-06.webp",
+      "title": "B? hoa ??ng n?i n??c Ph?p",
       "price": 69.99,
-      "description": "This bountiful bouquet, infused with the charm of the French countryside, boasts a captivating collection of fragrant flowers. What an elegantly rustic and thoughtful birthday gift!"
+      "description": "Thi?t k? Flowerflow k?t h?p c?c tana, ??ng ti?n v? c?m ch??ng v?i gam v?ng, kem v? h?ng, tuy?n ch?n v? c?m th? c?ng. Nh?ng s?c hoa g?i g?m m?c m?c, th?n t?nh; m?u g?m b? v?a, kho?ng 25 c?nh. Ph? h?p l?m qu? th?m h?i ho?c sinh nh?t. Hoa t??i c? th? thay ??i nh? theo m?a nh?ng v?n gi? tinh th?n thi?t k?."
     },
     {
-      "id" : 13,
-      "image": "https://img-src2.akamaized.net/img/p/GEN/lgwt/1941.jpg",
-      "title": "Forever Yours Bouquet",
+      "id": 13,
+      "image": "./images/flower-01.webp",
+      "title": "B? h?ng b?n nhau m?i m?i",
       "price": 69.99,
-      "description": "Replenish spirits with a gorgeous breath of fresh air! Beautifully arranged with lovely roses, lilies, and greens, this birthday bouquet truly adds an aura of peace and harmony to the occasion."
+      "description": "Thi?t k? Flowerflow k?t h?p hoa h?ng ?? v? baby tr?ng v?i gam ?? v? tr?ng, tuy?n ch?n v? c?m th? c?ng. Nh?ng s?c hoa g?i g?m t?nh y?u b?n l?u; m?u g?m b? l?n, 30 b?ng h?ng. Ph? h?p l?m qu? k? ni?m ho?c ng?y l? t?nh nh?n. Hoa t??i c? th? thay ??i nh? theo m?a nh?ng v?n gi? tinh th?n thi?t k?."
     },
     {
-      "id" : 14,
-      "image": "https://img-src2.akamaized.net/img/p/GEN/lgwt/5873.jpg",
-      "title": "Spring Dazzler",
+      "id": 14,
+      "image": "./images/flower-02.webp",
+      "title": "B? hoa xu?n t?a s?ng",
       "price": 49.99,
-      "description": "Bountiful and exquisite, this breathtaking bouquet of fresh flowers truly speaks volumes. A most poignant and perfect birthday gift!"
+      "description": "Thi?t k? Flowerflow k?t h?p tulip, mao l??ng v? c?c v?i gam h?ng, v?ng v? tr?ng, tuy?n ch?n v? c?m th? c?ng. Nh?ng s?c hoa g?i g?m kh?i ??u m?i, hy v?ng; m?u g?m b? v?a, kho?ng 22 c?nh. Ph? h?p l?m qu? sinh nh?t ho?c ch?c m?ng. Hoa t??i c? th? thay ??i nh? theo m?a nh?ng v?n gi? tinh th?n thi?t k?."
     },
     {
-      "id" : 15,
-      "image": "https://img-src2.akamaized.net/img/p/GEN/lgwt/6657.jpg",
-      "title": "An Early Spring",
+      "id": 15,
+      "image": "./images/flower-03.webp",
+      "title": "B? hoa xu?n ban mai",
       "price": 69.99,
-      "description": "April showers bring May flowers and this has never been truer than in this vivid, lively assortment of colorful blooms! The sweet smell of spring and floral beauty shimmer from this collection, making it a truly breathtaking birthday gift!"
+      "description": "Thi?t k? Flowerflow k?t h?p tulip v? c?c tana v?i gam tr?ng, v?ng nh?t v? xanh, tuy?n ch?n v? c?m th? c?ng. Nh?ng s?c hoa g?i g?m t??i m?i, an y?n; m?u g?m b? v?a, kho?ng 20 c?nh. Ph? h?p l?m qu? th?m h?i ho?c c?m ?n. Hoa t??i c? th? thay ??i nh? theo m?a nh?ng v?n gi? tinh th?n thi?t k?."
     },
     {
-      "id" : 16,
-      "image": "https://img-src2.akamaized.net/img/p/GEN/lgwt/7983.jpg",
-      "title": "Timeless Affections",
+      "id": 16,
+      "image": "./images/flower-04.webp",
+      "title": "B? hoa h?ng t?nh th?n",
       "price": 74.99,
-      "description": "Warm them and cuddle them for the way to a happy heart is the gift of love. Send the most cherished hugs and kisses to that special someone with a perfect array of hot pink and invigorating green blossoms to indulge into the world of unconditional affections."
+      "description": "Thi?t k? Flowerflow k?t h?p hoa h?ng ?? v? lan h? ?i?p v?i gam ?? v? tr?ng, tuy?n ch?n v? c?m th? c?ng. Nh?ng s?c hoa g?i g?m ch?n th?nh, g?n b?; m?u g?m b? l?n, kho?ng 28 c?nh. Ph? h?p l?m qu? k? ni?m ho?c ng?y c?a m?. Hoa t??i c? th? thay ??i nh? theo m?a nh?ng v?n gi? tinh th?n thi?t k?."
     },
     {
-      "id" : 17,
-      "image": "https://img-src2.akamaized.net/img/p/GEN/lgwt/6307.jpg",
-      "title": "Fashionista Chic",
+      "id": 17,
+      "image": "./images/flower-05.webp",
+      "title": "B? hoa phong c?ch thanh l?ch",
       "price": 59.99,
-      "description": "Ring in the season of spring fashion with a hip Fashionista Chic! A most delicate collaboration of pastels in luminous shades of yellow, pink, and green highlight that the spring season has arrived. Waltz down the catwalk as if the world is watching for a stunning beauty never goes unnoticed!"
+      "description": "Thi?t k? Flowerflow k?t h?p hoa h?ng, lan v? c?t t??ng v?i gam h?ng nude v? t?m, tuy?n ch?n v? c?m th? c?ng. Nh?ng s?c hoa g?i g?m thanh l?ch, tinh t?; m?u g?m b? v?a, kho?ng 25 c?nh. Ph? h?p l?m qu? sinh nh?t ho?c ch?c m?ng. Hoa t??i c? th? thay ??i nh? theo m?a nh?ng v?n gi? tinh th?n thi?t k?."
     },
     {
-      "id" : 18,
-      "image": "https://img-src2.akamaized.net/img/p/GEN/lgwt/7634.jpg",
-      "title": "Make Me Blush",
+      "id": 18,
+      "image": "./images/flower-06.webp",
+      "title": "B? h?ng ph?n ng?t ng?o",
       "price": 69.99,
-      "description": "The sweet hypnotizing scent of fresh garden florals is the ultimate luxury for any occasion. Precious pink blossoms ignite that perfect flair of femininity to that ultimate celebration. Let that dull spot in the room brim with pure decadence in aromatic pleasures!"
+      "description": "Thi?t k? Flowerflow k?t h?p hoa h?ng garden v? c?m ch??ng v?i gam h?ng ph?n, tuy?n ch?n v? c?m th? c?ng. Nh?ng s?c hoa g?i g?m ng?t ng?o, d?u d?ng; m?u g?m b? v?a, kho?ng 24 c?nh. Ph? h?p l?m qu? sinh nh?t ho?c ng?y c?a m?. Hoa t??i c? th? thay ??i nh? theo m?a nh?ng v?n gi? tinh th?n thi?t k?."
     },
     {
-      "id" : 19,
-      "image": "https://img-src2.akamaized.net/img/p/GEN/lgwt/8129.jpg",
-      "title": "Mystical Allure",
+      "id": 19,
+      "image": "./images/flower-01.webp",
+      "title": "B? hoa t?m quy?n r?",
       "price": 69.99,
-      "description": "Just like a royal ball, refined sophistication is the theme of this special occasion. Grace them in various hues of deep purple to bring out that mysterious side of alluring. Dazzling fresh florals in their favorite colors sets the moment right!"
+      "description": "Thi?t k? Flowerflow k?t h?p hoa h?ng t?m v? c?t t??ng v?i gam t?m ??m v? lavender, tuy?n ch?n v? c?m th? c?ng. Nh?ng s?c hoa g?i g?m b? ?n, th?y chung; m?u g?m b? v?a, kho?ng 24 c?nh. Ph? h?p l?m qu? k? ni?m ho?c ch?c m?ng. Hoa t??i c? th? thay ??i nh? theo m?a nh?ng v?n gi? tinh th?n thi?t k?."
     },
     {
-      "id" : 20,
-      "image": "https://img-src2.akamaized.net/img/p/GEN/lgwt/1996.jpg",
-      "title": "I Dream of Roses",
+      "id": 20,
+      "image": "./images/flower-02.webp",
+      "title": "B? h?ng trong m?",
       "price": 64.99,
-      "description": "Vivid and vibrant, this assortment of fresh flowers brims with exquisite beauty and feminine, natural grace. Radiant and ravishing, these velvety blooms make a lavish, sweet smelling birthday gift!"
+      "description": "Thi?t k? Flowerflow k?t h?p hoa h?ng ?? v? h?ng garden v?i gam ?? v? h?ng, tuy?n ch?n v? c?m th? c?ng. Nh?ng s?c hoa g?i g?m l?ng m?n, n?ng n?n; m?u g?m b? l?n, 30 b?ng h?ng. Ph? h?p l?m qu? t? t?nh ho?c ng?y l? t?nh nh?n. Hoa t??i c? th? thay ??i nh? theo m?a nh?ng v?n gi? tinh th?n thi?t k?."
     },
     {
-      "id" : 21,
-      "image": "https://img-src2.akamaized.net/img/p/GEN/lgwt/3141.jpg",
-      "title": "Purity Bouquet",
+      "id": 21,
+      "image": "./images/flower-03.webp",
+      "title": "B? hoa tr?ng tinh kh?i",
       "price": 51.99,
-      "description": "Perfectly pure, poised, and breathtakingly pretty! Express elated joy, touching beauty, and delicate sentiment with this bouquet artfully arranged by a professional florist. Lift their spirits--send today!"
+      "description": "Thi?t k? Flowerflow k?t h?p hoa h?ng tr?ng v? ly tr?ng v?i gam tr?ng kem v? xanh l?, tuy?n ch?n v? c?m th? c?ng. Nh?ng s?c hoa g?i g?m thu?n khi?t, tr?n tr?ng; m?u g?m b? v?a, kho?ng 20?24 c?nh. Ph? h?p l?m qu? th?m h?i ho?c l? t?t nghi?p. Hoa t??i c? th? thay ??i nh? theo m?a nh?ng v?n gi? tinh th?n thi?t k?."
     },
     {
-      "id" :22,
-      "image": "https://img-src2.akamaized.net/img/p/GEN/lgwt/1628.jpg",
-      "title": "Colorful Birthday Bliss",
+      "id": 22,
+      "image": "./images/flower-04.webp",
+      "title": "B? hoa sinh nh?t r?c r?",
       "price": 89.99,
-      "description": "Blissfully colorful and vibrant, this medley of beautiful blooms is an exquisite example of nature's bounty. What a heartfelt, memorable birthday gift!"
+      "description": "Thi?t k? Flowerflow k?t h?p ??ng ti?n, c?c v? h?ng v?i gam ??, v?ng, t?m v? h?ng, tuy?n ch?n v? c?m th? c?ng. Nh?ng s?c hoa g?i g?m h?n hoan, may m?n; m?u g?m b? l?n, kho?ng 30 c?nh. Ph? h?p l?m qu? sinh nh?t ho?c khai tr??ng. Hoa t??i c? th? thay ??i nh? theo m?a nh?ng v?n gi? tinh th?n thi?t k?."
     },
     {
-      "id" : 23,
-      "image": "https://img-src2.akamaized.net/img/p/GEN/lgwt/3023.jpg",
-      "title": "A Windfall of Orchids",
+      "id": 23,
+      "image": "./images/flower-05.webp",
+      "title": "Gi? lan h? ?i?p ph? qu?",
       "price": 59.99,
-      "description": "Invigorate the spirit with these elegant and captivating flowers. Radiate the joy of pure beauty!"
+      "description": "Thi?t k? Flowerflow k?t h?p lan h? ?i?p v?i gam tr?ng v? t?m, tuy?n ch?n v? c?m th? c?ng. Nh?ng s?c hoa g?i g?m sung t?c, thanh cao; m?u g?m ch?u 3?5 c?nh hoa, cao kho?ng 55 cm. Ph? h?p l?m qu? t?n gia ho?c ch?c m?ng. Hoa t??i c? th? thay ??i nh? theo m?a nh?ng v?n gi? tinh th?n thi?t k?."
     },
     {
-      "id" : 24,
-      "image": "https://img-src2.akamaized.net/img/p/GEN/lgwt/8029.jpg",
-      "title": "Emerging Sunset Passions",
+      "id": 24,
+      "image": "./images/flower-06.webp",
+      "title": "B? hoa ho?ng h?n l?ng m?n",
       "price": 64.99,
-      "description": "A burst of color that pass over the tropical horizon mirror the deep monochromatic hues of a brilliant emerging sunset. Grace them from head to toe in riveting shades of ravishing red, luscious lavender, sunburst orange, and lavish pink. Send them an unexpected token of unconditional friendship with the colors of passion."
+      "description": "Thi?t k? Flowerflow k?t h?p hoa h?ng, ly v? c?t t??ng v?i gam cam ho?ng h?n, h?ng v? t?m, tuy?n ch?n v? c?m th? c?ng. Nh?ng s?c hoa g?i g?m ?m ?p, l?ng m?n; m?u g?m b? l?n, kho?ng 28 c?nh. Ph? h?p l?m qu? k? ni?m ho?c sinh nh?t. Hoa t??i c? th? thay ??i nh? theo m?a nh?ng v?n gi? tinh th?n thi?t k?."
     },
     {
-      "id" : 25,
-      "image": "https://img-src2.akamaized.net/img/p/GEN/lgwt/1103.jpg",
-      "title": "Vibrant Spring Basket",
+      "id": 25,
+      "image": "./images/flower-01.webp",
+      "title": "B? hoa h?ng v??n s?m",
       "price": 73.99,
-      "description": "Happy Birthday! Uplift spirits with this positively gorgeous blend of pink and purple blossoms. Praise the power of flowers--so pretty!"
+      "description": "Thi?t k? Flowerflow k?t h?p c?c tana, c?m ch??ng v?i gam h?ng ph?n v? t?m, tuy?n ch?n v? c?m th? c?ng. Nh?ng s?c hoa g?i g?m nh? nh?ng, t??i m?i; m?u g?m b? v?a, kho?ng 25?30 c?nh. Ph? h?p l?m qu? sinh nh?t ho?c th?m h?i. Hoa t??i c? th? thay ??i nh? theo m?a nh?ng v?n gi? tinh th?n thi?t k?."
     },
     {
-      "id" : 26,
-      "image": "https://img-src2.akamaized.net/img/p/GEN/lgwt/2344.jpg",
-      "title": "Floral Jewels Arrangement",
+      "id": 26,
+      "image": "./images/flower-02.webp",
+      "title": "B? hoa c?c v?ng an nhi?n",
       "price": 64.99,
-      "description": "Vibrant, velvety roses and fresh flowers of red, white, blue and yellow burst from this spectacular arrangement. Surprise a friend or loved one with this stunning, attention-grabbing bouquet!"
+      "description": "Thi?t k? Flowerflow k?t h?p hoa h?ng, c?m ch??ng v? c?c v?i gam ??, tr?ng, v?ng v? xanh, tuy?n ch?n v? c?m th? c?ng. Nh?ng s?c hoa g?i g?m ?m ?p, g?n k?t; m?u g?m b? v?a, kho?ng 24?28 c?nh. Ph? h?p l?m qu? ch?c m?ng ho?c k? ni?m. Hoa t??i c? th? thay ??i nh? theo m?a nh?ng v?n gi? tinh th?n thi?t k?."
     },
     {
-      "id" : 27,
-      "image": "https://img-src2.akamaized.net/img/p/GEN/lgwt/2976.jpg",
-      "title": "Lovely Lavender Bouquet",
+      "id": 27,
+      "image": "./images/flower-03.webp",
+      "title": "B? hoa lan t?m thanh tao",
       "price": 59.99,
-      "description": "Lovely and lavender! Praise the richness and vivid beauty of purple flowers with this brilliant bouquet radiating elegance, luxury, and poignant sentiment. Have a professional florist arrange a delivery--send today!"
+      "description": "Thi?t k? Flowerflow k?t h?p o?i h??ng v? c?c tana v?i gam t?m lavender v? tr?ng, tuy?n ch?n v? c?m th? c?ng. Nh?ng s?c hoa g?i g?m th? th?i, th?y chung; m?u g?m b? v?a, kho?ng 20?25 c?nh. Ph? h?p l?m qu? sinh nh?t ho?c c?m ?n. Hoa t??i c? th? thay ??i nh? theo m?a nh?ng v?n gi? tinh th?n thi?t k?."
     },
     {
-      "id" : 28,
-      "image": "https://img-src2.akamaized.net/img/p/GEN/lgwt/8501.jpg",
-      "title": "Rising Star",
+      "id": 28,
+      "image": "./images/flower-04.webp",
+      "title": "B? tulip h?ng ng?y m?i",
       "price": 69.99,
-      "description": "Take the center stage and set your hopes high and your dreams big to be the next luck Rising Star! All pink aromatic stargazers lilies charm that special someone in the most sensual way. Give the gift of love and affection for evey moment counts."
+      "description": "Thi?t k? Flowerflow k?t h?p hoa ly k?p v?i gam h?ng ph?n, tuy?n ch?n v? c?m th? c?ng. Nh?ng s?c hoa g?i g?m ki?u h?nh v? y?u th??ng; m?u g?m b? l?n, 10?12 c?nh ly. Ph? h?p l?m qu? ch?c m?ng ho?c k? ni?m. Hoa t??i c? th? thay ??i nh? theo m?a nh?ng v?n gi? tinh th?n thi?t k?."
     },
     {
-      "id" : 29,
-      "image": "https://img-src2.akamaized.net/img/p/GEN/lgwt/9098.jpg",
-      "title": "Rainbows of Glimmer",
+      "id": 29,
+      "image": "./images/flower-05.webp",
+      "title": "B? hoa cam n?ng ?m",
       "price": 59.99,
-      "description": "Hip Hip Hooray for Rainbows of Glimmer! Its time for a party with those closest friends and family for the season fo warmth and celebration has arrived. Enjoy those greatful moments at the beach, at a picnic, or a day out on the town! A party perfect bouquet of ravishing purple, dashing orange, energizing green, and hot pink blossoms exude excitement in the air for its time for a thrilling gathering!"
+      "description": "Thi?t k? Flowerflow k?t h?p ??ng ti?n, c?c v? c?m ch??ng v?i gam t?m, cam, xanh v? h?ng, tuy?n ch?n v? c?m th? c?ng. Nh?ng s?c hoa g?i g?m l?c quan, vui t??i; m?u g?m b? l?n, kho?ng 30 c?nh. Ph? h?p l?m qu? sinh nh?t ho?c khai tr??ng. Hoa t??i c? th? thay ??i nh? theo m?a nh?ng v?n gi? tinh th?n thi?t k?."
     },
     {
-      "id" : 30,
-      "image": "https://img-src2.akamaized.net/img/p/GEN/lgwt/4820.jpg",
-      "title": "Basket Of Wishes",
+      "id": 30,
+      "image": "./images/flower-06.webp",
+      "title": "B? hoa c?t t??ng nh? ?",
       "price": 49.99,
-      "description": "The sweetness of buttery yellow blossoms clustered with creamy gold roses is carried in this hearty homespun brown basket, certain convey your most warmhearted wishes."
+      "description": "Thi?t k? Flowerflow k?t h?p hoa h?ng v?ng v? c?c v?i gam v?ng b? v? kem, tuy?n ch?n v? c?m th? c?ng. Nh?ng s?c hoa g?i g?m ni?m vui, l?i ch?c t?t l?nh; m?u g?m gi? v?a, kho?ng 22?26 c?nh. Ph? h?p l?m qu? ch?c m?ng ho?c t?n gia. Hoa t??i c? th? thay ??i nh? theo m?a nh?ng v?n gi? tinh th?n thi?t k?."
     },
     {
-      "id" : 31,
-      "image": "https://img-src2.akamaized.net/img/p/GEN/lgwt/3767.jpg",
-      "title": "A Dash of Vibrance",
+      "id": 31,
+      "image": "./images/flower-01.webp",
+      "title": "Gi? hoa ??ng ti?n may m?n",
       "price": 69.99,
-      "description": "Overflowing with the spirit of abundance, ravishing red, mystical purple, and shimmering white luxurious floral come together in ultimate harmony to make for the perfect statement. Stun them with the bold beauty of vibrant shimmer for an elegant style of high-fashion florals is truly in this season of splendor!"
+      "description": "Thi?t k? Flowerflow k?t h?p hoa h?ng, c?t t??ng v? lan v?i gam ??, t?m v? tr?ng, tuy?n ch?n v? c?m th? c?ng. Nh?ng s?c hoa g?i g?m sang tr?ng, n?ng nhi?t; m?u g?m b? l?n, kho?ng 28?32 c?nh. Ph? h?p l?m qu? k? ni?m ho?c ch?c m?ng. Hoa t??i c? th? thay ??i nh? theo m?a nh?ng v?n gi? tinh th?n thi?t k?."
     },
     {
-      "id" : 32,
-      "image": "https://img-src2.akamaized.net/img/p/GEN/lgwt/9187.jpg",
-      "title": "Tons of Love",
+      "id": 32,
+      "image": "./images/flower-02.webp",
+      "title": "B? h?ng kem d?u nh?",
       "price": 69.99,
-      "description": "Extend your warmest love and affection to that special someone on that unforgettable day. Bright striking blooms in ravishing red, hot pink, and deep purple collaborate well together for a midst of bold love and affections. Be the talk of the room and show them with a bold statement that will never be forgotten."
+      "description": "Thi?t k? Flowerflow k?t h?p hoa h?ng, c?m ch??ng v? c?c v?i gam ??, h?ng v? t?m, tuy?n ch?n v? c?m th? c?ng. Nh?ng s?c hoa g?i g?m y?u th??ng ?ong ??y; m?u g?m b? l?n, kho?ng 30 c?nh. Ph? h?p l?m qu? t? t?nh ho?c k? ni?m. Hoa t??i c? th? thay ??i nh? theo m?a nh?ng v?n gi? tinh th?n thi?t k?."
     },
     {
-      "id" : 33,
-      "image": "https://img-src2.akamaized.net/img/p/GEN/lgwt/5934.jpg",
-      "title": "A Touch of Softness",
+      "id": 33,
+      "image": "./images/flower-03.webp",
+      "title": "B? hoa ly tr?ng trang nh?",
       "price": 84.99,
-      "description": "Breathtaking and exquisite, this artistic pink and purple bouquet of flattering flowers truly lights up the room. A Touch of Softness will highlight any moment to that delicate occasion. A picture perfect bouquet meant to shower them with exquisite affection."
+      "description": "Thi?t k? Flowerflow k?t h?p hoa h?ng v? c?m ch??ng v?i gam h?ng ph?n v? t?m nh?t, tuy?n ch?n v? c?m th? c?ng. Nh?ng s?c hoa g?i g?m d?u d?ng, tr?n qu?; m?u g?m b? v?a, kho?ng 24 c?nh. Ph? h?p l?m qu? sinh nh?t ho?c ng?y c?a m?. Hoa t??i c? th? thay ??i nh? theo m?a nh?ng v?n gi? tinh th?n thi?t k?."
     },
     {
-      "id" : 34,
-      "image": "https://img-src2.akamaized.net/img/p/GEN/lgwt/3427.jpg",
-      "title": "I'll Fly Away",
+      "id": 34,
+      "image": "./images/flower-04.webp",
+      "title": "B? hoa m?a h? t??i vui",
       "price": 59.99,
-      "description": "Take their breath away with a vibrant picturesque of hot pink, green, and purple flowers customed designed especially for the one that on your mind. I'll Fly Away is what they will say when that perfect surprise land on their doorstep."
+      "description": "Thi?t k? Flowerflow k?t h?p hoa h?ng, ??ng ti?n v? c?c tana v?i gam h?ng ??m, xanh v? t?m, tuy?n ch?n v? c?m th? c?ng. Nh?ng s?c hoa g?i g?m t??i vui, gi?u s?c s?ng; m?u g?m b? v?a, kho?ng 25?30 c?nh. Ph? h?p l?m qu? ch?c m?ng ho?c sinh nh?t. Hoa t??i c? th? thay ??i nh? theo m?a nh?ng v?n gi? tinh th?n thi?t k?."
     },
     {
-      "id" : 35,
-      "image": "https://img-src2.akamaized.net/img/p/GEN/lgwt/6246.jpg",
-      "title": "Assorted Sunshine Gerbers",
+      "id": 35,
+      "image": "./images/flower-05.webp",
+      "title": "B? hoa h?ng ?? ch?n th?nh",
       "price": 54.99,
-      "description": "Make the room glow with color and luminous beauty! This breathtaking bouquet of assorted daisies truly radiates fresh air and energy�a most marvelous birthday gift!"
+      "description": "Thi?t k? Flowerflow k?t h?p hoa ??ng ti?n v? c?c tana v?i gam v?ng, cam v? tr?ng, tuy?n ch?n v? c?m th? c?ng. Nh?ng s?c hoa g?i g?m ni?m vui, may m?n; m?u g?m b? v?a, kho?ng 25 c?nh. Ph? h?p l?m qu? sinh nh?t ho?c khai tr??ng. Hoa t??i c? th? thay ??i nh? theo m?a nh?ng v?n gi? tinh th?n thi?t k?."
     },
     {
-      "id" : 36,
-      "image": "https://img-src2.akamaized.net/img/p/GEN/lgwt/1118.jpg",
-      "title": "French Country Bouquet",
+      "id": 36,
+      "image": "./images/flower-06.webp",
+      "title": "B? hoa pastel m?ng m?",
       "price": 69.99,
-      "description": "This bountiful bouquet, infused with the charm of the French countryside, boasts a captivating collection of fragrant flowers. What an elegantly rustic and thoughtful birthday gift!"
+      "description": "Thi?t k? Flowerflow k?t h?p c?c tana, ??ng ti?n v? c?m ch??ng v?i gam v?ng, kem v? h?ng, tuy?n ch?n v? c?m th? c?ng. Nh?ng s?c hoa g?i g?m m?c m?c, th?n t?nh; m?u g?m b? v?a, kho?ng 25 c?nh. Ph? h?p l?m qu? th?m h?i ho?c sinh nh?t. Hoa t??i c? th? thay ??i nh? theo m?a nh?ng v?n gi? tinh th?n thi?t k?."
     },
     {
-      "id" : 37,
-      "image": "https://img-src2.akamaized.net/img/p/GEN/lgwt/1941.jpg",
-      "title": "Forever Yours Bouquet",
+      "id": 37,
+      "image": "./images/flower-01.webp",
+      "title": "Ch?u lan h? ?i?p thanh l?ch",
       "price": 69.99,
-      "description": "Replenish spirits with a gorgeous breath of fresh air! Beautifully arranged with lovely roses, lilies, and greens, this birthday bouquet truly adds an aura of peace and harmony to the occasion."
+      "description": "Thi?t k? Flowerflow k?t h?p hoa h?ng ?? v? baby tr?ng v?i gam ?? v? tr?ng, tuy?n ch?n v? c?m th? c?ng. Nh?ng s?c hoa g?i g?m t?nh y?u b?n l?u; m?u g?m b? l?n, 30 b?ng h?ng. Ph? h?p l?m qu? k? ni?m ho?c ng?y l? t?nh nh?n. Hoa t??i c? th? thay ??i nh? theo m?a nh?ng v?n gi? tinh th?n thi?t k?."
     },
     {
-      "id" : 38,
-      "image": "https://img-src2.akamaized.net/img/p/GEN/lgwt/5873.jpg",
-      "title": "Spring Dazzler",
+      "id": 38,
+      "image": "./images/flower-02.webp",
+      "title": "B? hoa ch?c m?ng r?c r?",
       "price": 49.99,
-      "description": "Bountiful and exquisite, this breathtaking bouquet of fresh flowers truly speaks volumes. A most poignant and perfect birthday gift!"
+      "description": "Thi?t k? Flowerflow k?t h?p tulip, mao l??ng v? c?c v?i gam h?ng, v?ng v? tr?ng, tuy?n ch?n v? c?m th? c?ng. Nh?ng s?c hoa g?i g?m kh?i ??u m?i, hy v?ng; m?u g?m b? v?a, kho?ng 22 c?nh. Ph? h?p l?m qu? sinh nh?t ho?c ch?c m?ng. Hoa t??i c? th? thay ??i nh? theo m?a nh?ng v?n gi? tinh th?n thi?t k?."
     },
     {
-      "id" : 39,
-      "image": "https://img-src2.akamaized.net/img/p/GEN/lgwt/6657.jpg",
-      "title": "An Early Spring",
+      "id": 39,
+      "image": "./images/flower-03.webp",
+      "title": "B? hoa c?m ?n ch?n th?nh",
       "price": 69.99,
-      "description": "April showers bring May flowers and this has never been truer than in this vivid, lively assortment of colorful blooms! The sweet smell of spring and floral beauty shimmer from this collection, making it a truly breathtaking birthday gift!"
+      "description": "Thi?t k? Flowerflow k?t h?p tulip v? c?c tana v?i gam tr?ng, v?ng nh?t v? xanh, tuy?n ch?n v? c?m th? c?ng. Nh?ng s?c hoa g?i g?m t??i m?i, an y?n; m?u g?m b? v?a, kho?ng 20 c?nh. Ph? h?p l?m qu? th?m h?i ho?c c?m ?n. Hoa t??i c? th? thay ??i nh? theo m?a nh?ng v?n gi? tinh th?n thi?t k?."
     },
     {
-      "id" : 40,
-      "image": "https://img-src2.akamaized.net/img/p/GEN/lgwt/7983.jpg",
-      "title": "Timeless Affections",
+      "id": 40,
+      "image": "./images/flower-04.webp",
+      "title": "B? hoa c?c tana tinh kh?i",
       "price": 74.99,
-      "description": "Warm them and cuddle them for the way to a happy heart is the gift of love. Send the most cherished hugs and kisses to that special someone with a perfect array of hot pink and invigorating green blossoms to indulge into the world of unconditional affections."
+      "description": "Thi?t k? Flowerflow k?t h?p hoa h?ng ?? v? lan h? ?i?p v?i gam ?? v? tr?ng, tuy?n ch?n v? c?m th? c?ng. Nh?ng s?c hoa g?i g?m ch?n th?nh, g?n b?; m?u g?m b? l?n, kho?ng 28 c?nh. Ph? h?p l?m qu? k? ni?m ho?c ng?y c?a m?. Hoa t??i c? th? thay ??i nh? theo m?a nh?ng v?n gi? tinh th?n thi?t k?."
     },
     {
-      "id" : 41,
-      "image": "https://img-src2.akamaized.net/img/p/GEN/lgwt/6307.jpg",
-      "title": "Fashionista Chic",
+      "id": 41,
+      "image": "./images/flower-05.webp",
+      "title": "B? hoa h?ng v?ng r?ng r?",
       "price": 59.99,
-      "description": "Ring in the season of spring fashion with a hip Fashionista Chic! A most delicate collaboration of pastels in luminous shades of yellow, pink, and green highlight that the spring season has arrived. Waltz down the catwalk as if the world is watching for a stunning beauty never goes unnoticed!"
+      "description": "Thi?t k? Flowerflow k?t h?p hoa h?ng, lan v? c?t t??ng v?i gam h?ng nude v? t?m, tuy?n ch?n v? c?m th? c?ng. Nh?ng s?c hoa g?i g?m thanh l?ch, tinh t?; m?u g?m b? v?a, kho?ng 25 c?nh. Ph? h?p l?m qu? sinh nh?t ho?c ch?c m?ng. Hoa t??i c? th? thay ??i nh? theo m?a nh?ng v?n gi? tinh th?n thi?t k?."
     },
     {
-      "id" : 42,
-      "image": "https://img-src2.akamaized.net/img/p/GEN/lgwt/7634.jpg",
-      "title": "Make Me Blush",
+      "id": 42,
+      "image": "./images/flower-06.webp",
+      "title": "B? hoa t?m th?y chung",
       "price": 69.99,
-      "description": "The sweet hypnotizing scent of fresh garden florals is the ultimate luxury for any occasion. Precious pink blossoms ignite that perfect flair of femininity to that ultimate celebration. Let that dull spot in the room brim with pure decadence in aromatic pleasures!"
+      "description": "Thi?t k? Flowerflow k?t h?p hoa h?ng garden v? c?m ch??ng v?i gam h?ng ph?n, tuy?n ch?n v? c?m th? c?ng. Nh?ng s?c hoa g?i g?m ng?t ng?o, d?u d?ng; m?u g?m b? v?a, kho?ng 24 c?nh. Ph? h?p l?m qu? sinh nh?t ho?c ng?y c?a m?. Hoa t??i c? th? thay ??i nh? theo m?a nh?ng v?n gi? tinh th?n thi?t k?."
     },
     {
-      "id" : 43,
-      "image": "https://img-src2.akamaized.net/img/p/GEN/lgwt/8129.jpg",
-      "title": "Mystical Allure",
+      "id": 43,
+      "image": "./images/flower-01.webp",
+      "title": "B? hoa t?n gia b?nh an",
       "price": 69.99,
-      "description": "Just like a royal ball, refined sophistication is the theme of this special occasion. Grace them in various hues of deep purple to bring out that mysterious side of alluring. Dazzling fresh florals in their favorite colors sets the moment right!"
+      "description": "Thi?t k? Flowerflow k?t h?p hoa h?ng t?m v? c?t t??ng v?i gam t?m ??m v? lavender, tuy?n ch?n v? c?m th? c?ng. Nh?ng s?c hoa g?i g?m b? ?n, th?y chung; m?u g?m b? v?a, kho?ng 24 c?nh. Ph? h?p l?m qu? k? ni?m ho?c ch?c m?ng. Hoa t??i c? th? thay ??i nh? theo m?a nh?ng v?n gi? tinh th?n thi?t k?."
     },
     {
-      "id" : 44,
-      "image": "https://img-src2.akamaized.net/img/p/GEN/lgwt/1996.jpg",
-      "title": "I Dream of Roses",
+      "id": 44,
+      "image": "./images/flower-02.webp",
+      "title": "B? hoa k? ni?m ng?t ng?o",
       "price": 64.99,
-      "description": "Vivid and vibrant, this assortment of fresh flowers brims with exquisite beauty and feminine, natural grace. Radiant and ravishing, these velvety blooms make a lavish, sweet smelling birthday gift!"
+      "description": "Thi?t k? Flowerflow k?t h?p hoa h?ng ?? v? h?ng garden v?i gam ?? v? h?ng, tuy?n ch?n v? c?m th? c?ng. Nh?ng s?c hoa g?i g?m l?ng m?n, n?ng n?n; m?u g?m b? l?n, 30 b?ng h?ng. Ph? h?p l?m qu? t? t?nh ho?c ng?y l? t?nh nh?n. Hoa t??i c? th? thay ??i nh? theo m?a nh?ng v?n gi? tinh th?n thi?t k?."
     },
     {
-      "id" : 45,
-      "image": "https://img-src2.akamaized.net/img/p/GEN/lgwt/3141.jpg",
-      "title": "Purity Bouquet",
+      "id": 45,
+      "image": "./images/flower-03.webp",
+      "title": "B? hoa s?c xu?n an vui",
       "price": 51.99,
-      "description": "Perfectly pure, poised, and breathtakingly pretty! Express elated joy, touching beauty, and delicate sentiment with this bouquet artfully arranged by a professional florist. Lift their spirits--send today!"
+      "description": "Thi?t k? Flowerflow k?t h?p hoa h?ng tr?ng v? ly tr?ng v?i gam tr?ng kem v? xanh l?, tuy?n ch?n v? c?m th? c?ng. Nh?ng s?c hoa g?i g?m thu?n khi?t, tr?n tr?ng; m?u g?m b? v?a, kho?ng 20?24 c?nh. Ph? h?p l?m qu? th?m h?i ho?c l? t?t nghi?p. Hoa t??i c? th? thay ??i nh? theo m?a nh?ng v?n gi? tinh th?n thi?t k?."
     },
     {
-      "id" :46,
-      "image": "https://img-src2.akamaized.net/img/p/GEN/lgwt/1628.jpg",
-      "title": "Colorful Birthday Bliss",
+      "id": 46,
+      "image": "./images/flower-04.webp",
+      "title": "Gi? hoa t??i l?i ch?c t?t l?nh",
       "price": 89.99,
-      "description": "Blissfully colorful and vibrant, this medley of beautiful blooms is an exquisite example of nature's bounty. What a heartfelt, memorable birthday gift!"
+      "description": "Thi?t k? Flowerflow k?t h?p ??ng ti?n, c?c v? h?ng v?i gam ??, v?ng, t?m v? h?ng, tuy?n ch?n v? c?m th? c?ng. Nh?ng s?c hoa g?i g?m h?n hoan, may m?n; m?u g?m b? l?n, kho?ng 30 c?nh. Ph? h?p l?m qu? sinh nh?t ho?c khai tr??ng. Hoa t??i c? th? thay ??i nh? theo m?a nh?ng v?n gi? tinh th?n thi?t k?."
     },
     {
-      "id" : 47,
-      "image": "https://img-src2.akamaized.net/img/p/GEN/lgwt/3023.jpg",
-      "title": "A Windfall of Orchids",
+      "id": 47,
+      "image": "./images/flower-05.webp",
+      "title": "B? hoa h?ng ph?n y?u th??ng",
       "price": 59.99,
-      "description": "Invigorate the spirit with these elegant and captivating flowers. Radiate the joy of pure beauty!"
+      "description": "Thi?t k? Flowerflow k?t h?p lan h? ?i?p v?i gam tr?ng v? t?m, tuy?n ch?n v? c?m th? c?ng. Nh?ng s?c hoa g?i g?m sung t?c, thanh cao; m?u g?m ch?u 3?5 c?nh hoa, cao kho?ng 55 cm. Ph? h?p l?m qu? t?n gia ho?c ch?c m?ng. Hoa t??i c? th? thay ??i nh? theo m?a nh?ng v?n gi? tinh th?n thi?t k?."
     },
     {
-      "id" : 48,
-      "image": "https://img-src2.akamaized.net/img/p/GEN/lgwt/8029.jpg",
-      "title": "Emerging Sunset Passions",
+      "id": 48,
+      "image": "./images/flower-06.webp",
+      "title": "B? hoa nhi?t ??i n?i b?t",
       "price": 64.99,
-      "description": "A burst of color that pass over the tropical horizon mirror the deep monochromatic hues of a brilliant emerging sunset. Grace them from head to toe in riveting shades of ravishing red, luscious lavender, sunburst orange, and lavish pink. Send them an unexpected token of unconditional friendship with the colors of passion."
+      "description": "Thi?t k? Flowerflow k?t h?p hoa h?ng, ly v? c?t t??ng v?i gam cam ho?ng h?n, h?ng v? t?m, tuy?n ch?n v? c?m th? c?ng. Nh?ng s?c hoa g?i g?m ?m ?p, l?ng m?n; m?u g?m b? l?n, kho?ng 28 c?nh. Ph? h?p l?m qu? k? ni?m ho?c sinh nh?t. Hoa t??i c? th? thay ??i nh? theo m?a nh?ng v?n gi? tinh th?n thi?t k?."
     },
     {
       "id": 57,
-      "image": "./images/flower-06.webp",
-      "title": "Hồng Đỏ Giao Trong Ngày",
+      "image": "./images/flower-01.webp",
+      "title": "B? hoa tri ?n d?u d?ng",
       "price": 59.99,
       "category": "Giao hoa trong ngày",
       "categoryKey": "delivery",
       "sameDayDelivery": true,
-      "description": "Bó hồng đỏ cổ điển, sẵn sàng giao trong ngày tại khu vực cửa hàng phục vụ."
+      "description": "Thi?t k? Flowerflow k?t h?p c?c tana, c?m ch??ng v?i gam h?ng ph?n v? t?m, tuy?n ch?n v? c?m th? c?ng. Nh?ng s?c hoa g?i g?m nh? nh?ng, t??i m?i; m?u g?m b? v?a, kho?ng 25?30 c?nh. Ph? h?p l?m qu? sinh nh?t ho?c th?m h?i. Hoa t??i c? th? thay ??i nh? theo m?a nh?ng v?n gi? tinh th?n thi?t k?."
     },
     {
       "id": 58,
       "image": "./images/flower-02.webp",
-      "title": "Bó Hoa Rực Rỡ Giao Trong Ngày",
+      "title": "B? hoa lan tr?ng tinh t?",
       "price": 54.99,
       "category": "Giao hoa trong ngày",
       "categoryKey": "delivery",
       "sameDayDelivery": true,
-      "description": "Bó hoa phối màu tươi sáng, sẵn sàng giao trong ngày tại khu vực cửa hàng phục vụ."
+      "description": "Thi?t k? Flowerflow k?t h?p hoa h?ng, c?m ch??ng v? c?c v?i gam ??, tr?ng, v?ng v? xanh, tuy?n ch?n v? c?m th? c?ng. Nh?ng s?c hoa g?i g?m ?m ?p, g?n k?t; m?u g?m b? v?a, kho?ng 24?28 c?nh. Ph? h?p l?m qu? ch?c m?ng ho?c k? ni?m. Hoa t??i c? th? thay ??i nh? theo m?a nh?ng v?n gi? tinh th?n thi?t k?."
     }
   ]
 }

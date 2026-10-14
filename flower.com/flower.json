@@ -335,6 +335,26 @@
       "title": "Emerging Sunset Passions",
       "price": 64.99,
       "description": "A burst of color that pass over the tropical horizon mirror the deep monochromatic hues of a brilliant emerging sunset. Grace them from head to toe in riveting shades of ravishing red, luscious lavender, sunburst orange, and lavish pink. Send them an unexpected token of unconditional friendship with the colors of passion."
+    },
+    {
+      "id": 57,
+      "image": "./images/flower-06.webp",
+      "title": "Hồng Đỏ Giao Trong Ngày",
+      "price": 59.99,
+      "category": "Giao hoa trong ngày",
+      "categoryKey": "delivery",
+      "sameDayDelivery": true,
+      "description": "Bó hồng đỏ cổ điển, sẵn sàng giao trong ngày tại khu vực cửa hàng phục vụ."
+    },
+    {
+      "id": 58,
+      "image": "./images/flower-02.webp",
+      "title": "Bó Hoa Rực Rỡ Giao Trong Ngày",
+      "price": 54.99,
+      "category": "Giao hoa trong ngày",
+      "categoryKey": "delivery",
+      "sameDayDelivery": true,
+      "description": "Bó hoa phối màu tươi sáng, sẵn sàng giao trong ngày tại khu vực cửa hàng phục vụ."
     }
   ]
 }

@@ -130,6 +130,7 @@ function display(data) {
         let price = document.createElement("p")
         let stock = document.createElement("p")
         let actions = document.createElement("div")
+        let badges = document.createElement("div")
         let detailsButton = document.createElement("a")
         let orderButton = document.createElement("button")
         let cartButton = document.createElement("button")
@@ -150,6 +151,19 @@ function display(data) {
         price.innerText = formatVnd(el.price)
         stock.className = quantity > 0 ? "stock-status" : "stock-status out-of-stock"
         stock.innerText = quantity > 0 ? `Còn hàng: ${quantity}` : "Hết hàng"
+        badges.className = "product-badges"
+        if (el.onSale) {
+          const saleBadge = document.createElement("span")
+          saleBadge.className = "product-badge product-badge--sale"
+          saleBadge.textContent = "Ưu đãi"
+          badges.append(saleBadge)
+        }
+        if (el.sameDayDelivery) {
+          const deliveryBadge = document.createElement("span")
+          deliveryBadge.className = "product-badge product-badge--delivery"
+          deliveryBadge.textContent = "Giao trong ngày"
+          badges.append(deliveryBadge)
+        }
         orderButton.type = "button"
         orderButton.className = "product-order"
         orderButton.innerText = "Đặt hàng"
@@ -183,7 +197,9 @@ function display(data) {
 
         imageFrame.append(img)
         actions.append(orderButton, cartButton, wishlistButton, detailsButton)
-        box.append(imageFrame, title, price, stock, actions)
+        box.append(imageFrame, title)
+        if (badges.childElementCount) box.append(badges)
+        box.append(price, stock, actions)
         container.append(box)
     });
 

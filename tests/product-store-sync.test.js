@@ -31,6 +31,9 @@ assert.deepStrictEqual(
     image: 'main.jpg',
     images: ['detail-1.jpg', '', 42],
     category: 'Hoa hồng',
+    categoryKey: 'flowers',
+    sameDayDelivery: true,
+    onSale: true,
   }),
   {
     id: 10,
@@ -40,6 +43,9 @@ assert.deepStrictEqual(
     image: 'main.jpg',
     images: ['detail-1.jpg'],
     category: 'Hoa hồng',
+    categoryKey: 'flowers',
+    sameDayDelivery: true,
+    onSale: true,
     description: '',
   }
 );
@@ -63,8 +69,8 @@ const restoredFullCatalog = mergeCatalogProducts(
   fullCatalog
 );
 
-assert.strictEqual(fullCatalog.length, 48);
-assert.strictEqual(restoredFullCatalog.length, 25);
+assert.strictEqual(fullCatalog.length, 50);
+assert.strictEqual(restoredFullCatalog.length, 27);
 assert.strictEqual(restoredFullCatalog.find((item) => item.id === fullCatalog[0].id).quantity, 2);
 assert.strictEqual(restoredFullCatalog.some((item) => item.id === fullCatalog[24].id), false);
 assert.strictEqual(restoredFullCatalog.find((item) => item.id === 999).title, 'Hoa tùy chỉnh');

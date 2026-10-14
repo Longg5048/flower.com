@@ -28,6 +28,9 @@
             image: product.image || "",
             images: Array.isArray(product.images) ? product.images.filter((image) => typeof image === "string" && image) : [],
             category: String(product.category || "").trim(),
+            categoryKey: String(product.categoryKey || "").trim(),
+            sameDayDelivery: product.sameDayDelivery === true,
+            onSale: product.onSale === true,
             description: product.description || ""
         };
     }

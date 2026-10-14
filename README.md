@@ -1,26 +1,29 @@
-# inventory management software
-A simple inventory management system built with Django.
-Users can add stock item and generate bills. All data is stored in database and are rendered in real time
+﻿# FlowerFlow
 
-To run project, run the following commands in the project's directory to create the database. When running the software for the first time, it is necessary to run each command for each app in the project
+FlowerFlow là website cửa hàng hoa tĩnh, xây dựng bằng HTML, CSS và JavaScript thuần. Mã nguồn website nằm trong [`flower.com/`](flower.com/); xem [`flower.com/README.md`](flower.com/README.md) để biết cách chạy, cấu hình Firebase và các giới hạn hiện tại.
+
+## Chạy website
+
+1. Cài Python 3 hoặc dùng máy chủ HTTP tĩnh tương đương.
+2. Mở terminal tại thư mục `flower.com` và chạy `python -m http.server 8000`.
+3. Mở <http://localhost:8000> trong trình duyệt.
+
+Không mở trang trực tiếp bằng `file://`, vì website tải catalog JSON bằng `fetch`.
+
+## Kiểm thử
+
+Cần Node.js 24 trở lên. Tại `flower.com`, chạy:
+
+```sh
+npm test
 ```
-python manage.py makemigrations homepage
-python manage.py migrate homepage
-python manage.py makemigrations inventory
-python manage.py migrate inventory
-python manage.py makemigrations transactions
-python manage.py migrate transactions
-```
-After the first time, the following can be run to migrate model changes in any app
-```
-python manage.py makemigrations
-python manage.py migrate
-```
-Use the following command to run the server
-```
-python manage.py runserver
-```
-Use the following command to create an admin user 
-```
-python manage.py createsuperuser
-```
+
+Năm bộ kiểm thử dùng API có sẵn của Node.js, không cần cài dependencies.
+
+## Phạm vi repository
+
+Các thư mục `core/`, `homepage/`, `inventory/` và `transactions/` cùng `manage.py`/`requirements.txt` là ứng dụng Django quản lý kho cũ, tách biệt với website FlowerFlow và không thuộc release này.
+
+## Phát hành
+
+Xem [`RELEASE_NOTES_v0.1.0.md`](RELEASE_NOTES_v0.1.0.md) để biết tính năng và giới hạn của bản phát hành.

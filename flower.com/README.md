@@ -88,3 +88,4 @@ Hear you can see the landing page of our project :
 # Checkout page
 
 ![Checkout](https://user-images.githubusercontent.com/119391188/221473903-f202ae27-32d0-4379-b902-ffde88b9b730.png)
+| Kiểm thử | `tests/product-page.test.js`, `tests/product-related.test.js`, `tests/product-store-sync.test.js`, `tests/shopping-store.test.js`, `tests/store-footer.test.js` | Chạy toàn bộ bằng `npm test` tại `flower.com` |

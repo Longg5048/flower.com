@@ -146,9 +146,16 @@
 
   <main class="checkout-page">
     <header class="checkout-heading">
-      <p class="checkout-eyebrow">FLOWERFLOW · THANH TOÁN</p>
+      <p class="checkout-eyebrow">FLOWERFLOW · GỬI TRỌN YÊU THƯƠNG</p>
       <h1>Hoàn tất đơn hàng</h1>
-      <p>Nhập thông tin nhận hàng và kiểm tra lại các sản phẩm trước khi đặt.</p>
+      <p>Điền thông tin nhận hoa, chọn cách thanh toán và kiểm tra đơn hàng của bạn.</p>
+      <div class="checkout-progress" aria-label="Tiến trình đặt hàng">
+        <span class="checkout-progress-step is-complete"><span>1</span> Giỏ hàng</span>
+        <span class="checkout-progress-line" aria-hidden="true"></span>
+        <span class="checkout-progress-step is-current" aria-current="step"><span>2</span> Thanh toán</span>
+        <span class="checkout-progress-line" aria-hidden="true"></span>
+        <span class="checkout-progress-step"><span>3</span> Xác nhận</span>
+      </div>
     </header>
 
     <form id="checkout-form" class="checkout-layout">
@@ -163,29 +170,17 @@
           </div>
 
           <div class="checkout-fields">
-            <label class="checkout-field checkout-field-wide">
+            <label class="checkout-field">
               <span>Họ và tên</span>
               <input type="text" name="customerName" autocomplete="name" placeholder="Nguyễn Thị Hoa" required>
             </label>
-            <label class="checkout-field checkout-field-wide">
+            <label class="checkout-field">
               <span>Số điện thoại</span>
               <input type="tel" name="phone" inputmode="tel" autocomplete="tel" pattern="\+?[0-9]{8,15}" placeholder="0912345678" required>
             </label>
             <label class="checkout-field checkout-field-wide">
               <span>Địa chỉ</span>
-              <input type="text" name="address" autocomplete="address-line1" placeholder="Số nhà, tên đường" required>
-            </label>
-            <label class="checkout-field">
-              <span>Phường / xã</span>
-              <input type="text" name="ward" autocomplete="address-level3" placeholder="Phường / xã" required>
-            </label>
-            <label class="checkout-field">
-              <span>Quận / huyện</span>
-              <input type="text" name="district" autocomplete="address-level2" placeholder="Quận / huyện" required>
-            </label>
-            <label class="checkout-field checkout-field-wide">
-              <span>Tỉnh / thành phố</span>
-              <input type="text" name="city" autocomplete="address-level1" placeholder="Tỉnh / thành phố" required>
+              <textarea name="address" autocomplete="street-address" rows="3" placeholder="Số nhà, tên đường, phường/xã, quận/huyện, tỉnh/thành phố" required></textarea>
             </label>
             <label class="checkout-field checkout-field-wide">
               <span>Ghi chú cho cửa hàng <small>(không bắt buộc)</small></span>
@@ -222,7 +217,7 @@
           <div class="checkout-section-heading">
             <span class="checkout-step">03</span>
             <div>
-              <h2 id="summary-heading">Đơn hàng của bạn</h2>
+              <h2 id="summary-heading">Sản phẩm & tổng tiền</h2>
               <p><span id="checkout-item-count">0</span> sản phẩm</p>
             </div>
           </div>
@@ -380,9 +375,7 @@
     const formData = new FormData(event.currentTarget);
     const checkout = {
       customerName: String(formData.get("customerName") || "").trim(),
-      address: ["address", "ward", "district", "city"]
-        .map((field) => String(formData.get(field) || "").trim())
-        .join(", "),
+      address: String(formData.get("address") || "").trim(),
       phone: String(formData.get("phone") || "").trim(),
       paymentMethod: formData.get("paymentMethod"),
       orderNote: String(formData.get("orderNote") || "").trim()

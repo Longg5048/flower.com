@@ -1,4 +1,4 @@
-﻿# FlowerFlow
+# FlowerFlow
 
 FlowerFlow là website cửa hàng hoa tĩnh, xây dựng bằng HTML, CSS và JavaScript thuần. Mã nguồn website nằm trong [`flower.com/`](flower.com/); xem [`flower.com/README.md`](flower.com/README.md) để biết cách chạy, cấu hình Firebase và các giới hạn hiện tại.
 
@@ -18,7 +18,11 @@ Cần Node.js 24 trở lên. Tại `flower.com`, chạy:
 npm test
 ```
 
-Năm bộ kiểm thử dùng API có sẵn của Node.js, không cần cài dependencies.
+Sáu bộ kiểm thử dùng API có sẵn của Node.js, không cần cài dependencies.
+
+## Phạm vi repository
+
+Các thư mục `core/`, `homepage/`, `inventory/` và `transactions/` cùng `manage.py`/`requirements.txt` là ứng dụng Django quản lý kho cũ, tách biệt với website FlowerFlow và không thuộc release này. App `shop/` bổ sung cơ sở dữ liệu cho cửa hàng trực tuyến (xem [`DATABASE.md`](DATABASE.md)). Để chạy ứng dụng cũ, cần đặt `DJANGO_SECRET_KEY`; `DJANGO_DEBUG` mặc định tắt và danh sách host đọc từ `DJANGO_ALLOWED_HOSTS`.
 
 ## Phát hành
 

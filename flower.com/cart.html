@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Giỏ hàng</title>
     <link rel="stylesheet" href="./store-header.css?v=1" />
-    <link rel="stylesheet" href="./cart.css?v=2" />
+    <link rel="stylesheet" href="./cart.css?v=3" />
     <link rel="stylesheet" href="./store-footer.css?v=2" />
   </head>
   <body>
@@ -15,35 +15,35 @@
       <div id="product-container"></div>
 
       <div class="checkout">
-        <h1>Tóm tắt đơn hàng</h1>
+        <div class="checkout-heading">
+          <span class="checkout-eyebrow">Flowerflow · Giỏ hàng</span>
+          <h1>Tóm tắt đơn hàng</h1>
+          <p>Kiểm tra chi phí trước khi bạn gửi yêu thương.</p>
+        </div>
         <div class="details">
-          <div>
+          <div class="summary-row">
             <div><p>Giá gốc</p></div>
             <div id="originalprice">0</div>
           </div>
-          <hr />
-          <div>
+          <div class="summary-row summary-row--savings">
             <div><p>Tiết kiệm 5%</p></div>
             <div id="savings">0</div>
           </div>
-          <hr />
-          <div>
+          <div class="summary-row">
             <div><p>Phí giao hàng</p></div>
             <div id="deliveryCharge">Miễn phí</div>
           </div>
-          <hr />
-          <div>
-            <div>Thuế 10%</div>
+          <div class="summary-row">
+            <div><p>Thuế 10%</p></div>
             <div id="tax">0</div>
           </div>
-          <hr />
-          <div>
-            <div>Tổng tiền</div>
+          <div class="summary-row summary-row--total">
+            <div><p>Tổng tiền</p></div>
             <div id="total">0</div>
           </div>
         </div>
         <div id="check">
-          <a class="check-button" href="./checkout.html">Tiến hành thanh toán</a>
+          <a class="checkout-continue" href="./checkout.html">Tiến hành thanh toán <span aria-hidden="true">→</span></a>
         </div>
       </div>
     </main>
@@ -58,6 +58,7 @@
       function DisplayProduct() {
         const cartTotal = document.getElementById("cartTotal");
         cartTotal.textContent = Cart.length;
+        document.querySelector(".nav").classList.toggle("is-empty", Cart.length === 0);
 
         CartContainer.innerHTML = "";
 

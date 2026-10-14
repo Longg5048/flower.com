@@ -3,16 +3,24 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#fbf8f3">
   <title>Danh sách yêu thích</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Playfair+Display:wght@500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="./store-header.css?v=1">
-  <link rel="stylesheet" href="./wish.css?v=2">
+  <link rel="stylesheet" href="./wish.css?v=3">
   <link rel="stylesheet" href="./store-footer.css?v=2">
 </head>
 <body>
   <script src="./store-header.js?v=2"></script>
 
-  <main>
-    <h1>Danh sách yêu thích (<span id="wishTotal">0</span>)</h1>
+  <main class="wishlist-page">
+    <section class="wishlist-heading">
+      <p class="wishlist-eyebrow">FLOWERFLOW · YÊU THÍCH</p>
+      <h1>Danh sách yêu thích (<span id="wishTotal">0</span>)</h1>
+      <p>Lưu lại những bó hoa bạn yêu thích để dễ dàng tìm thấy sau này.</p>
+    </section>
     <p class="wishlist-message" id="wishlist-message" role="status" aria-live="polite" hidden></p>
     <div id="container"></div>
   </main>

@@ -160,6 +160,7 @@
       image.alt = getVietnameseProductName(product.title);
       image.loading = "lazy";
       name.textContent = getVietnameseProductName(product.title);
+      unitPrice.className = "checkout-unit-price";
       unitPrice.textContent = formatVnd(product.price);
       details.className = "checkout-item-details";
       controls.className = "checkout-quantity";

@@ -477,7 +477,9 @@ main {
 .status-select,
 .reply-input,
 .product-form input,
-.product-form textarea {
+.product-form textarea,
+.product-form select,
+.category-form input {
     width: 100%;
     padding: 10px 12px;
     border: 1px solid var(--gray-200);
@@ -546,6 +548,56 @@ main {
     display: grid;
     gap: 14px;
     max-width: 700px;
+}
+
+.product-form select {
+    margin-top: -10px;
+}
+
+.category-help {
+    margin: -6px 0 18px;
+    color: #6b7280;
+    line-height: 1.5;
+}
+
+.category-form {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 12px;
+    max-width: 700px;
+}
+
+.category-list {
+    display: grid;
+    gap: 10px;
+    max-width: 700px;
+    margin-top: 22px;
+}
+
+.category-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 16px;
+    padding: 14px;
+    border: 1px solid #f5d9e6;
+    border-radius: 12px;
+    background: #fffdfd;
+}
+
+.category-row > div:first-child {
+    display: grid;
+    gap: 5px;
+}
+
+.category-row span {
+    color: #6b7280;
+    font-size: 13px;
+}
+
+.category-row .product-row-actions {
+    display: flex;
+    gap: 8px;
 }
 
 .product-form textarea {
@@ -882,6 +934,15 @@ main {
 
     .summary {
         grid-template-columns: 1fr;
+    }
+
+    .category-form {
+        grid-template-columns: 1fr;
+    }
+
+    .category-row {
+        align-items: flex-start;
+        flex-direction: column;
     }
 
     .users-heading {

@@ -129,6 +129,7 @@ function display(data) {
         let price = document.createElement("p")
         let stock = document.createElement("p")
         let actions = document.createElement("div")
+        let badges = document.createElement("div")
         let detailsButton = document.createElement("a")
         let orderButton = document.createElement("button")
         let cartButton = document.createElement("button")
@@ -149,6 +150,19 @@ function display(data) {
         price.innerText = formatVnd(el.price)
         stock.className = quantity > 0 ? "stock-status" : "stock-status out-of-stock"
         stock.innerText = quantity > 0 ? `Còn hàng: ${quantity}` : "Hết hàng"
+        badges.className = "product-badges"
+        if (el.onSale) {
+          const saleBadge = document.createElement("span")
+          saleBadge.className = "product-badge product-badge--sale"
+          saleBadge.textContent = "Ưu đãi"
+          badges.append(saleBadge)
+        }
+        if (el.sameDayDelivery) {
+          const deliveryBadge = document.createElement("span")
+          deliveryBadge.className = "product-badge product-badge--delivery"
+          deliveryBadge.textContent = "Giao trong ngày"
+          badges.append(deliveryBadge)
+        }
         orderButton.type = "button"
         orderButton.className = "product-order"
         orderButton.innerText = "Đặt hàng"
@@ -182,7 +196,9 @@ function display(data) {
 
         imageFrame.append(img)
         actions.append(orderButton, cartButton, wishlistButton, detailsButton)
-        box.append(imageFrame, title, price, stock, actions)
+        box.append(imageFrame, title)
+        if (badges.childElementCount) box.append(badges)
+        box.append(price, stock, actions)
         container.append(box)
     });
 
@@ -295,10 +311,14 @@ let selectedProduct = null
 const pageParams = new URLSearchParams(window.location.search)
 const initialSearch = pageParams.get("search") || pageParams.get("q") || ""
 const initialFlowerType = pageParams.get("flower") || ""
+const initialCategoryKey = pageParams.get("category") || ""
+const initialCategory = FlowerProductCategories.getCategory(initialCategoryKey)
+let initialCategoryApplied = false
 
 if (initialSearch) searchInput.value = initialSearch
-if ([...flowerTypeSelect.options].some((option) => option.value === initialFlowerType)) {
-  flowerTypeSelect.value = initialFlowerType
+if (initialCategory) {
+  document.getElementById("catalog-title").textContent = initialCategory.title
+  document.querySelector(".catalog-heading > p:last-child").textContent = initialCategory.description
 }
 
 const flowerCategoryLabels = {
@@ -308,6 +328,58 @@ const flowerCategoryLabels = {
   lavender: "Hoa oải hương",
   gerber: "Hoa đồng tiền",
   mixed: "Hoa tổng hợp"
+}
+
+function getAdminCategories() {
+  try {
+    const categories = JSON.parse(localStorage.getItem("flowerCategories") || "[]")
+    return Array.isArray(categories)
+      ? categories.map((category) => String(category || "").trim()).filter(Boolean)
+      : []
+  } catch (error) {
+    console.error("Không thể tải danh sách phân loại:", error)
+    return []
+  }
+}
+
+function populateFlowerCategoryFilter() {
+  const selectedValue = flowerTypeSelect.value
+  const allCategoriesOption = document.createElement("option")
+  allCategoriesOption.value = ""
+  allCategoriesOption.textContent = "Tất cả phân loại"
+  const categories = [...new Set([
+    ...getAdminCategories(),
+    ...products.map((product) => String(product.category || "").trim())
+  ].filter(Boolean))]
+    .sort((first, second) => first.localeCompare(second, "vi"))
+
+  flowerTypeSelect.replaceChildren(allCategoriesOption)
+  categories.forEach((category) => {
+    const option = document.createElement("option")
+    option.value = `category:${category}`
+    option.textContent = category
+    flowerTypeSelect.append(option)
+  })
+
+  if ([...flowerTypeSelect.options].some((option) => option.value === selectedValue)) {
+    flowerTypeSelect.value = selectedValue
+  }
+
+  if (!initialCategoryApplied) {
+    const requestedCategory = initialFlowerType.startsWith("category:")
+      ? initialFlowerType.slice("category:".length)
+      : flowerCategoryLabels[initialFlowerType] || initialFlowerType
+    const matchingOption = [...flowerTypeSelect.options].find((option) =>
+      option.value.startsWith("category:")
+      && normalizeSearchText(option.textContent) === normalizeSearchText(requestedCategory)
+    )
+    if (matchingOption) {
+      flowerTypeSelect.value = matchingOption.value
+      initialCategoryApplied = true
+    } else if (!initialFlowerType) {
+      initialCategoryApplied = true
+    }
+  }
 }
 
 function getProductCategory(product) {
@@ -493,7 +565,9 @@ function renderProducts() {
       || englishName.includes(searchTerm)
       || vietnameseName.includes(searchTerm)
       || String(product.id).includes(searchTerm)
-    const matchesFlowerType = !flowerType || getFlowerTypes(product).includes(flowerType)
+    const matchesFlowerType = !flowerType
+      || normalizeSearchText(String(product.category || "")) === normalizeSearchText(flowerType.slice("category:".length))
+    const matchesCategory = FlowerProductCategories.matchesCategory(product, initialCategoryKey)
     const priceInVnd = toVndAmount(product.price)
     let matchesPrice = true
 
@@ -505,7 +579,7 @@ function renderProducts() {
       matchesPrice = priceInVnd >= 2000000
     }
 
-    return matchesSearch && matchesFlowerType && matchesPrice
+    return matchesSearch && matchesFlowerType && matchesCategory && matchesPrice
   })
 
   switch (sortSelect.value) {
@@ -530,7 +604,19 @@ function renderProducts() {
   }
 
   if (!visibleProducts.length) {
-    container.textContent = "Không tìm thấy sản phẩm phù hợp."
+    const emptyMessage = document.createElement("p")
+    emptyMessage.className = "catalog-empty"
+    emptyMessage.textContent = initialCategory
+      ? `${initialCategory.title}: hiện chưa có sản phẩm phù hợp trong cửa hàng.`
+      : "Không tìm thấy sản phẩm phù hợp."
+    container.replaceChildren(emptyMessage)
+    if (initialCategoryKey) {
+      const allProductsLink = document.createElement("a")
+      allProductsLink.className = "catalog-empty-link"
+      allProductsLink.href = "./product.html"
+      allProductsLink.textContent = "Xem tất cả sản phẩm"
+      container.append(allProductsLink)
+    }
     return
   }
 
@@ -550,8 +636,13 @@ searchInput.addEventListener("keydown", (event) => {
 window.addEventListener("storage", (event) => {
   if (event.key === "flowerInventory") {
     products = FlowerInventory.readProducts()
+    populateFlowerCategoryFilter()
     renderProducts()
     navigateToProductDetail()
+  }
+  if (event.key === "flowerCategories") {
+    populateFlowerCategoryFilter()
+    renderProducts()
   }
   if (event.key === "cart" || event.key === "wish") {
     try {
@@ -568,6 +659,7 @@ window.addEventListener("storage", (event) => {
 
 window.addEventListener("flowerinventorychange", (event) => {
   products = event.detail || FlowerInventory.readProducts()
+  populateFlowerCategoryFilter()
   renderProducts()
   navigateToProductDetail()
 })
@@ -581,6 +673,7 @@ async function fetchAndRenderProducts() {
   try {
     products = await FlowerInventory.initialize()
     if (!products.length) throw new Error("Kho sản phẩm hiện chưa có dữ liệu hoặc dịch vụ danh mục đang không khả dụng.")
+    populateFlowerCategoryFilter()
     renderProducts()
     navigateToProductDetail()
   } catch (error) {

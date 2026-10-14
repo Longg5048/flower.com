@@ -207,6 +207,26 @@ body {
     font-size: 11px;
 }
 
+.payment-qr-panel {
+    display: grid;
+    justify-items: center;
+    gap: 10px;
+    margin-top: 16px;
+    padding: 18px;
+    border: 1px solid #e9e7df;
+    border-radius: 12px;
+    background: #fff;
+    color: #52645a;
+    font-size: 13px;
+    text-align: center;
+}
+
+.payment-qr-panel[hidden] { display: none; }
+.payment-qr-panel p { margin: 0; }
+.payment-qr-panel img { display: block; width: min(220px, 100%); height: auto; }
+.payment-qr-amount { color: #354a3f; font-weight: 700; }
+.payment-qr-note { max-width: 390px; color: #87938c; font-size: 12px; line-height: 1.5; }
+
 .checkout-summary {
     min-width: 0;
 }

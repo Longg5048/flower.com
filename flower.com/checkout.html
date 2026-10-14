@@ -73,10 +73,16 @@
               <span><strong>Thanh toán khi nhận hàng</strong><small>Thanh toán trực tiếp khi nhận hoa</small></span>
             </label>
             <label class="payment-option">
-              <input type="radio" name="paymentMethod" value="card">
-              <span class="payment-option-icon" aria-hidden="true">▤</span>
-              <span><strong>Thẻ ghi nợ / tín dụng / ATM</strong><small>Thanh toán bằng thẻ</small></span>
+              <input type="radio" name="paymentMethod" value="qr" checked>
+              <span class="payment-option-icon" aria-hidden="true">▦</span>
+              <span><strong>Quét mã QR Vietcombank</strong><small>Chuyển khoản nhanh qua ứng dụng ngân hàng</small></span>
             </label>
+          </div>
+          <div id="payment-qr-panel" class="payment-qr-panel" hidden>
+            <p>Quét mã bằng ứng dụng ngân hàng. Nội dung chuyển khoản gồm mã đơn tạm thời.</p>
+            <img id="payment-qr-image" alt="Mã QR chuyển khoản Vietcombank" width="220" height="220">
+            <p id="payment-qr-amount" class="payment-qr-amount"></p>
+            <p class="payment-qr-note">Đơn hàng chỉ được đánh dấu đã thanh toán sau khi bạn xác nhận đã chuyển khoản.</p>
           </div>
         </section>
       </div>
@@ -125,6 +131,27 @@
   const promotionSelect = document.getElementById("promotion-select");
   const promotionMessage = document.getElementById("promotion-message");
   let Cart = JSON.parse(localStorage.getItem("cart") || "[]");
+  const paymentQrPanel = document.getElementById("payment-qr-panel");
+  const paymentQrImage = document.getElementById("payment-qr-image");
+  const paymentQrAmount = document.getElementById("payment-qr-amount");
+  let paymentReference = `FF${Date.now()}`;
+
+  function updatePaymentQr() {
+    const isQrPayment = checkoutForm.querySelector('input[name="paymentMethod"]:checked')?.value === "qr";
+    paymentQrPanel.hidden = !isQrPayment;
+    if (!isQrPayment) return;
+    const total = Math.round(calculateCartTotals(Cart, promotionSelect.value).total);
+    const imageUrl = new URL(`https://img.vietqr.io/image/VCB-1063118243-compact2.png`);
+    imageUrl.searchParams.set("amount", String(toVndAmount(total)));
+    imageUrl.searchParams.set("addInfo", paymentReference);
+    imageUrl.searchParams.set("accountName", "DO BA THAI");
+    paymentQrImage.src = imageUrl.toString();
+    paymentQrAmount.textContent = `Số tiền: ${formatVnd(total)} · Nội dung: ${paymentReference}`;
+  }
+
+  checkoutForm.querySelectorAll('input[name="paymentMethod"]').forEach((input) => {
+    input.addEventListener("change", updatePaymentQr);
+  });
 
   function hasOverstockItem() {
     return Cart.some((product) => {
@@ -165,6 +192,7 @@
       localStorage.removeItem("flowerSelectedPromotion");
     }
     renderCartSummary(Cart);
+    updatePaymentQr();
   });
 
   function saveCart() {
@@ -264,6 +292,7 @@
       checkoutMessage.textContent = "";
     }
     renderCartSummary(Cart);
+    updatePaymentQr();
     const cartTotal = document.getElementById("cartTotal");
     if (cartTotal) cartTotal.textContent = Cart.length;
   }
@@ -287,12 +316,14 @@
       address: String(formData.get("address") || "").trim(),
       phone: String(formData.get("phone") || "").trim(),
       paymentMethod: formData.get("paymentMethod"),
+      paymentReference,
       promotionId: promotionSelect.value,
       orderNote: String(formData.get("orderNote") || "").trim()
     };
 
     try {
       localStorage.setItem("flowerCheckout", JSON.stringify(checkout));
+      localStorage.setItem("flowerPaymentReference", paymentReference);
       window.location.assign("./placeorder.html");
     } catch (error) {
       console.error("Không thể lưu thông tin thanh toán:", error);

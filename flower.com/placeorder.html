@@ -17,6 +17,7 @@
 
     <div class="placeorder">
       <button type="button">Xác nhận đặt hàng</button>
+      <p id="payment-confirmation-note" role="status"></p>
     </div>
   </main>
 
@@ -25,6 +26,13 @@
   <script>
     let CartContainer = document.getElementById("product-container");
     let Cart = JSON.parse(localStorage.getItem("cart")) || [];
+    const checkoutData = JSON.parse(localStorage.getItem("flowerCheckout") || "null");
+    const paymentButton = document.querySelector(".placeorder > button");
+    const paymentNote = document.getElementById("payment-confirmation-note");
+    if (checkoutData?.paymentMethod === "qr") {
+      paymentButton.textContent = "Tôi đã chuyển khoản · Xác nhận đơn hàng";
+      paymentNote.textContent = `Thanh toán Vietcombank · STK 1063118243 · DO BA THAI. Nội dung: ${checkoutData.paymentReference || "mã đơn của bạn"}. Bấm xác nhận chỉ sau khi đã chuyển khoản.`;
+    }
 
     function saveOrderToAdmin() {
       if (!Cart.length) {
@@ -32,7 +40,6 @@
         return;
       }
 
-      const checkoutData = JSON.parse(localStorage.getItem("flowerCheckout") || "null");
       if (!checkoutData?.customerName || !checkoutData?.phone || !checkoutData?.address || !checkoutData?.paymentMethod) {
         alert("Vui lòng hoàn tất thông tin giao hàng và thanh toán trước.");
         window.location.assign("./checkout.html");
@@ -67,6 +74,9 @@
         tax: 0,
         total: toVndAmount(totals.total),
         paymentMethod: checkoutData.paymentMethod,
+        paymentStatus: checkoutData.paymentMethod === "qr" ? "Đã thanh toán" : "Thanh toán khi nhận hàng",
+        paymentReference: checkoutData.paymentReference || "",
+        paidAt: checkoutData.paymentMethod === "qr" ? createdAt : "",
         promotionId: checkoutData.promotionId || "",
         items: Cart.map((item) => ({
           id: item.id,
@@ -99,7 +109,10 @@
       localStorage.removeItem("cart");
       localStorage.removeItem("flowerCheckout");
       localStorage.removeItem("flowerSelectedPromotion");
-      alert("Đặt hàng thành công! Đơn hàng đã được gửi tới admin.");
+      localStorage.removeItem("flowerPaymentReference");
+      alert(checkoutData.paymentMethod === "qr"
+        ? "Đã ghi nhận xác nhận thanh toán và gửi đơn hàng tới cửa hàng."
+        : "Đặt hàng thành công! Đơn hàng đã được gửi tới cửa hàng.");
       window.location.href = `./tracking.html?id=${encodeURIComponent(orderId)}`;
     }
 

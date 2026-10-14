@@ -18,14 +18,7 @@ function usdFromVnd(amountInVnd) {
 }
 
 function promotionAppliesToAllProducts(promotion) {
-  if (promotion.allProducts === true) return true;
-  if (!Array.isArray(promotion.productIds)) return false;
-
-  const inventory = JSON.parse(localStorage.getItem("flowerInventory") || "[]");
-  if (!Array.isArray(inventory) || !inventory.length) return false;
-
-  const selectedProductIds = new Set(promotion.productIds.map(String));
-  return inventory.every((product) => selectedProductIds.has(String(product.id)));
+  return promotion.allProducts === true;
 }
 
 function getAvailableCartPromotions(cart) {

@@ -427,17 +427,12 @@ function renderOffersTab() {
                <div class="offer-list">
                    ${offers.map((offer) => {
                        const productCount = Array.isArray(offer.productIds) ? offer.productIds.length : 0;
-                       const appliesToAllProducts = offer.allProducts === true
-                           || (products.length > 0
-                               && products.every((product) => offer.productIds?.some(
-                                   (id) => String(id) === String(product.id)
-                               )));
                        return `
                            <article class="offer-row">
                                <div>
                                    <strong>${escapeHtml(offer.name)}</strong>
                                    <span>Giảm ${Number(offer.discountPercent)}% · ${productCount} sản phẩm</span>
-                                   ${appliesToAllProducts ? '<span>Áp dụng cho tất cả hoa</span>' : ""}
+                                   ${offer.allProducts === true ? '<span>Áp dụng cho tất cả hoa</span>' : ""}
                                    <span class="offer-status ${offer.active ? "is-active" : "is-inactive"}">${offer.active ? "Đang áp dụng" : "Đã tạm dừng"}</span>
                                </div>
                                <div class="product-row-actions">
@@ -475,6 +470,8 @@ function addOffer(event) {
    }
 
    const offers = getOffers();
+   const allProductIds = new Set(getProducts().map((product) => String(product.id)));
+   const selectedProductIds = new Set(productIds);
    offers.push({
        id: (window.crypto && typeof window.crypto.randomUUID === "function")
            ? window.crypto.randomUUID()
@@ -482,7 +479,9 @@ function addOffer(event) {
        name,
        discountPercent,
        productIds,
-       allProducts: productIds.length === getProducts().length,
+       allProducts: allProductIds.size > 0
+           && productIds.length === allProductIds.size
+           && [...allProductIds].every((id) => selectedProductIds.has(id)),
        active: true,
        createdAt: new Date().toISOString()
    });

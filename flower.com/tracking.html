@@ -9,7 +9,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Playfair+Display:wght@500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="./store-header.css?v=1">
-    <link rel="stylesheet" href="./tracking.css?v=4">
+    <link rel="stylesheet" href="./tracking.css?v=5">
     <link rel="stylesheet" href="./store-footer.css?v=2">
 </head>
 <body>
@@ -19,8 +19,22 @@
         <section class="tracking-heading">
             <p class="tracking-eyebrow">FLOWERFLOW · ĐƠN HÀNG</p>
             <h1>Theo dõi đơn hàng</h1>
-            <p>Tra cứu hành trình giao hoa bằng mã đơn hàng và số điện thoại đặt hàng.</p>
+            <p id="tracking-intro">Tra cứu hành trình giao hoa bằng mã đơn hàng và số điện thoại đặt hàng. <a href="./login.html">Đăng nhập</a> để xem ngay tất cả đơn hàng của bạn.</p>
         </section>
+
+        <section class="my-orders" id="my-orders" hidden aria-labelledby="my-orders-title">
+            <div class="my-orders-header">
+                <h2 id="my-orders-title">Đơn hàng của bạn</h2>
+                <div class="my-orders-tabs" role="tablist" aria-label="Lọc đơn hàng theo trạng thái">
+                    <button type="button" role="tab" class="my-orders-tab" data-group="active" aria-selected="true">Đang xử lý <span class="my-orders-count" id="count-active">0</span></button>
+                    <button type="button" role="tab" class="my-orders-tab" data-group="done" aria-selected="false">Đã hoàn thành <span class="my-orders-count" id="count-done">0</span></button>
+                    <button type="button" role="tab" class="my-orders-tab" data-group="cancelled" aria-selected="false" hidden>Đã hủy <span class="my-orders-count" id="count-cancelled">0</span></button>
+                </div>
+            </div>
+            <div class="my-orders-list" id="my-orders-list" role="tabpanel"></div>
+        </section>
+
+        <button class="tracking-lookup-toggle" id="tracking-lookup-toggle" type="button" hidden aria-expanded="false" aria-controls="tracking-search">Tra cứu đơn hàng khác bằng mã đơn và số điện thoại</button>
 
         <form class="tracking-search" id="tracking-search">
             <label for="tracking-order-id">Mã đơn hàng</label>
@@ -83,7 +97,7 @@
         </section>
     </main>
 
-    <script type="module" src="./tracking.js?v=5"></script>
+    <script type="module" src="./tracking.js?v=6"></script>
     <script src="./store-footer.js?v=2"></script>
 </body>
 </html>

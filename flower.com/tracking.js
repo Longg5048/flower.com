@@ -10,8 +10,26 @@ const reviewForm = document.getElementById("order-review-form");
 const reviewComment = document.getElementById("review-comment");
 const reviewFeedback = document.getElementById("review-feedback");
 const ratingStars = [...document.querySelectorAll(".rating-star")];
+const trackingIntro = document.getElementById("tracking-intro");
+const guestIntro = trackingIntro.innerHTML;
+const myOrdersSection = document.getElementById("my-orders");
+const myOrdersList = document.getElementById("my-orders-list");
+const myOrdersTabs = [...document.querySelectorAll(".my-orders-tab")];
+const lookupToggle = document.getElementById("tracking-lookup-toggle");
+const STATUS_CLASSES = {
+    "Chờ xác nhận": "is-pending",
+    "Đang giao": "is-shipping",
+    "Đã giao": "is-delivered",
+    "Đã hủy": "is-cancelled"
+};
+const ORDER_GROUPS = {
+    active: { statuses: ["Chờ xác nhận", "Đang giao"], empty: "Bạn không có đơn hàng nào đang xử lý." },
+    done: { statuses: ["Đã giao"], empty: "Bạn chưa có đơn hàng nào đã hoàn thành." },
+    cancelled: { statuses: ["Đã hủy"], empty: "Bạn không có đơn hàng nào đã hủy." }
+};
 let selectedRating = 0;
 let currentOrder = null;
+let selectedGroup = "active";
 
 function makeElement(tagName, className, text) {
     const element = document.createElement(tagName);
@@ -175,13 +193,7 @@ function renderOrder(order) {
     const statusElement = document.getElementById("result-status");
     statusElement.textContent = status;
     statusElement.className = "order-status-badge";
-    const statusClasses = {
-        "Chờ xác nhận": "is-pending",
-        "Đang giao": "is-shipping",
-        "Đã giao": "is-delivered",
-        "Đã hủy": "is-cancelled"
-    };
-    statusElement.classList.add(statusClasses[status] || "is-pending");
+    statusElement.classList.add(STATUS_CLASSES[status] || "is-pending");
     document.getElementById("result-location").textContent = order.currentLocation || "Cửa hàng chưa cập nhật vị trí vận chuyển.";
     document.getElementById("result-eta").textContent = formatDate(order.estimatedDelivery, false);
     document.getElementById("result-customer").textContent = order.customerName || "Chưa cập nhật";
@@ -192,6 +204,125 @@ function renderOrder(order) {
     renderReviewPanel(order);
     results.hidden = false;
     message.textContent = "";
+    myOrdersList.querySelectorAll(".my-order-card").forEach((card) => {
+        card.classList.toggle("is-selected", card.dataset.orderId === String(order.id));
+    });
+}
+
+function getLoggedAccount() {
+    try {
+        const account = JSON.parse(localStorage.getItem("loggedUser") || "null");
+        return account && typeof account === "object" ? account : null;
+    } catch (error) {
+        console.error("Không thể đọc phiên tài khoản:", error);
+        return null;
+    }
+}
+
+function belongsToAccount(order, account) {
+    const uid = String(account.uid || "");
+    if (uid && String(order.uid || "") === uid) return true;
+    const email = String(account.email || "").trim().toLowerCase();
+    return Boolean(email) && String(order.email || "").trim().toLowerCase() === email;
+}
+
+function getAccountOrders(account) {
+    return readStoredList("flowerOrders", "danh sách đơn hàng")
+        .filter((order) => belongsToAccount(order, account))
+        .sort((first, second) => new Date(second.createdAt || 0) - new Date(first.createdAt || 0));
+}
+
+function getOrderGroup(order) {
+    const status = normalizeOrderStatus(order.status);
+    return Object.keys(ORDER_GROUPS).find((group) => ORDER_GROUPS[group].statuses.includes(status)) || "active";
+}
+
+function formatOrderTotal(order) {
+    const items = Array.isArray(order.items) ? order.items : [];
+    const total = Number(order.total) || items.reduce(
+        (sum, item) => sum + (Number(item.price) || 0) * Math.max(1, Number(item.quantity) || 1), 0);
+    return new Intl.NumberFormat("vi-VN", { style: "currency", currency: "VND" }).format(total);
+}
+
+function createOrderCard(order) {
+    const status = normalizeOrderStatus(order.status);
+    const items = Array.isArray(order.items) ? order.items : [];
+    const card = makeElement("button", "my-order-card");
+    card.type = "button";
+    card.dataset.orderId = String(order.id);
+    card.classList.toggle("is-selected", currentOrder !== null && String(currentOrder.id) === String(order.id));
+
+    const header = makeElement("div", "my-order-header");
+    const title = makeElement("div", "my-order-title");
+    title.append(makeElement("strong", "", `Đơn #${order.id}`), makeElement("span", "", formatDate(order.createdAt)));
+    const badge = makeElement("span", `order-status-badge ${STATUS_CLASSES[status] || "is-pending"}`, status);
+    header.append(title, badge);
+
+    const products = makeElement("div", "my-order-products");
+    items.slice(0, 3).forEach((item) => {
+        const image = document.createElement("img");
+        image.src = item.image || "";
+        image.alt = "";
+        image.addEventListener("error", () => image.remove(), { once: true });
+        products.append(image);
+    });
+    const quantity = items.reduce((sum, item) => sum + Math.max(1, Number(item.quantity) || 1), 0);
+    const firstTitle = items[0]?.title || "Sản phẩm";
+    const summary = items.length > 1 ? `${firstTitle} và ${items.length - 1} sản phẩm khác` : firstTitle;
+    products.append(makeElement("span", "my-order-summary", `${summary} · ${quantity} món`));
+
+    const footer = makeElement("div", "my-order-footer");
+    footer.append(makeElement("strong", "", formatOrderTotal(order)), makeElement("span", "my-order-link", "Xem chi tiết →"));
+
+    card.append(header, products, footer);
+    card.addEventListener("click", () => {
+        renderOrder(order);
+        results.scrollIntoView({ behavior: "smooth", block: "start" });
+    });
+    return card;
+}
+
+function selectOrderGroup(group) {
+    selectedGroup = group;
+    myOrdersTabs.forEach((tab) => tab.setAttribute("aria-selected", String(tab.dataset.group === group)));
+}
+
+function renderMyOrders() {
+    const account = getLoggedAccount();
+    myOrdersSection.hidden = !account;
+    lookupToggle.hidden = !account;
+    searchForm.hidden = Boolean(account) && lookupToggle.getAttribute("aria-expanded") !== "true";
+    if (!account) {
+        trackingIntro.innerHTML = guestIntro;
+        return [];
+    }
+
+    trackingIntro.textContent = "Các đơn hàng đặt bằng tài khoản của bạn được hiển thị bên dưới. Chọn một đơn để xem lịch trình giao hoa.";
+
+    let orders;
+    try {
+        orders = getAccountOrders(account);
+    } catch (error) {
+        myOrdersList.replaceChildren(makeElement("p", "my-orders-empty", error.message));
+        return [];
+    }
+
+    const grouped = { active: [], done: [], cancelled: [] };
+    orders.forEach((order) => grouped[getOrderGroup(order)].push(order));
+    Object.entries(grouped).forEach(([group, list]) => {
+        document.getElementById(`count-${group}`).textContent = String(list.length);
+    });
+    const cancelledTab = myOrdersTabs.find((tab) => tab.dataset.group === "cancelled");
+    cancelledTab.hidden = grouped.cancelled.length === 0;
+    if (selectedGroup === "cancelled" && cancelledTab.hidden) selectOrderGroup("active");
+
+    const list = grouped[selectedGroup];
+    myOrdersList.replaceChildren(...(list.length
+        ? list.map(createOrderCard)
+        : [makeElement("p", "my-orders-empty", orders.length
+            ? ORDER_GROUPS[selectedGroup].empty
+            : "Tài khoản của bạn chưa có đơn hàng nào.")]));
+    return orders;
 }
 
 function searchOrder() {
@@ -287,10 +418,37 @@ searchForm.addEventListener("submit", (event) => {
     searchOrder();
 });
 
+myOrdersTabs.forEach((tab) => {
+    tab.addEventListener("click", () => {
+        selectOrderGroup(tab.dataset.group);
+        renderMyOrders();
+    });
+});
+
+lookupToggle.addEventListener("click", () => {
+    const isOpen = lookupToggle.getAttribute("aria-expanded") !== "true";
+    lookupToggle.setAttribute("aria-expanded", String(isOpen));
+    searchForm.hidden = !isOpen;
+    if (isOpen) orderIdInput.focus();
+});
+
 const orderFromUrl = new URLSearchParams(window.location.search).get("id");
-if (orderFromUrl) orderIdInput.value = orderFromUrl;
+const accountOrders = renderMyOrders();
+const accountOrderFromUrl = orderFromUrl && accountOrders.find((order) => String(order.id) === orderFromUrl);
+if (accountOrderFromUrl) {
+    selectOrderGroup(getOrderGroup(accountOrderFromUrl));
+    renderMyOrders();
+    renderOrder(accountOrderFromUrl);
+} else if (orderFromUrl) {
+    orderIdInput.value = orderFromUrl;
+}
 
 window.addEventListener("storage", (event) => {
+    if (event.key === "flowerOrders" || event.key === "loggedUser" || event.key === null) {
+        const orders = renderMyOrders();
+        const updatedOrder = currentOrder && orders.find((order) => String(order.id) === String(currentOrder.id));
+        if (updatedOrder) renderOrder(updatedOrder);
+    }
     if (event.key === "flowerOrders" && orderIdInput.value && phoneInput.value) searchOrder();
     if (event.key === "flowerReviews" && currentOrder) renderReviewPanel(currentOrder);
 });

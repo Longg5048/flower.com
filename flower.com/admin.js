@@ -1,4 +1,5 @@
 import { firebaseConfig } from "./firebase-config.js";
+import { ORDER_STATUSES, normalizeOrderStatus } from "./order-status.mjs";
 
 let productPage = document.getElementById("product_page");
 let ordersPage = document.getElementById("orders_page");
@@ -19,15 +20,6 @@ const STORAGE_KEYS = {
    messages: "flowerMessages"
 };
 
-const ORDER_STATUSES = [
-   "Đặt hàng",
-   "Đã nhận đơn",
-   "Đã vận chuyển",
-   "Hoàn thành chuyến",
-   "Giao hàng thất bại",
-   "Từ chối đơn hàng"
-];
-
 function moneyFormat(value) {
    return new Intl.NumberFormat("vi-VN", {
        style: "currency",
@@ -45,7 +37,7 @@ function getDemoOrders() {
           address: "147 Lê Lợi, Quận 1, TP.HCM",
           email: "lan.nguyen@gmail.com",
           createdAt: new Date(now - 86400000).toISOString(),
-          status: "Đã vận chuyển",
+          status: "Đang giao",
           total: 739900 + 649900,
           items: [
               { id: 1, title: "Vibrant Spring Basket", quantity: 1, price: 739900 },
@@ -59,7 +51,7 @@ function getDemoOrders() {
           address: "88 Nguyễn Huệ, Quận 3, TP.HCM",
           email: "quan.pham@gmail.com",
           createdAt: new Date(now - 172800000).toISOString(),
-          status: "Đặt hàng",
+          status: "Chờ xác nhận",
           total: 599900,
           items: [
               { id: 3, title: "Lovely Lavender Bouquet", quantity: 1, price: 599900 }
@@ -72,7 +64,7 @@ function getDemoOrders() {
           address: "55 Hùng Vương, Hà Nội",
           email: "baoanh.tran@gmail.com",
           createdAt: new Date(now - 259200000).toISOString(),
-          status: "Hoàn thành chuyến",
+          status: "Đã giao",
           total: 699900,
           items: [
               { id: 4, title: "Rising Star", quantity: 1, price: 699900 }
@@ -394,7 +386,7 @@ function renderOrderCard(order, showCompletionAction = true) {
                        <span>💰 ${moneyFormat(order.total)}</span>
                    </div>
                </div>
-               <span class="status-badge">${order.status}</span>
+               <span class="status-badge">${escapeHtml(normalizeOrderStatus(order.status))}</span>
            </div>
 
            <div class="info-grid two-col">
@@ -455,7 +447,7 @@ function renderOrderCard(order, showCompletionAction = true) {
                    <div class="status-row">
                        <select class="status-select" data-order-id="${order.id}">
                            ${ORDER_STATUSES.map((status) => `
-                               <option value="${status}" ${status === order.status ? "selected" : ""}>${status}</option>
+                               <option value="${status}" ${status === normalizeOrderStatus(order.status) ? "selected" : ""}>${status}</option>
                            `).join("")}
                        </select>
                        <button class="status-save" data-order-id="${order.id}">Cập nhật trạng thái</button>
@@ -486,15 +478,14 @@ function toDateInput(value) {
 
 function renderOrdersTab() {
    const statusPriority = {
-       "Đặt hàng": 0,
-       "Đã nhận đơn": 1,
-       "Đã vận chuyển": 2,
-       "Hoàn thành chuyến": 3,
-       "Giao hàng thất bại": 4,
-       "Từ chối đơn hàng": 5
+       "Chờ xác nhận": 0,
+       "Đang giao": 1,
+       "Đã giao": 2,
+       "Đã hủy": 3
    };
    const sortedOrders = getOrders().sort((first, second) => {
-       const priorityDifference = (statusPriority[first.status] ?? 1) - (statusPriority[second.status] ?? 1);
+       const priorityDifference = (statusPriority[normalizeOrderStatus(first.status)] ?? 1)
+           - (statusPriority[normalizeOrderStatus(second.status)] ?? 1);
        if (priorityDifference !== 0) return priorityDifference;
        return new Date(second.createdAt).getTime() - new Date(first.createdAt).getTime();
    });
@@ -726,12 +717,16 @@ function deleteProduct(id) {
 }
 
 function updateOrderStatus(orderId, status, location, estimatedDelivery) {
-   if (status === "Đã vận chuyển" && (!location || !estimatedDelivery)) {
-       alert("Vui lòng nhập vị trí hiện tại và ngày dự kiến giao hàng.");
-       return;
-   }
+    if (!ORDER_STATUSES.includes(status)) {
+        alert("Trạng thái đơn hàng không hợp lệ.");
+        return;
+    }
+    if (status === "Đang giao" && (!location || !estimatedDelivery)) {
+        alert("Vui lòng nhập vị trí hiện tại và ngày dự kiến giao hàng.");
+        return;
+    }
 
-   const orders = getOrders();
+    const orders = getOrders();
    const updatedAt = new Date().toISOString();
    const nextOrders = orders.map((order) => {
        if (String(order.id) !== String(orderId)) return order;
@@ -739,7 +734,7 @@ function updateOrderStatus(orderId, status, location, estimatedDelivery) {
        const trackingHistory = Array.isArray(order.trackingHistory) && order.trackingHistory.length
            ? order.trackingHistory
            : [{
-               status: order.status,
+               status: normalizeOrderStatus(order.status),
                location: order.currentLocation || "Đơn hàng đã được tạo",
                estimatedDelivery: order.estimatedDelivery || "",
                updatedAt: order.createdAt || updatedAt

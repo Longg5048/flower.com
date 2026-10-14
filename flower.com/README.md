@@ -12,6 +12,9 @@ flowchart LR
 	Scripts --> Catalog["flower.json"]
 	Scripts <--> Storage[(localStorage)]
 	Admin["admin.js"] -->|CRUD sản phẩm| API[MockAPI]
+	Checkout["checkout.html / placeorder.html"] -->|Tạo đơn, trạng thái Chờ xác nhận| Storage
+	AdminOrders["quanly_donhang · Quản lý đơn hàng"] <-->|Cập nhật Chờ xác nhận / Đang giao / Đã giao / Đã hủy| Storage
+	Tracking["tracking.html"] <-->|Tra cứu và xem lịch sử| Storage
 	Product["product.js"] --> Names["product-names.js"]
 	Product --> Currency["currency.js"]
 	Names --> UI[Giao diện]
@@ -38,7 +41,7 @@ flowchart LR
 - Đăng nhập email/mật khẩu dùng Firebase Authentication khi provider được bật. Nếu Firebase chưa bật Email/Password (hoặc chưa cấu hình), website lưu tài khoản demo trong `localStorage` để dùng trên cùng trình duyệt; dữ liệu không đồng bộ và mật khẩu demo không được mã hóa, vì vậy không dùng mật khẩu thật cho chế độ này. Tài khoản demo cũ cũng được thử trên đúng trình duyệt đã lưu tài khoản đó.
 - Đăng nhập Google dùng Firebase Authentication và cần bật Google provider, cấu hình Firebase Web App cùng domain được phép trong Firebase Console.
 - Nút tài khoản trên các trang cửa hàng mở trang hồ sơ khi đã đăng nhập; nếu chưa có phiên thì mở trang đăng nhập.
-- Checkout hiện là luồng minh họa phía frontend; không có xử lý thanh toán hoặc lưu đơn hàng phía máy chủ.
+- Checkout hiện là luồng minh họa phía frontend; đơn hàng được lưu trong `localStorage`, không có xử lý thanh toán hoặc lưu đơn hàng phía máy chủ. Đơn mới ở trạng thái **Chờ xác nhận**; quản trị viên có thể cập nhật thành **Đang giao**, **Đã giao** hoặc **Đã hủy**. Khách tra cứu đơn bằng mã đơn hàng và số điện thoại trên trang theo dõi.
 - `admin.js` gọi API MockAPI riêng để CRUD catalog quản trị.
 - Trang `/owner.html` và API cấp/gỡ quyền admin hoạt động trên bản Vercel có cấu hình Firebase Admin. Xem [`../ADMIN-SETUP.md`](../ADMIN-SETUP.md) để cấu hình.
 - `product-names.js` chỉ ánh xạ tên sản phẩm khi hiển thị. `currency.js` định dạng giá catalog sang VND; catalog/API tiếp tục lưu giá nguồn bằng USD. Tỷ giá là giá trị snapshot cấu hình trong mã nguồn.

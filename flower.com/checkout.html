@@ -3,146 +3,15 @@
 
 <head>
   <meta charset="UTF-8">
-  <meta http-equiv="X-UA-Compatible" content="IE=edge">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Thanh toán</title>
-  <link rel="stylesheet" href="./headder.css?v=2">
-  <link rel="stylesheet" href="./index.css">
-  <link rel="stylesheet" href="./styles/dropdown.css">
-  <link rel="stylesheet" href="./styles/cart.css">
-  <link rel="stylesheet" href="./styles/checkout.css">
+  <link rel="stylesheet" href="./store-header.css?v=1">
+  <link rel="stylesheet" href="./checkout.css?v=2">
   <link rel="stylesheet" href="./store-footer.css?v=2">
 </head>
 
 <body>
-  <div id="headder">
-    <div id="img-link">
-      <div>
-        <a href="#"><img class="brand-logo" src="./images/flowerflow-logo.png"
-            alt="Flowerflow" />
-        </a>
-      </div>
-      <div>
-        <img style="width: 100px"
-          src="https://images.contentstack.io/v3/assets/blt95e0138311135214/bltac334446d6f9e89c/5f96fc4f2425cd7a8af6845e/pmall_svg-logo-v2.svg?height=32&width=78"
-          alt="" />
-      </div>
-      <div>
-        <img
-          src="https://images.contentstack.io/v3/assets/blt95e0138311135214/bltf0b1021465476e4f/5f08974b0d1d2008538ce15a/SharisLogo_r.svg?height=32&width=78"
-          alt="" />
-      </div>
-      <div>
-        <img
-          src="https://images.contentstack.io/v3/assets/blt95e0138311135214/bltac303abaae751c40/5f08974af394777f87099a07/18b-logo-v2.svg?height=32&width=78"
-          alt="" />
-      </div>
-      <div>
-        <img
-          src="https://images.contentstack.io/v3/assets/blt95e0138311135214/blt71adcb0696952e83/5f08974baa5d1801639286b4/sch-logo-v2.svg?height=32&width=78"
-          alt="" />
-      </div>
-      <div>
-        <img
-          src="https://images.contentstack.io/v3/assets/blt95e0138311135214/bltef2e14ec247ab827/5f08974a2cd8e87f92bdd257/fb-logo-v2.svg?height=32&width=78"
-          alt="" />
-      </div>
-      <div>
-        <img
-          src="https://images.contentstack.io/v3/assets/blt95e0138311135214/blte1e2eb25cfd09fb6/5f08974a91afb901b86d5251/cco-logo-v2.svg?height=32&width=78"
-          alt="" />
-      </div>
-      <div>
-        <img
-          src="https://images.contentstack.io/v3/assets/blt95e0138311135214/bltf9903ccf2408c217/5f0897552cd8e87f92bdd25b/tpf-logo-v2.svg?height=32&width=78"
-          alt="" />
-      </div>
-      <div>
-        <img
-          src="https://images.contentstack.io/v3/assets/blt95e0138311135214/blt7ef824d3f9f5074d/5f0897558b0e59084c9f7574/wlf-logo-v2.svg?height=32&width=78"
-          alt="" />
-      </div>
-      <div>
-        <img
-          src="https://images.contentstack.io/v3/assets/blt95e0138311135214/blta2ba2ac7606f6c15/5f08974bceebbf7e87c30215/sy-logo-v2.svg?height=32&width=78"
-          alt="" />
-      </div>
-      <div>
-        <img style="width: 85px; padding-top: 10px"
-          src="https://images.contentstack.io/v3/assets/blt0281495b20b504a0/blta4f709f645453ff0/61b4eeeea000c90ecc6e15bd/VC_Logo_w_tag.svg?height=32&width=78"
-          alt="" />
-      </div>
-    </div>
-
-    <div id="nav">
-      <div id="nav-left">
-        <img
-          src="https://images.contentstack.io/v3/assets/bltdd99f24e8a94d536/bltce6d6c480577e10e/5d4866eff9ece57fa9a82245/flowers.png?quality=60&auto=webp&optimize={medium}"
-          alt="" />
-      </div>
-      <div id="nav-center">
-        <input type="text" aria-label="Tìm kiếm hoa theo tên hoặc mã sản phẩm" placeholder="Tìm hoa / mã" />
-        <button>TÌM KIẾM</button>
-      </div>
-      <div id="nav-right">
-        <!-- <i class="fa-regular fa-user"></i>
-                    <i class="fa-regular fa-heart"></i>-->
-        <div class="signin">
-          <i><img
-              src="https://images.contentstack.io/v3/assets/bltdd99f24e8a94d536/blt88337dc20d1d8278/5e178293942caf0fc36b77ab/Header-Icon-PWA-profile.svg"
-              alt="" />
-          </i>
-          <h5>Đăng nhập</h5>
-        </div>
-        <a class="favorite-nav" href="./wish.html" aria-label="Yêu thích">
-          <span class="nav-icon" aria-hidden="true">
-            <svg viewBox="0 0 24 24"><path d="M20.8 8.8c0 5.2-8.8 11-8.8 11s-8.8-5.8-8.8-11a4.7 4.7 0 0 1 8.8-2.2 4.7 4.7 0 0 1 8.8 2.2Z"/></svg>
-          </span>
-          <h5>Yêu thích <span class="nav-count favorite-count">0</span></h5>
-        </a>
-        <div class="orders">
-          <i><img
-              src="https://images.contentstack.io/v3/assets/bltdd99f24e8a94d536/bltd7f3af8e242d37c1/5e1782936430b50f03d6ccc3/Header-Icon-PWA-truck.svg?height=25&width=44"
-              alt="" /></i>
-          <!-- <a href="./cart.html"> -->
-            <h5>Đơn hàng</h5>
-          <!-- </a> -->
-        </div>
-        <div class="bag">
-          <!-- <a href="./cart.html"> -->
-            <img
-              src="https://images.contentstack.io/v3/assets/bltdd99f24e8a94d536/blt7888ec93d3d5c1ec/5e17829300c38f0f022d3646/Header-Icon-PWA-bag.svg?height=25&width=44"
-              alt="" />
-            <h5><span id="cartTotal" class="nav-count">0</span> Giỏ hàng</h5>
-          <!-- </a> -->
-        </div>
-      </div>
-    </div>
-
-    <nav class="category-nav" aria-label="Danh mục sản phẩm">
-      <div id="options">
-        <ul>
-          <li id="birthday"><a href="./product.html">Sinh nhật</a></li>
-          <li id="sympathy"><a href="./product.html">Chia buồn</a></li>
-          <li id="occasion"><a href="./product.html">Dịp đặc biệt</a></li>
-          <li id="flowers"><a href="./product.html">Hoa tươi</a></li>
-          <li id="plants"><a href="./product.html">Cây cảnh</a></li>
-          <li id="gift"><a href="./product.html">Quà tặng</a></li>
-          <li class="category-more">
-            <details>
-              <summary>Khám phá <span aria-hidden="true">⌄</span></summary>
-              <ul>
-                <li id="food"><a href="./product.html">Giỏ quà &amp; thực phẩm</a></li>
-                <li id="delivery"><a href="./product.html">Giao hoa trong ngày</a></li>
-                <li id="sale"><a href="./product.html">Ưu đãi</a></li>
-                <li id="community"><a href="./product.html">Cộng đồng</a></li>
-              </ul>
-            </details>
-          </li>
-        </ul>
-      </div>
-    </nav>
-  </div>
+  <script src="./store-header.js?v=2"></script>
 
   <main class="checkout-page">
     <header class="checkout-heading">
@@ -241,16 +110,21 @@
     </form>
   </main>
   <script src="./store-footer.js?v=2"></script>
-</body>
-<script src="./product-names.js"></script>
-<script src="./currency.js?v=2"></script>
-<script>
-  // Write all necessery JS here
-
+  <script src="./product-names.js"></script>
+  <script src="./currency.js?v=2"></script>
+  <script>
   const CartContainer = document.getElementById("product-container");
   const checkoutForm = document.getElementById("checkout-form");
   const checkoutMessage = document.getElementById("checkout-message");
   let Cart = JSON.parse(localStorage.getItem("cart") || "[]");
+
+  function hasOverstockItem() {
+    return Cart.some((product) => {
+      const stock = Number(product.stockQuantity);
+      return Number.isFinite(stock) && stock >= 0
+        && Math.max(1, Number(product.quantity) || 1) > stock;
+    });
+  }
 
   function saveCart() {
     localStorage.setItem("cart", JSON.stringify(Cart));
@@ -339,13 +213,9 @@
 
     const isCartEmpty = Cart.length === 0;
     document.getElementById("checkout-empty").hidden = !isCartEmpty;
-    const hasOverstockItem = Cart.some((product) => {
-      const stock = Number(product.stockQuantity);
-      return Number.isFinite(stock) && stock >= 0
-        && Math.max(1, Number(product.quantity) || 1) > stock;
-    });
-    checkoutForm.querySelector(".checkout-submit").disabled = isCartEmpty || hasOverstockItem;
-    if (hasOverstockItem) {
+    const overstocked = hasOverstockItem();
+    checkoutForm.querySelector(".checkout-submit").disabled = isCartEmpty || overstocked;
+    if (overstocked) {
       checkoutMessage.textContent = "Giảm số lượng sản phẩm vượt tồn kho trước khi đặt hàng.";
     } else if (checkoutMessage.textContent.includes("tồn kho")) {
       checkoutMessage.textContent = "";
@@ -363,11 +233,7 @@
       checkoutMessage.textContent = "Giỏ hàng đang trống. Hãy chọn hoa trước khi đặt hàng.";
       return;
     }
-    if (Cart.some((product) => {
-      const stock = Number(product.stockQuantity);
-      return Number.isFinite(stock) && stock >= 0
-        && Math.max(1, Number(product.quantity) || 1) > stock;
-    })) {
+    if (hasOverstockItem()) {
       checkoutMessage.textContent = "Giảm số lượng sản phẩm vượt tồn kho trước khi đặt hàng.";
       return;
     }
@@ -389,18 +255,6 @@
       checkoutMessage.textContent = "Không thể lưu thông tin đặt hàng. Vui lòng thử lại.";
     }
   });
-
-  let order = document.querySelector(".orders");
-  order.onclick = () => {
-    location.href = "./tracking.html";
-  };
-
-  let bag = document.querySelector(".bag");
-  bag.onclick = () => {
-    location.href = "./cart.html";
-  };
-
-  // Write all necessery JS here
-</script>
-<script src="./account-nav.js"></script>
+  </script>
+</body>
 </html>

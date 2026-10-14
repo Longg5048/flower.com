@@ -1,20 +1,14 @@
 .nav{
-  /* border: solid; */
   display: flex;
-  
 }
 
 .nav>div{
-  /* border: solid pink; */
   width: 25%;
   padding: 20px;
   margin: 20px;
 }
 
-
-
 #product-container {
-    /* padding: 10%; */
     align-items: center;
     justify-content: center;
     width: 100%;
@@ -22,7 +16,6 @@
     flex-wrap: wrap;
   }
   #product-container > div {
-    /* border: 2px solid grey; */
     border-radius: 20px;
     text-align: center;
     width: 20%;
@@ -31,15 +24,11 @@
     box-shadow: rgba(0, 0, 0, 0.35) 0px 5px 15px;
   }
   #product-container > div > img {
-    /* border: solid; */
-    /* width: 50%; */
     height: 200px;
   }
   #product-container > div > button {
     padding: 6px;
-    /* display: ; */
     margin: 10px;
-    /* width: 100p; */
     color: white;
     border: none;
     border-radius: 3px;
@@ -53,69 +42,33 @@
   }
 
   .checkout .details>div{
-    /* border: 1solid; */
     display: flex;
     align-items: center;
     justify-content: space-around;
   }
 
   .details>div>div{
-    /* border: solid red; */
-    /* width: 50%; */
     text-align: center;
   }
 
   #check{
-    /* border: solid; */
     margin: 50px auto;
     text-align: center;
   }
 
-  #form{
-    border: 2px solid grey;
-    margin: 20px auto;
+  .check-button {
+    display: inline-block;
+    padding: 10px 20px;
+    color: #fff;
+    background-color: hwb(263 27% 39%);
   }
-
-  #form form{
-    /* border: solid; */
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-  }
-
-  #form input{
-    margin: 10px;
-    height: 30px;
-  }
-
-  #form button{
-    margin: 10px;
-  }
-
-
-
-  #payment{
-    border: solid;
-    width: 30%;
-  }
-
-  #payment div{
-    /* border: solid; */
-    height: 50px;
-    align-items: center;
-    margin: 30px auto;
-  }
-
-  #payment button{
-    width: 100%;
-    margin: auto;
-  }
-
 
   .placeorder button{
-    /* border: solid; */
-    background-color: #fc2779;
     width: 100%;
+    padding: 10px 20px;
+    border: none;
+    color: #fff;
+    background-color: #fc2779;
   }
 
 @media (max-width: 1100px) {
@@ -162,12 +115,6 @@
     width: auto;
     min-width: 0;
   }
-
-  #form,
-  #payment {
-    width: auto;
-    min-width: 0;
-  }
 }
 
 @media (max-width: 800px) {
@@ -179,9 +126,7 @@
 
   .nav > div,
   #product-container,
-  .checkout,
-  #form,
-  #payment {
+  .checkout {
     grid-column: 1;
   }
 
@@ -204,9 +149,7 @@
     margin: 0 auto;
   }
 
-  .checkout h1,
-  #form h1,
-  #payment h1 {
+  .checkout h1 {
     font-size: 1.25rem;
   }
 

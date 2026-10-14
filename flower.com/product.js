@@ -1,4 +1,3 @@
-
 let products = []
 let cart = []
 let wish = []
@@ -594,71 +593,3 @@ async function fetchAndRenderProducts() {
 }
 
 fetchAndRenderProducts()
-let order = document.querySelector(".orders");
-order.onclick = () => {
-  location.href = "./tracking.html";
-};
-
-
-  // let user = document.querySelector(".signin");
-  // user.onclick = () => {
-  //   location.href = "./login.html";
-  // };
-  // let order = document.querySelector(".orders");
-  // order.onclick = () => {
-  //   location.href = "./cart.html";
-  // };
-  // let shopnow = document.querySelector(".btn");
-  // shopnow.onclick = () => {
-  //   location.href = "./product.html";
-  // };
-  let bag = document.querySelector(".bag");
-  bag.onclick = () => {
-    location.href = "./cart.html";
-  };
-
-
-// let filterBy = document.getElementById("filter")
-// function FilterData(data) {
-//     filterBy.addEventListener("change", (event) => {
-//         let res = filterBy.value;
-//         console.log(res)
-//         if (res == "") {
-//             display(data)
-
-//             console.log(data)
-//         } else if (res == "Basket Of Wishes") {
-//             data = data.filter((element) => {
-//                 return element.title == res
-//             })
-//             display(data)
-//         }
-//         else if (res == "Vibrant Spring Basket") {
-//             data = data.filter((element) => {
-//                 return element.title == res
-//             })
-//             display(data)
-//         }
-//         // display(data)
-//         //   fetch()
-//         // FilterData()
-//         // FilterData(data.flower)
-//     })
-// }
-
-
-
-// function FilterData(data) {
-//   let filterValue = filterBy.value
-//   if (filterValue === "") {
-//     display(data)
-//     console.log(data)
-//   } else {
-//     data = data.filter((element) => {
-//       // it will return boolean value
-//       return element.title == filterValue
-//     })
-//     display(data)
-//   }
-
-// }

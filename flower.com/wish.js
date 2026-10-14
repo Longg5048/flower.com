@@ -116,16 +116,6 @@ function loadWishlist() {
 
 loadWishlist();
 
-let order = document.querySelector(".orders");
-order.onclick = () => {
-  location.href = "./cart.html";
-};
-
-let bag = document.querySelector(".bag");
-bag.onclick = () => {
-  location.href = "./cart.html";
-};
-
 window.addEventListener("storage", (event) => {
   if (event.key === "wish" || event.key === "cart") loadWishlist();
   if (event.key === "flowerInventory") {

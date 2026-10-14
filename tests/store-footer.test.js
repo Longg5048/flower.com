@@ -48,7 +48,7 @@ for (const stylesheet of [
   "login.css",
   "product.css",
   "store-footer.css",
-  "styles/checkout.css"
+  "checkout.css"
 ]) {
   const styles = fs.readFileSync(path.join(root, stylesheet), "utf8");
   if (styles.includes("Playfair Display")) {

@@ -20,10 +20,6 @@ npm test
 
 Năm bộ kiểm thử dùng API có sẵn của Node.js, không cần cài dependencies.
 
-## Phạm vi repository
-
-Các thư mục `core/`, `homepage/`, `inventory/` và `transactions/` cùng `manage.py`/`requirements.txt` là ứng dụng Django quản lý kho cũ, tách biệt với website FlowerFlow và không thuộc release này.
-
 ## Phát hành
 
 Xem [`RELEASE_NOTES_v0.1.0.md`](RELEASE_NOTES_v0.1.0.md) để biết tính năng và giới hạn của bản phát hành.

@@ -416,7 +416,7 @@ function renderOrderCard(order, showCompletionAction = true) {
            <div class="order-product-list">
                ${items.map((item) => {
                    const product = getProductById(item.id) || {};
-                   const image = item.image || product.image || "https://images.contentstack.io/v3/assets/bltdd99f24e8a94d536/bltce6d6c480577e10e/5d4866eff9ece57fa9a82245/flowers.png?quality=60&auto=webp&optimize={medium}";
+                   const image = item.image || product.image || "./images/flowerflow-logo.png";
                    return `
                        <div class="product-card">
                            <img src="${image}" alt="${item.title}">
@@ -1189,3 +1189,44 @@ window.addEventListener("flowerinventorychange", () => {
 });
 
 initializeAdmin();
+
+(() => {
+    const main = document.querySelector("main");
+    const ordersPage = document.getElementById("orders_page");
+    if (!main || !ordersPage) return;
+
+    const addTrackingCard = () => {
+        const dashboard = main.querySelector(".summary");
+        if (!dashboard || dashboard.querySelector("[data-dashboard-tracking]")) return;
+
+        let orders = [];
+        try {
+            orders = JSON.parse(localStorage.getItem("flowerOrders") || "[]");
+        } catch {
+            orders = [];
+        }
+
+        const activeOrders = orders.filter((order) =>
+            !["Hoàn thành chuyến", "Từ chối đơn hàng", "Giao hàng thất bại"].includes(order.status)
+        ).length;
+
+        const card = document.createElement("button");
+        card.type = "button";
+        card.className = "summary-card dashboard-tracking-card";
+        card.style.font = "inherit";
+        card.style.textAlign = "left";
+        card.style.cursor = "pointer";
+        card.dataset.dashboardTracking = "true";
+        card.setAttribute("aria-label", `Theo dõi ${activeOrders} đơn hàng đang xử lý`);
+        card.innerHTML = `
+            <h3>Theo dõi đơn hàng</h3>
+            <div class="value">${activeOrders}</div>
+            <small>Đơn hàng đang xử lý · Nhấn để xem chi tiết</small>
+        `;
+        card.addEventListener("click", () => ordersPage.click());
+        dashboard.append(card);
+    };
+
+    addTrackingCard();
+    new MutationObserver(addTrackingCard).observe(main, { childList: true, subtree: true });
+})();

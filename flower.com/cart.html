@@ -189,7 +189,6 @@
     let CartContainer = document.getElementById("product-container");
 
     let Cart = JSON.parse(localStorage.getItem("cart")) || [];
-    console.log(Cart)
     function DisplayProduct() {
       const cartTotal = document.getElementById("cartTotal");
       cartTotal.textContent = Cart.length;

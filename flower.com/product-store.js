@@ -20,9 +20,11 @@
         const price = rawPrice > 10000
             ? (typeof usdFromVnd === "function" ? usdFromVnd(rawPrice) : rawPrice / 25949.123093)
             : rawPrice;
+        const title = String(product.title ?? "Sản phẩm").trim();
+        const description = String(product.description ?? "").trim();
         return {
             id: Number.isFinite(numericId) && numericId > 0 ? numericId : String(rawId ?? Date.now()),
-            title: String(product.title ?? "Sản phẩm").trim(),
+            title,
             price,
             quantity: Number(product.quantity ?? product.stock ?? 10),
             image: product.image || "",
@@ -31,25 +33,38 @@
             categoryKey: String(product.categoryKey || "").trim(),
             sameDayDelivery: product.sameDayDelivery === true,
             onSale: product.onSale === true,
-            description: product.description || ""
+            description: description.includes("?")
+                ? `${title} được tuyển chọn và sắp xếp tỉ mỉ, phù hợp làm quà tặng cho những dịp đặc biệt. Màu sắc và chủng loại hoa có thể thay đổi nhẹ theo mùa.`
+                : description
         };
     }
 
     function deduplicateProducts(products) {
         const uniqueProducts = new Map();
         (Array.isArray(products) ? products : []).map(normalizeProduct).forEach((product) => {
-            const title = product.title.toLocaleLowerCase("vi");
-            const existing = uniqueProducts.get(title);
-            if (!existing || Number(product.id) < Number(existing.id)) {
-                uniqueProducts.set(title, product);
+            const imageKey = String(product.image || "").trim().replace(/\\/g, "/").toLocaleLowerCase("vi");
+            const identity = imageKey || product.title.toLocaleLowerCase("vi");
+            const existing = uniqueProducts.get(identity);
+            const productId = Number(product.id);
+            const existingId = Number(existing?.id);
+            if (!existing || (Number.isFinite(productId) && (!Number.isFinite(existingId) || productId < existingId))) {
+                uniqueProducts.set(identity, product);
             }
         });
         return Array.from(uniqueProducts.values());
     }
 
     function mergeCatalogProducts(existing = [], catalog = []) {
+        const catalogById = new Map((Array.isArray(catalog) ? catalog : []).map((item) => {
+            const product = normalizeProduct(item);
+            return [String(product.id), product];
+        }));
         const merged = new Map((Array.isArray(existing) ? existing : []).map((item) => {
             const product = normalizeProduct(item);
+            const catalogProduct = catalogById.get(String(product.id));
+            if (product.title.includes("?") && catalogProduct && !catalogProduct.title.includes("?")) {
+                product.title = catalogProduct.title;
+            }
             return [String(product.id), product];
         }));
         (Array.isArray(catalog) ? catalog : []).forEach((item) => {
@@ -246,7 +261,7 @@
             const localProducts = readProducts();
             let catalog = [];
             try {
-                const response = await fetch("./flower.json");
+                const response = await fetch("./flower.json?v=2");
                 if (response.ok) {
                     const data = await response.json();
                     catalog = Array.isArray(data.flower) ? data.flower.map((item) => ({ ...item, quantity: 10 })) : [];

@@ -43,12 +43,12 @@ Currency --> UI
 - Nút tài khoản trên các trang cửa hàng mở trang hồ sơ khi đã đăng nhập; nếu chưa có phiên thì mở trang đăng nhập.
 - Checkout hiện là luồng minh họa phía frontend; đơn hàng được lưu trong `localStorage`, không có xử lý thanh toán hoặc lưu đơn hàng phía máy chủ. Đơn mới ở trạng thái **Chờ xác nhận**; quản trị viên có thể cập nhật thành **Đang giao**, **Đã giao** hoặc **Đã hủy**. Khách tra cứu đơn bằng mã đơn hàng và số điện thoại trên trang theo dõi.
 - `admin.js` gọi API MockAPI riêng để CRUD catalog quản trị.
-- Trang `/owner.html` và API cấp/gỡ quyền admin hoạt động trên bản Vercel có cấu hình Firebase Admin. Xem [`../core/ADMIN-SETUP.md`](../core/ADMIN-SETUP.md) để cấu hình.
+- Trang `/owner.html` và API cấp/gỡ quyền admin hoạt động trên bản Vercel có cấu hình Firebase Admin. Xem [`../ADMIN-SETUP.md`](../ADMIN-SETUP.md) để cấu hình.
 - Product names and descriptions are stored directly in `flower.json` in Vietnamese. `currency.js` formats catalog prices as VND; catalog/API prices remain in USD.
 
 ### Chạy và triển khai
 
-Vì ứng dụng tĩnh có tải JSON bằng `fetch`, hãy chạy qua máy chủ HTTP cục bộ. Để triển khai trang cùng API quản trị, cấu hình Vercel theo hướng dẫn trong [`../core/ADMIN-SETUP.md`](../core/ADMIN-SETUP.md).
+Vì ứng dụng tĩnh có tải JSON bằng `fetch`, hãy chạy qua máy chủ HTTP cục bộ. Để triển khai trang cùng API quản trị, cấu hình Vercel theo hướng dẫn trong [`../ADMIN-SETUP.md`](../ADMIN-SETUP.md).
 
 ### Cấu hình Firebase Authentication
 

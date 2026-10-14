@@ -22,7 +22,7 @@ Sáu bộ kiểm thử dùng API có sẵn của Node.js, không cần cài depe
 
 ## Phạm vi repository
 
-Các thư mục `core/`, `homepage/`, `inventory/` và `transactions/` cùng `manage.py`/`requirements.txt` là ứng dụng Django quản lý kho cũ, tách biệt với website FlowerFlow và không thuộc release này. App `shop/` bổ sung cơ sở dữ liệu cho cửa hàng trực tuyến (xem [`DATABASE.md`](DATABASE.md)). Để chạy ứng dụng cũ, cần đặt `DJANGO_SECRET_KEY`; `DJANGO_DEBUG` mặc định tắt và danh sách host đọc từ `DJANGO_ALLOWED_HOSTS`.
+Repository chỉ chứa website FlowerFlow (`flower.com/`) và bộ kiểm thử (`tests/`). Ứng dụng Django quản lý kho cũ đã được tách sang nhánh `django-backend`. Hướng dẫn cấu hình trang quản trị trên Vercel nằm trong [`ADMIN-SETUP.md`](ADMIN-SETUP.md).
 
 ## Phát hành
 

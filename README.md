@@ -6,7 +6,7 @@ FlowerFlow là website cửa hàng hoa tĩnh, xây dựng bằng HTML, CSS và J
 
 1. Cài Python 3 hoặc dùng máy chủ HTTP tĩnh tương đương.
 2. Mở terminal tại thư mục `flower.com` và chạy `python -m http.server 8000`.
-3. Mở <http://localhost:8000> trong trình duyệt.
+3. Mở <https://flower-com-six.vercel.app/owner.html> trong trình duyệt.
 
 Không mở trang trực tiếp bằng `file://`, vì website tải catalog JSON bằng `fetch`.
 

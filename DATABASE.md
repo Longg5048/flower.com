@@ -7,6 +7,16 @@ The Django project uses SQLite at `db.sqlite3` in the repository root. The `shop
 - `Order`: contact details, delivery address snapshot, order/payment statuses, and totals.
 - `OrderItem`: purchased product and price snapshots so order history remains meaningful if a product changes or is removed.
 
+Requires Python 3.10 or newer. Install the dependencies and set a secret key (any random string for local development):
+
+```powershell
+python -m venv .venv
+.venv\Scripts\activate
+pip install -r requirements.txt
+$env:DJANGO_SECRET_KEY = "dev-only-secret"
+$env:DJANGO_DEBUG = "true"
+```
+
 Create the tables and import the catalog:
 
 ```powershell

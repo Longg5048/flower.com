@@ -36,7 +36,7 @@
             <h2 class="align-middle">You are already logged in, {{ request.user.username }}!</h2>
             <div class="border-top pt-3 align-middle"> <br>
                 <a class="btn ghost-blue" href="{% url 'home' %}">Go back home</a> <br><br>
-                <a class="btn ghost-red" href="{% url 'logout' %}">Log Out</a>
+                <form class="logout-form" method="post" action="{% url 'logout' %}">{% csrf_token %}<button type="submit" class="btn ghost-red">Log Out</button></form>
             </div>
         
         {% else %}

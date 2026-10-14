@@ -87,7 +87,7 @@
                         {% if request.user.is_superuser %}
                             <li> <a class="sidebar-text sidebar-subitem sidebar-button" href="{% url 'admin:index' %}">Admin Page</a> </li>
                         {% endif %}
-                            <li> <a class="sidebar-text sidebar-subitem sidebar-button" href="{% url 'logout' %}">Đăng xuất</a> </li>
+                            <li> <form class="logout-form" method="post" action="{% url 'logout' %}">{% csrf_token %}<button type="submit" class="logout-button sidebar-text sidebar-subitem sidebar-button">Đăng xuất</button></form> </li>
                     </ul>
                 </li>
 

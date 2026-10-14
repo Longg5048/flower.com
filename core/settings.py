@@ -48,8 +48,7 @@ INSTALLED_APPS = [
 
     'widget_tweaks',                            # uses 'django-widget-tweaks' app
     'crispy_forms',                             # uses 'django-crispy-forms' app
-    'crispy_bootstrap4',
-    'login_required',                           # uses 'django-login-required-middleware' app
+    'crispy_bootstrap4',                        # uses 'crispy-bootstrap4' template pack
 ]
 
 MIDDLEWARE = [
@@ -124,8 +123,6 @@ TIME_ZONE = 'UTC'
 
 USE_I18N = True
 
-USE_L10N = True
-
 USE_TZ = True
 
 
@@ -133,6 +130,8 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/3.0/howto/static-files/
 
 STATIC_URL = '/static/'
+
+DEFAULT_AUTO_FIELD = 'django.db.models.AutoField'      # matches the primary keys in existing migrations
 
 CRISPY_TEMPLATE_PACK = 'bootstrap4'                     # bootstrap template crispy-form uses
 

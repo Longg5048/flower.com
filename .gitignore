@@ -10,10 +10,7 @@ serviceAccountKey.json
 *.service-account.json
 *-firebase-adminsdk-*.json
 
-# Django: auto-generated migrations (except the shop app) and local database
-**/migrations/**
-!shop/migrations/
-!shop/migrations/*.py
+# Django local database
 db.sqlite3
 db.sqlite3-journal
 local_settings.py

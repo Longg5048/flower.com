@@ -15,11 +15,13 @@
         </div>
         <div class="header-actions">
             <span class="today-label">{{ today|date:"d/m/Y" }}</span>
-            <a class="user-chip" href="{% url 'logout' %}" aria-label="Đăng xuất">
-                <span class="user-avatar">{{ request.user.username|first|upper }}</span>
-                <span>{{ request.user.username }}</span>
-                <span class="signout-mark" aria-hidden="true">↗</span>
-            </a>
+            <form class="logout-form" method="post" action="{% url 'logout' %}">{% csrf_token %}
+                <button type="submit" class="logout-button user-chip" aria-label="Đăng xuất">
+                    <span class="user-avatar">{{ request.user.username|first|upper }}</span>
+                    <span>{{ request.user.username }}</span>
+                    <span class="signout-mark" aria-hidden="true">↗</span>
+                </button>
+            </form>
         </div>
     </header>
 

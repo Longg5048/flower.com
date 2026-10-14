@@ -296,11 +296,9 @@ let selectedProduct = null
 const pageParams = new URLSearchParams(window.location.search)
 const initialSearch = pageParams.get("search") || pageParams.get("q") || ""
 const initialFlowerType = pageParams.get("flower") || ""
+let initialCategoryApplied = false
 
 if (initialSearch) searchInput.value = initialSearch
-if ([...flowerTypeSelect.options].some((option) => option.value === initialFlowerType)) {
-  flowerTypeSelect.value = initialFlowerType
-}
 
 const flowerCategoryLabels = {
   rose: "Hoa hồng",
@@ -309,6 +307,58 @@ const flowerCategoryLabels = {
   lavender: "Hoa oải hương",
   gerber: "Hoa đồng tiền",
   mixed: "Hoa tổng hợp"
+}
+
+function getAdminCategories() {
+  try {
+    const categories = JSON.parse(localStorage.getItem("flowerCategories") || "[]")
+    return Array.isArray(categories)
+      ? categories.map((category) => String(category || "").trim()).filter(Boolean)
+      : []
+  } catch (error) {
+    console.error("Không thể tải danh sách phân loại:", error)
+    return []
+  }
+}
+
+function populateFlowerCategoryFilter() {
+  const selectedValue = flowerTypeSelect.value
+  const allCategoriesOption = document.createElement("option")
+  allCategoriesOption.value = ""
+  allCategoriesOption.textContent = "Tất cả phân loại"
+  const categories = [...new Set([
+    ...getAdminCategories(),
+    ...products.map((product) => String(product.category || "").trim())
+  ].filter(Boolean))]
+    .sort((first, second) => first.localeCompare(second, "vi"))
+
+  flowerTypeSelect.replaceChildren(allCategoriesOption)
+  categories.forEach((category) => {
+    const option = document.createElement("option")
+    option.value = `category:${category}`
+    option.textContent = category
+    flowerTypeSelect.append(option)
+  })
+
+  if ([...flowerTypeSelect.options].some((option) => option.value === selectedValue)) {
+    flowerTypeSelect.value = selectedValue
+  }
+
+  if (!initialCategoryApplied) {
+    const requestedCategory = initialFlowerType.startsWith("category:")
+      ? initialFlowerType.slice("category:".length)
+      : flowerCategoryLabels[initialFlowerType] || initialFlowerType
+    const matchingOption = [...flowerTypeSelect.options].find((option) =>
+      option.value.startsWith("category:")
+      && normalizeSearchText(option.textContent) === normalizeSearchText(requestedCategory)
+    )
+    if (matchingOption) {
+      flowerTypeSelect.value = matchingOption.value
+      initialCategoryApplied = true
+    } else if (!initialFlowerType) {
+      initialCategoryApplied = true
+    }
+  }
 }
 
 function getProductCategory(product) {
@@ -494,7 +544,8 @@ function renderProducts() {
       || englishName.includes(searchTerm)
       || vietnameseName.includes(searchTerm)
       || String(product.id).includes(searchTerm)
-    const matchesFlowerType = !flowerType || getFlowerTypes(product).includes(flowerType)
+    const matchesFlowerType = !flowerType
+      || normalizeSearchText(String(product.category || "")) === normalizeSearchText(flowerType.slice("category:".length))
     const priceInVnd = toVndAmount(product.price)
     let matchesPrice = true
 
@@ -551,8 +602,13 @@ searchInput.addEventListener("keydown", (event) => {
 window.addEventListener("storage", (event) => {
   if (event.key === "flowerInventory") {
     products = FlowerInventory.readProducts()
+    populateFlowerCategoryFilter()
     renderProducts()
     navigateToProductDetail()
+  }
+  if (event.key === "flowerCategories") {
+    populateFlowerCategoryFilter()
+    renderProducts()
   }
   if (event.key === "cart" || event.key === "wish") {
     try {
@@ -569,6 +625,7 @@ window.addEventListener("storage", (event) => {
 
 window.addEventListener("flowerinventorychange", (event) => {
   products = event.detail || FlowerInventory.readProducts()
+  populateFlowerCategoryFilter()
   renderProducts()
   navigateToProductDetail()
 })
@@ -582,6 +639,7 @@ async function fetchAndRenderProducts() {
   try {
     products = await FlowerInventory.initialize()
     if (!products.length) throw new Error("Kho sản phẩm hiện chưa có dữ liệu hoặc dịch vụ danh mục đang không khả dụng.")
+    populateFlowerCategoryFilter()
     renderProducts()
     navigateToProductDetail()
   } catch (error) {

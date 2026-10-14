@@ -55,8 +55,6 @@
     <nav class="primary-nav" id="primary-nav" aria-label="Điều hướng chính">
       <a href="./product.html">Danh mục hoa</a>
       <a href="./product.html">Tất cả sản phẩm</a>
-      <a href="./product.html?flower=rose">Hoa hồng</a>
-      <a href="./product.html?flower=orchid">Hoa lan</a>
       <a href="./product.html?flower=mixed">Hoa tổng hợp</a>
       <a href="./index.html#footer">Về Flowerflow</a>
     </nav>
@@ -338,6 +336,7 @@
       image.alt = getVietnameseProductName(product.title);
       image.loading = "lazy";
       name.textContent = getVietnameseProductName(product.title);
+      unitPrice.className = "checkout-unit-price";
       unitPrice.textContent = formatVnd(product.price);
       details.className = "checkout-item-details";
       controls.className = "checkout-quantity";

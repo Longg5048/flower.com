@@ -80,6 +80,11 @@ body {
     font-weight: 700;
 }
 
+.summary-panel .checkout-step {
+    font-family: "DM Sans", Arial, sans-serif;
+    font-variant-numeric: lining-nums;
+}
+
 .checkout-section-heading h2 {
     margin: 0;
     color: #273a32;
@@ -264,6 +269,17 @@ body {
     margin: 4px 0 8px;
     color: #718078;
     font-size: 12px;
+}
+
+.checkout-item-details > .checkout-unit-price,
+.checkout-quantity > span,
+.checkout-item-total {
+    font-family: "DM Sans", Arial, sans-serif;
+    font-variant-numeric: lining-nums tabular-nums;
+}
+
+.checkout-item-details > .checkout-unit-price {
+    color: #718078;
 }
 
 .checkout-quantity {

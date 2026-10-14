@@ -3,6 +3,8 @@
 
 #migrations, you can auto generate them using makemigrations and migrate commands
 **/migrations/**
+!shop/migrations/
+!shop/migrations/*.py
 
 
 # Created by https://www.gitignore.io/api/django

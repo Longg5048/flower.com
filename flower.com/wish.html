@@ -4,150 +4,100 @@
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#fbf8f3">
     <title>Danh sách yêu thích</title>
-    <link rel="stylesheet" href="./wish.css">
-    <link rel="stylesheet" href="headder.css?v=2">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Playfair+Display:wght@500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="./homepage.css?v=1">
+    <link rel="stylesheet" href="./wish.css?v=3">
     <link rel="stylesheet" href="./store-footer.css?v=2">
 </head>
 <body>
-    <div id="headder">
-        <div id="img-link">
-          <div>
-            <a href="#"
-              ><img
-                class="brand-logo"
-                src="./images/flowerflow-logo.png"
-                alt="Flowerflow"
-              />
-            </a>
-          </div>
-          <div>
-            <img
-              style="width: 100px"
-              src="https://images.contentstack.io/v3/assets/blt95e0138311135214/bltac334446d6f9e89c/5f96fc4f2425cd7a8af6845e/pmall_svg-logo-v2.svg?height=32&width=78"
-              alt=""
-            />
-          </div>
-          <div>
-            <img
-              src="https://images.contentstack.io/v3/assets/blt95e0138311135214/bltf0b1021465476e4f/5f08974b0d1d2008538ce15a/SharisLogo_r.svg?height=32&width=78"
-              alt=""
-            />
-          </div>
-          <div>
-            <img
-              src="https://images.contentstack.io/v3/assets/blt95e0138311135214/bltac303abaae751c40/5f08974af394777f87099a07/18b-logo-v2.svg?height=32&width=78"
-              alt=""
-            />
-          </div>
-          <div>
-            <img
-              src="https://images.contentstack.io/v3/assets/blt95e0138311135214/blt71adcb0696952e83/5f08974baa5d1801639286b4/sch-logo-v2.svg?height=32&width=78"
-              alt=""
-            />
-          </div>
-          <div>
-            <img
-              src="https://images.contentstack.io/v3/assets/blt95e0138311135214/bltef2e14ec247ab827/5f08974a2cd8e87f92bdd257/fb-logo-v2.svg?height=32&width=78"
-              alt=""
-            />
-          </div>
-          <div>
-            <img
-              src="https://images.contentstack.io/v3/assets/blt95e0138311135214/blte1e2eb25cfd09fb6/5f08974a91afb901b86d5251/cco-logo-v2.svg?height=32&width=78"
-              alt=""
-            />
-          </div>
-          <div>
-            <img
-              src="https://images.contentstack.io/v3/assets/blt95e0138311135214/bltf9903ccf2408c217/5f0897552cd8e87f92bdd25b/tpf-logo-v2.svg?height=32&width=78"
-              alt=""
-            />
-          </div>
-          <div>
-            <img
-              src="https://images.contentstack.io/v3/assets/blt95e0138311135214/blt7ef824d3f9f5074d/5f0897558b0e59084c9f7574/wlf-logo-v2.svg?height=32&width=78"
-              alt=""
-            />
-          </div>
-          <div>
-            <img
-              src="https://images.contentstack.io/v3/assets/blt95e0138311135214/blta2ba2ac7606f6c15/5f08974bceebbf7e87c30215/sy-logo-v2.svg?height=32&width=78"
-              alt=""
-            />
-          </div>
-          <div>
-            <img
-              style="width: 85px; padding-top: 10px"
-              src="https://images.contentstack.io/v3/assets/blt0281495b20b504a0/blta4f709f645453ff0/61b4eeeea000c90ecc6e15bd/VC_Logo_w_tag.svg?height=32&width=78"
-              alt=""
-            />
-          </div>
-        </div>
-  
-        <div id="nav">
-          <div id="nav-left"><a href="index.html">
-            <img
-              src="https://images.contentstack.io/v3/assets/bltdd99f24e8a94d536/bltce6d6c480577e10e/5d4866eff9ece57fa9a82245/flowers.png?quality=60&auto=webp&optimize={medium}"
-              alt=""
-            /></a>
-          </div>
-          <div id="nav-center">
-            <input type="text" aria-label="Tìm kiếm hoa theo tên hoặc mã sản phẩm" placeholder="Tìm hoa / mã" />
-            <button style="margin-top: 9px;">TÌM KIẾM</button>
-          </div>
-          <div id="nav-right">
-            <!-- <i class="fa-regular fa-user"></i>
-                  <i class="fa-regular fa-heart"></i>-->
-            <div class="signin">
-              <i
-                ><img
-                  src="https://images.contentstack.io/v3/assets/bltdd99f24e8a94d536/blt88337dc20d1d8278/5e178293942caf0fc36b77ab/Header-Icon-PWA-profile.svg"
-                  alt=""
-                />
-              </i>
-              <h5>Đăng nhập</h5>
-            </div>
-            <a class="favorite-nav" href="./wish.html" aria-label="Yêu thích" aria-current="page">
-              <span class="nav-icon" aria-hidden="true">
-                <svg viewBox="0 0 24 24"><path d="M20.8 8.8c0 5.2-8.8 11-8.8 11s-8.8-5.8-8.8-11a4.7 4.7 0 0 1 8.8-2.2 4.7 4.7 0 0 1 8.8 2.2Z"/></svg>
-              </span>
-              <h5>Yêu thích <span class="nav-count favorite-count">0</span></h5>
-            </a>
-            <div class="orders">
-              <i
-                ><img
-                  src="https://images.contentstack.io/v3/assets/bltdd99f24e8a94d536/bltd7f3af8e242d37c1/5e1782936430b50f03d6ccc3/Header-Icon-PWA-truck.svg?height=25&width=44"
-                  alt=""
-              /></i>
-              <h5>Đơn hàng</h5>
-            </div>
-            <div class="bag">
-              <i
-                ><img
-                  src="https://images.contentstack.io/v3/assets/bltdd99f24e8a94d536/blt7888ec93d3d5c1ec/5e17829300c38f0f022d3646/Header-Icon-PWA-bag.svg?height=25&width=44"
-                  alt=""
-              /></i>
-              <h5><span id="cartTotal" class="nav-count">0</span> Giỏ hàng</h5>
-            </div>
-          </div>
-        </div>
-  
-     <main>
-      <h1>Danh sách yêu thích (<span id="wishTotal">0</span>)</h1>
-      <p class="wishlist-message" id="wishlist-message" role="status" aria-live="polite" hidden></p>
-       <div id="container">
-        </div> 
-</main> 
-  
-<script src="./store-footer.js?v=2"></script>
-</body>
+    <div class="announcement">
+        <span>Hoa tươi trao tận tay, yêu thương gửi tận lòng</span>
+        <a href="./product.html">Khám phá bộ sưu tập <span aria-hidden="true">→</span></a>
+    </div>
 
+    <header class="site-header">
+        <div class="header-main">
+            <a class="brand" href="./index.html" aria-label="Flowerflow - Trang chủ">
+                <img src="./images/flowerflow-logo.png" alt="">
+                <span>flowerflow</span>
+            </a>
+
+            <form class="search-form" action="./product.html" method="get" role="search">
+                <label class="sr-only" for="wishlist-search">Tìm hoa và quà tặng</label>
+                <span class="search-icon" aria-hidden="true">
+                    <svg viewBox="0 0 24 24" focusable="false"><circle cx="10.8" cy="10.8" r="6.4"></circle><path d="m16 16 4.2 4.2"></path></svg>
+                </span>
+                <input id="wishlist-search" type="search" name="search" placeholder="Bạn đang tìm loài hoa nào?" autocomplete="off">
+                <button type="submit">Tìm kiếm</button>
+            </form>
+
+            <div class="header-actions">
+                <div class="header-action signin" role="button" tabindex="0">
+                    <span class="action-icon" aria-hidden="true">
+                        <svg viewBox="0 0 24 24" focusable="false"><circle cx="12" cy="8" r="3.5"></circle><path d="M5 20c.6-3.8 2.9-5.8 7-5.8s6.4 2 7 5.8"></path></svg>
+                    </span>
+                    <h5>Tài khoản</h5>
+                </div>
+                <a class="header-action favorite-nav" href="./wish.html" aria-label="Yêu thích" aria-current="page">
+                    <span class="action-icon" aria-hidden="true">
+                        <svg viewBox="0 0 24 24" focusable="false"><path d="M20.8 8.8c0 5.2-8.8 11-8.8 11s-8.8-5.8-8.8-11a4.7 4.7 0 0 1 8.8-2.2 4.7 4.7 0 0 1 8.8 2.2Z"></path></svg>
+                        <span class="favorite-count">0</span>
+                    </span>
+                    <span>Yêu thích</span>
+                </a>
+                <a class="header-action orders" href="./tracking.html">
+                    <span class="action-icon" aria-hidden="true">
+                        <svg viewBox="0 0 24 24" focusable="false"><path d="M3 6.5h11v11H3zM14 10h4l3 3v4h-7z"></path><circle cx="7.5" cy="18.5" r="1.8"></circle><circle cx="17.5" cy="18.5" r="1.8"></circle></svg>
+                    </span>
+                    <span>Đơn hàng</span>
+                </a>
+                <a class="header-action bag" href="./cart.html">
+                    <span class="action-icon bag-icon" aria-hidden="true">
+                        <svg viewBox="0 0 24 24" focusable="false"><path d="M5 8h14l1 12H4L5 8Z"></path><path d="M9 9V6a3 3 0 0 1 6 0v3"></path></svg>
+                        <span id="cartTotal">0</span>
+                    </span>
+                    <span>Giỏ hàng</span>
+                </a>
+            </div>
+
+            <button class="menu-toggle" type="button" aria-expanded="false" aria-controls="primary-nav">
+                <span class="sr-only">Mở menu</span>
+                <span></span><span></span><span></span>
+            </button>
+        </div>
+
+        <nav class="primary-nav" id="primary-nav" aria-label="Điều hướng chính">
+            <a href="./index.html#flower-categories">Danh mục hoa</a>
+            <a href="./product.html">Tất cả sản phẩm</a>
+            <a href="./product.html?flower=rose">Hoa hồng</a>
+            <a href="./product.html?flower=orchid">Hoa lan</a>
+            <a href="./product.html?flower=mixed">Hoa tổng hợp</a>
+            <a href="./index.html#footer">Về Flowerflow</a>
+        </nav>
+    </header>
+
+    <main class="wishlist-page">
+        <section class="wishlist-heading">
+            <p class="wishlist-eyebrow">FLOWERFLOW · YÊU THÍCH</p>
+            <h1>Danh sách yêu thích (<span id="wishTotal">0</span>)</h1>
+            <p>Lưu lại những bó hoa bạn yêu thích để dễ dàng tìm thấy sau này.</p>
+        </section>
+        <p class="wishlist-message" id="wishlist-message" role="status" aria-live="polite" hidden></p>
+        <div id="container"></div>
+    </main>
+
+    <script src="./product-names.js"></script>
+    <script src="./currency.js?v=2"></script>
+    <script src="./product-store.js?v=4"></script>
+    <script src="./shopping-store.js?v=1"></script>
+    <script src="./wish.js?v=2"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="./account-nav.js"></script>
+    <script src="./homepage.js?v=1"></script>
+    <script src="./store-footer.js?v=2"></script>
+</body>
 </html>
-<script src="./product-names.js"></script>
-<script src="./currency.js?v=2"></script>
-<script src="./product-store.js?v=4"></script>
-<script src="./shopping-store.js?v=1"></script>
-<script src="./wish.js?v=2"></script>
-<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-<script src="./account-nav.js"></script>

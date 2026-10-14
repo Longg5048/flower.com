@@ -44,6 +44,7 @@ INSTALLED_APPS = [
     'homepage',
     'inventory',
     'transactions',
+    'shop.apps.ShopConfig',
 
     'widget_tweaks',                            # uses 'django-widget-tweaks' app
     'crispy_forms',                             # uses 'django-crispy-forms' app

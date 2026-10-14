@@ -3,6 +3,7 @@ import { ORDER_STATUSES, normalizeOrderStatus } from "./order-status.js";
 
 let productPage = document.getElementById("product_page");
 let categoriesPage = document.getElementById("categories_page");
+let offersPage = document.getElementById("offers_page");
 let ordersPage = document.getElementById("orders_page");
 let reviewsPage = document.getElementById("reviews_page");
 let messagesPage = document.getElementById("messages_page");
@@ -19,7 +20,8 @@ const STORAGE_KEYS = {
    orders: "flowerOrders",
    reviews: "flowerReviews",
    messages: "flowerMessages",
-   categories: "flowerCategories"
+   categories: "flowerCategories",
+   offers: "flowerPromotions"
 };
 
 function moneyFormat(value) {
@@ -162,6 +164,15 @@ function saveCategories(categories) {
        categories.map((category) => String(category || "").trim()).filter(Boolean)
    )];
    localStorage.setItem(STORAGE_KEYS.categories, JSON.stringify(normalizedCategories));
+}
+
+function getOffers() {
+   const offers = JSON.parse(localStorage.getItem(STORAGE_KEYS.offers) || "[]");
+   return Array.isArray(offers) ? offers : [];
+}
+
+function saveOffers(offers) {
+   localStorage.setItem(STORAGE_KEYS.offers, JSON.stringify(offers));
 }
 
 function getOrders() {
@@ -380,6 +391,122 @@ function renderCategoriesTab() {
    `;
 }
 
+function renderOffersTab() {
+   const offers = getOffers();
+   const products = getProducts();
+   main.innerHTML = `
+       <section class="panel-wrap">
+           <div class="panel">
+               <h2>Thêm ưu đãi</h2>
+               <p class="category-help">Chọn sản phẩm và phần trăm giảm giá. Tiền giảm = giá × số lượng × phần trăm giảm. Nếu một sản phẩm có nhiều ưu đãi đang bật, chỉ ưu đãi cao nhất được áp dụng.</p>
+               <form id="add-offer-form" class="offer-form">
+                   <label>
+                       <span class="field-label">Tên ưu đãi</span>
+                       <input id="offer-name" name="name" type="text" maxlength="80" placeholder="Ví dụ: Ưu đãi mùa hè" required>
+                   </label>
+                   <label>
+                       <span class="field-label">Phần trăm giảm (%)</span>
+                       <input id="offer-percent" name="percent" type="number" min="0.01" max="100" step="0.01" placeholder="10" required>
+                   </label>
+                   <fieldset class="offer-products">
+                       <legend>Chọn sản phẩm áp dụng</legend>
+                       <button class="secondary-btn offer-select-all" data-offer-select-all type="button" ${products.length ? "" : "disabled"}>Chọn tất cả hoa / bỏ chọn tất cả</button>
+                       ${products.map((product) => `
+                           <label class="offer-product-option">
+                               <input type="checkbox" name="productIds" value="${escapeHtml(product.id)}">
+                               <span>${escapeHtml(product.title)}</span>
+                               <small>${formatVnd(product.price)}</small>
+                           </label>
+                       `).join("") || '<p class="empty-state">Chưa có sản phẩm để áp dụng ưu đãi.</p>'}
+                   </fieldset>
+                   <button class="submit-btn" type="submit" ${products.length ? "" : "disabled"}>Tạo ưu đãi</button>
+               </form>
+           </div>
+           <div class="panel">
+               <h2>Danh sách ưu đãi</h2>
+               <div class="offer-list">
+                   ${offers.map((offer) => {
+                       const productCount = Array.isArray(offer.productIds) ? offer.productIds.length : 0;
+                       const appliesToAllProducts = offer.allProducts === true
+                           || (products.length > 0
+                               && products.every((product) => offer.productIds?.some(
+                                   (id) => String(id) === String(product.id)
+                               )));
+                       return `
+                           <article class="offer-row">
+                               <div>
+                                   <strong>${escapeHtml(offer.name)}</strong>
+                                   <span>Giảm ${Number(offer.discountPercent)}% · ${productCount} sản phẩm</span>
+                                   ${appliesToAllProducts ? '<span>Áp dụng cho tất cả hoa</span>' : ""}
+                                   <span class="offer-status ${offer.active ? "is-active" : "is-inactive"}">${offer.active ? "Đang áp dụng" : "Đã tạm dừng"}</span>
+                               </div>
+                               <div class="product-row-actions">
+                                   <button class="secondary-btn" data-offer-action="toggle" data-offer-id="${escapeHtml(offer.id)}" type="button">${offer.active ? "Tạm dừng" : "Kích hoạt"}</button>
+                                   <button class="delete-product" data-offer-action="delete" data-offer-id="${escapeHtml(offer.id)}" type="button">Xóa</button>
+                               </div>
+                           </article>
+                       `;
+                   }).join("") || '<div class="empty-state">Chưa có ưu đãi nào.</div>'}
+               </div>
+           </div>
+       </section>
+   `;
+}
+
+function addOffer(event) {
+   event.preventDefault();
+   const form = event.target;
+   if (!(form instanceof HTMLFormElement)) {
+       console.error("Không thể tạo ưu đãi: biểu mẫu không hợp lệ.");
+       return;
+   }
+   const formData = new FormData(form);
+   const name = String(formData.get("name") || "").trim();
+   const discountPercent = Number(formData.get("percent"));
+   const productIds = formData.getAll("productIds").map(String);
+
+   if (!name || !Number.isFinite(discountPercent) || discountPercent <= 0 || discountPercent > 100) {
+       alert("Vui lòng nhập tên ưu đãi và phần trăm giảm lớn hơn 0%, tối đa 100%.");
+       return;
+   }
+   if (!productIds.length) {
+       alert("Vui lòng chọn ít nhất một sản phẩm áp dụng.");
+       return;
+   }
+
+   const offers = getOffers();
+   offers.push({
+       id: (window.crypto && typeof window.crypto.randomUUID === "function")
+           ? window.crypto.randomUUID()
+           : String(Date.now()),
+       name,
+       discountPercent,
+       productIds,
+       allProducts: productIds.length === getProducts().length,
+       active: true,
+       createdAt: new Date().toISOString()
+   });
+   saveOffers(offers);
+   renderOffersTab();
+}
+
+function updateOffer(offerId, action) {
+   const offers = getOffers();
+   const offer = offers.find((item) => String(item.id) === String(offerId));
+   if (!offer) return;
+
+   if (action === "delete") {
+       if (!window.confirm(`Xóa ưu đãi “${offer.name}”?`)) return;
+       saveOffers(offers.filter((item) => String(item.id) !== String(offerId)));
+   } else {
+       saveOffers(offers.map((item) => String(item.id) === String(offerId)
+           ? { ...item, active: !item.active }
+           : item
+       ));
+   }
+   renderOffersTab();
+}
+
 function addCategory(event) {
    event.preventDefault();
    const input = document.getElementById("category-name");
@@ -491,6 +618,7 @@ function renderOrderCard(order, showCompletionAction = true) {
                    <div class="order-meta">
                        <span>📞 ${order.phone}</span>
                        <span>🕒 ${new Date(order.createdAt).toLocaleString("vi-VN")}</span>
+                       ${order.savings != null ? `<span>🎁 Ưu đãi: ${moneyFormat(order.savings)}</span>` : ""}
                        <span>💰 ${moneyFormat(order.total)}</span>
                    </div>
                </div>
@@ -1072,6 +1200,10 @@ if (categoriesPage) {
    categoriesPage.addEventListener("click", renderCategoriesTab);
 }
 
+if (offersPage) {
+   offersPage.addEventListener("click", renderOffersTab);
+}
+
 if (ordersPage) {
    ordersPage.addEventListener("click", renderOrdersTab);
 }
@@ -1118,6 +1250,22 @@ if (currentUserRole === "owner") {
 }
 
 main.addEventListener("click", (event) => {
+   const selectAllOfferProducts = event.target.closest("[data-offer-select-all]");
+   if (selectAllOfferProducts) {
+       const productCheckboxes = [...main.querySelectorAll('#add-offer-form input[name="productIds"]')];
+       const shouldSelectAll = productCheckboxes.some((checkbox) => !checkbox.checked);
+       productCheckboxes.forEach((checkbox) => {
+           checkbox.checked = shouldSelectAll;
+       });
+       return;
+   }
+
+   const offerActionButton = event.target.closest("[data-offer-action]");
+   if (offerActionButton) {
+       updateOffer(offerActionButton.dataset.offerId, offerActionButton.dataset.offerAction);
+       return;
+   }
+
    const editCategoryButton = event.target.closest(".edit-category");
    if (editCategoryButton) {
        renameCategory(editCategoryButton.dataset.category);
@@ -1237,6 +1385,10 @@ main.addEventListener("submit", (event) => {
 
    if (event.target && event.target.id === "add-category-form") {
        addCategory(event);
+   }
+
+   if (event.target && event.target.id === "add-offer-form") {
+       addOffer(event);
    }
 });
 }

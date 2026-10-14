@@ -94,11 +94,18 @@
           <div id="product-container" class="checkout-items" aria-live="polite"></div>
           <p id="checkout-empty" class="checkout-empty" hidden>Giỏ hàng đang trống. Hãy chọn hoa trước khi đặt hàng.</p>
 
+          <label class="checkout-promotion">
+            <span>Chọn ưu đãi</span>
+            <select id="promotion-select" name="promotionId">
+              <option value="">Không áp dụng ưu đãi</option>
+            </select>
+          </label>
+          <p id="promotion-message" class="checkout-promotion-message">Ưu đãi chỉ áp dụng cho những sản phẩm được chọn trong chương trình.</p>
+
           <dl class="checkout-totals">
             <div><dt>Giá gốc</dt><dd id="originalprice">0 ₫</dd></div>
-            <div><dt>Ưu đãi 5%</dt><dd id="savings">0 ₫</dd></div>
+            <div><dt>Tiền giảm</dt><dd id="savings">0 ₫</dd></div>
             <div><dt>Phí giao hàng</dt><dd id="deliveryCharge">Miễn phí</dd></div>
-            <div><dt>Thuế 10%</dt><dd id="tax">0 ₫</dd></div>
             <div class="checkout-grand-total"><dt>Tổng tiền</dt><dd id="total">0 ₫</dd></div>
           </dl>
 
@@ -111,11 +118,13 @@
   </main>
   <script src="./store-footer.js?v=2"></script>
   <script src="./product-names.js"></script>
-  <script src="./currency.js?v=2"></script>
+  <script src="./currency.js?v=8"></script>
   <script>
   const CartContainer = document.getElementById("product-container");
   const checkoutForm = document.getElementById("checkout-form");
   const checkoutMessage = document.getElementById("checkout-message");
+  const promotionSelect = document.getElementById("promotion-select");
+  const promotionMessage = document.getElementById("promotion-message");
   let Cart = JSON.parse(localStorage.getItem("cart") || "[]");
 
   function hasOverstockItem() {
@@ -125,6 +134,39 @@
         && Math.max(1, Number(product.quantity) || 1) > stock;
     });
   }
+
+  function renderPromotionOptions() {
+    const availablePromotions = getAvailableCartPromotions(Cart);
+    const selectedPromotionId = localStorage.getItem("flowerSelectedPromotion") || "";
+    promotionSelect.replaceChildren(new Option("Không áp dụng ưu đãi", ""));
+
+    availablePromotions.forEach((promotion) => {
+      promotionSelect.add(new Option(
+        `${promotion.name} · Giảm ${Number(promotion.discountPercent)}%${promotionAppliesToAllProducts(promotion) ? " · Tất cả hoa" : ""}`,
+        String(promotion.id)
+      ));
+    });
+
+    const selectionIsAvailable = availablePromotions.some(
+      (promotion) => String(promotion.id) === selectedPromotionId
+    );
+    promotionSelect.value = selectionIsAvailable ? selectedPromotionId : "";
+    if (!selectionIsAvailable && selectedPromotionId) {
+      localStorage.removeItem("flowerSelectedPromotion");
+    }
+    promotionMessage.textContent = availablePromotions.length
+      ? "Ưu đãi chỉ áp dụng cho những sản phẩm được chọn trong chương trình."
+      : "Hiện không có ưu đãi đang áp dụng cho sản phẩm trong giỏ hàng.";
+  }
+
+  promotionSelect.addEventListener("change", () => {
+    if (promotionSelect.value) {
+      localStorage.setItem("flowerSelectedPromotion", promotionSelect.value);
+    } else {
+      localStorage.removeItem("flowerSelectedPromotion");
+    }
+    renderCartSummary(Cart);
+  });
 
   function saveCart() {
     localStorage.setItem("cart", JSON.stringify(Cart));
@@ -216,6 +258,7 @@
     document.getElementById("checkout-empty").hidden = !isCartEmpty;
     const overstocked = hasOverstockItem();
     checkoutForm.querySelector(".checkout-submit").disabled = isCartEmpty || overstocked;
+    renderPromotionOptions();
     if (overstocked) {
       checkoutMessage.textContent = "Giảm số lượng sản phẩm vượt tồn kho trước khi đặt hàng.";
     } else if (checkoutMessage.textContent.includes("tồn kho")) {
@@ -245,6 +288,7 @@
       address: String(formData.get("address") || "").trim(),
       phone: String(formData.get("phone") || "").trim(),
       paymentMethod: formData.get("paymentMethod"),
+      promotionId: promotionSelect.value,
       orderNote: String(formData.get("orderNote") || "").trim()
     };
 
@@ -256,6 +300,13 @@
       checkoutMessage.textContent = "Không thể lưu thông tin đặt hàng. Vui lòng thử lại.";
     }
   });
-  </script>
+
+  window.addEventListener("storage", (event) => {
+    if (event.key === "flowerPromotions" || event.key === "cart") {
+      Cart = JSON.parse(localStorage.getItem("cart") || "[]");
+      DisplayProduct();
+    }
+  });
+</script>
 </body>
 </html>

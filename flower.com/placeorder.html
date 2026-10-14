@@ -22,7 +22,7 @@
 
   <script src="./store-footer.js?v=2"></script>
   <script src="./product-names.js"></script>
-  <script src="./currency.js?v=2"></script>
+  <script src="./currency.js?v=8"></script>
   <script>
     let CartContainer = document.getElementById("product-container");
     let Cart = JSON.parse(localStorage.getItem("cart")) || [];
@@ -45,9 +45,7 @@
 
       const orderId = Date.now();
       const createdAt = new Date().toISOString();
-      const subtotal = Cart.reduce((sum, item) => {
-        return sum + Number(item.price) * Math.max(1, Number(item.quantity) || 1);
-      }, 0);
+      const totals = calculateCartTotals(Cart, checkoutData.promotionId);
       const order = {
         id: orderId,
         customerName,
@@ -64,8 +62,12 @@
           estimatedDelivery: "",
           updatedAt: createdAt
         }],
-        total: toVndAmount(subtotal - subtotal * 0.05 + subtotal * 0.1),
+        subtotal: toVndAmount(totals.subtotal),
+        savings: toVndAmount(totals.savings),
+        tax: 0,
+        total: toVndAmount(totals.total),
         paymentMethod: checkoutData.paymentMethod,
+        promotionId: checkoutData.promotionId || "",
         items: Cart.map((item) => ({
           id: item.id,
           title: item.title,
@@ -96,6 +98,7 @@
 
       localStorage.removeItem("cart");
       localStorage.removeItem("flowerCheckout");
+      localStorage.removeItem("flowerSelectedPromotion");
       alert("Đặt hàng thành công! Đơn hàng đã được gửi tới admin.");
       window.location.href = `./tracking.html?id=${encodeURIComponent(orderId)}`;
     }

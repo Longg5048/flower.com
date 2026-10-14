@@ -1042,6 +1042,16 @@ select{
     text-align: center;
 }
 
+#container .catalog-empty-link {
+    grid-column: 1 / -1;
+    justify-self: center;
+    margin: -18px 16px 36px;
+    color: #385b3d;
+    font-weight: 700;
+    text-decoration: underline;
+    text-underline-offset: 3px;
+}
+
 @media (max-width: 1200px) {
     #container {
         grid-template-columns: repeat(3, minmax(0, 1fr));

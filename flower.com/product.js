@@ -296,10 +296,16 @@ let selectedProduct = null
 const pageParams = new URLSearchParams(window.location.search)
 const initialSearch = pageParams.get("search") || pageParams.get("q") || ""
 const initialFlowerType = pageParams.get("flower") || ""
+const initialCategoryKey = pageParams.get("category") || ""
+const initialCategory = FlowerProductCategories.getCategory(initialCategoryKey)
 
 if (initialSearch) searchInput.value = initialSearch
 if ([...flowerTypeSelect.options].some((option) => option.value === initialFlowerType)) {
   flowerTypeSelect.value = initialFlowerType
+}
+if (initialCategory) {
+  document.getElementById("catalog-title").textContent = initialCategory.title
+  document.querySelector(".catalog-heading > p:last-child").textContent = initialCategory.description
 }
 
 const flowerCategoryLabels = {
@@ -495,6 +501,7 @@ function renderProducts() {
       || vietnameseName.includes(searchTerm)
       || String(product.id).includes(searchTerm)
     const matchesFlowerType = !flowerType || getFlowerTypes(product).includes(flowerType)
+    const matchesCategory = FlowerProductCategories.matchesCategory(product, initialCategoryKey)
     const priceInVnd = toVndAmount(product.price)
     let matchesPrice = true
 
@@ -506,7 +513,7 @@ function renderProducts() {
       matchesPrice = priceInVnd >= 2000000
     }
 
-    return matchesSearch && matchesFlowerType && matchesPrice
+    return matchesSearch && matchesFlowerType && matchesCategory && matchesPrice
   })
 
   switch (sortSelect.value) {
@@ -531,7 +538,19 @@ function renderProducts() {
   }
 
   if (!visibleProducts.length) {
-    container.textContent = "Không tìm thấy sản phẩm phù hợp."
+    const emptyMessage = document.createElement("p")
+    emptyMessage.className = "catalog-empty"
+    emptyMessage.textContent = initialCategory
+      ? `${initialCategory.title}: hiện chưa có sản phẩm phù hợp trong cửa hàng.`
+      : "Không tìm thấy sản phẩm phù hợp."
+    container.replaceChildren(emptyMessage)
+    if (initialCategoryKey) {
+      const allProductsLink = document.createElement("a")
+      allProductsLink.className = "catalog-empty-link"
+      allProductsLink.href = "./product.html"
+      allProductsLink.textContent = "Xem tất cả sản phẩm"
+      container.append(allProductsLink)
+    }
     return
   }
 

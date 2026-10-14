@@ -32,6 +32,9 @@ body {
 }
 
 nav {
+    position: sticky;
+    top: 0;
+    z-index: 1000;
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -44,17 +47,22 @@ nav {
 nav img {
     height: 42px;
     object-fit: contain;
+    flex-shrink: 0;
 }
 
 nav div {
+    flex: 1;
+    min-width: 0;
     display: flex;
     justify-content: flex-end;
     align-items: center;
     gap: 12px;
-    flex-wrap: wrap;
+    flex-wrap: nowrap;
+    overflow-x: auto;
 }
 
 nav p {
+    flex: 0 0 auto;
     padding: 10px 14px;
     border-radius: 10px;
     cursor: pointer;
@@ -63,6 +71,7 @@ nav p {
     font-size: 14px;
     text-align: center;
     min-width: 120px;
+    white-space: nowrap;
     background: rgba(255, 255, 255, 0.1);
     border: 1px solid rgba(255, 255, 255, 0.18);
 }
@@ -76,7 +85,6 @@ nav #owner_page {
 
 nav p:hover {
     background: rgba(255, 255, 255, 0.18);
-    transform: translateY(-1px);
 }
 
 nav .danger-btn {

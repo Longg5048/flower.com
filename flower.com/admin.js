@@ -15,6 +15,11 @@ let currentUser;
 let currentUserRole = "admin";
 let editingProductId = null;
 let productSearchTerm = "";
+let revenueDateFilter = "month";
+const initialRevenueDate = new Date();
+let revenueMonth = `${initialRevenueDate.getFullYear()}-${String(initialRevenueDate.getMonth() + 1).padStart(2, "0")}`;
+let revenueDateStart = "";
+let revenueDateEnd = "";
 
 const STORAGE_KEYS = {
    orders: "flowerOrders",
@@ -29,6 +34,43 @@ function moneyFormat(value) {
        style: "currency",
        currency: "VND"
    }).format(Number(value || 0));
+}
+
+function isOrderPaid(order) {
+   return ["đã thanh toán", "paid"].includes(String(order.paymentStatus || "").trim().toLocaleLowerCase("vi"));
+}
+
+function isOrderDelivered(order) {
+   return normalizeOrderStatus(order.status) === "Đã giao";
+}
+
+function getRevenueOrders(orders) {
+   return orders.filter((order) => isOrderDelivered(order) && isOrderPaid(order));
+}
+
+function localDateKey(value) {
+   const date = new Date(value);
+   if (Number.isNaN(date.getTime())) return "";
+   const localDate = new Date(date.getTime() - date.getTimezoneOffset() * 60000);
+   return localDate.toISOString().slice(0, 10);
+}
+
+function getSelectedRevenueOrders(orders) {
+   const paidOrders = getRevenueOrders(orders);
+   const now = new Date();
+   const today = localDateKey(now);
+
+   return paidOrders.filter((order) => {
+       const dateKey = localDateKey(order.paidAt || order.deliveredAt || order.createdAt);
+       if (!dateKey) return false;
+       if (revenueDateFilter === "today") return dateKey === today;
+       if (revenueDateFilter === "month") return dateKey.slice(0, 7) === revenueMonth;
+       if (revenueDateFilter === "custom") {
+           return (!revenueDateStart || dateKey >= revenueDateStart)
+               && (!revenueDateEnd || dateKey <= revenueDateEnd);
+       }
+       return true;
+   });
 }
 
 function getDemoOrders() {
@@ -193,7 +235,8 @@ function renderDashboard() {
    const reviews = getReviews();
    const messages = getMessages();
    const totalStock = products.reduce((sum, item) => sum + Number(item.quantity || 0), 0);
-   const totalRevenue = orders.reduce((sum, order) => sum + Number(order.total || 0), 0);
+   const placedOrderValue = orders.reduce((sum, order) => sum + Number(order.total || 0), 0);
+   const totalRevenue = getRevenueOrders(orders).reduce((sum, order) => sum + Number(order.total || 0), 0);
 
    main.innerHTML = `
        <section class="dashboard">
@@ -219,8 +262,14 @@ function renderDashboard() {
                    <div class="value">${messages.length}</div>
                </div>
                <div class="summary-card">
-                   <h3>Doanh thu</h3>
+                   <h3>Doanh thu thực nhận</h3>
                    <div class="value">${moneyFormat(totalRevenue)}</div>
+                   <small>Toàn thời gian · đơn đã giao và thanh toán</small>
+               </div>
+               <div class="summary-card">
+                   <h3>Giá trị đơn đặt</h3>
+                   <div class="value">${moneyFormat(placedOrderValue)}</div>
+                   <small>Tất cả đơn, gồm cả đơn chưa hoàn tất</small>
                </div>
            </div>
        </section>
@@ -230,19 +279,49 @@ function renderDashboard() {
 function renderRevenueTab() {
    const products = getProducts();
    const orders = getOrders();
+   const revenueOrders = getSelectedRevenueOrders(orders);
+   const deliveredOrders = orders.filter(isOrderDelivered);
    const totalCurrentStock = products.reduce((sum, item) => sum + Number(item.quantity || 0), 0);
-   const totalSoldUnits = orders.reduce((sum, order) => {
+   const totalSoldUnits = revenueOrders.reduce((sum, order) => {
        const sold = (order.items || []).reduce((orderSum, item) => orderSum + Number(item.quantity || 0), 0);
        return sum + sold;
    }, 0);
-   const totalRevenue = orders.reduce((sum, order) => sum + Number(order.total || 0), 0);
-   const avgRevenuePerOrder = orders.length ? totalRevenue / orders.length : 0;
-   const hoaDaThem = totalCurrentStock + totalSoldUnits;
+   const totalDeliveredUnits = deliveredOrders.reduce((sum, order) => {
+       const delivered = (order.items || []).reduce((orderSum, item) => orderSum + Number(item.quantity || 0), 0);
+       return sum + delivered;
+   }, 0);
+   const totalRevenue = revenueOrders.reduce((sum, order) => sum + Number(order.total || 0), 0);
+   const placedOrderValue = orders.reduce((sum, order) => sum + Number(order.total || 0), 0);
+   const avgRevenuePerOrder = revenueOrders.length ? totalRevenue / revenueOrders.length : 0;
+   const hoaDaThem = totalCurrentStock + totalDeliveredUnits;
    const stockHealth = Math.round((totalCurrentStock / Math.max(hoaDaThem, 1)) * 100);
 
    main.innerHTML = `
        <section class="panel">
            <h2>Doanh thu & kho hàng</h2>
+           <form class="revenue-filters" id="revenue-filter-form">
+               <label for="revenue-period">Khoảng thời gian</label>
+               <select id="revenue-period" name="period">
+                   <option value="today" ${revenueDateFilter === "today" ? "selected" : ""}>Hôm nay</option>
+                   <option value="month" ${revenueDateFilter === "month" ? "selected" : ""}>Theo tháng</option>
+                   <option value="all" ${revenueDateFilter === "all" ? "selected" : ""}>Toàn thời gian</option>
+                   <option value="custom" ${revenueDateFilter === "custom" ? "selected" : ""}>Tùy chọn ngày</option>
+               </select>
+               <div class="revenue-month-picker" id="revenue-month-picker" ${revenueDateFilter !== "month" ? "hidden" : ""}>
+                   <button class="secondary-btn" type="button" data-month-shift="-1" aria-label="Xem tháng trước">‹ Tháng trước</button>
+                   <label for="revenue-month">Tháng báo cáo</label>
+                   <input id="revenue-month" type="month" value="${revenueMonth}">
+                   <button class="secondary-btn" type="button" data-month-shift="1" aria-label="Xem tháng sau">Tháng sau ›</button>
+                   <button class="secondary-btn" type="button" id="revenue-current-month">Tháng hiện tại</button>
+               </div>
+               <div class="revenue-custom-dates" id="revenue-custom-dates" ${revenueDateFilter !== "custom" ? "hidden" : ""}>
+                   <label for="revenue-date-start">Từ ngày</label>
+                   <input id="revenue-date-start" name="start" type="date" value="${revenueDateStart}">
+                   <label for="revenue-date-end">Đến ngày</label>
+                   <input id="revenue-date-end" name="end" type="date" value="${revenueDateEnd}">
+                   <button class="primary-btn" type="submit">Áp dụng</button>
+               </div>
+           </form>
            <div class="summary revenue-summary">
                <div class="summary-card revenue-card">
                    <h3>Số hoa đã thêm</h3>
@@ -252,17 +331,22 @@ function renderRevenueTab() {
                <div class="summary-card revenue-card">
                    <h3>Số hoa đã bán</h3>
                    <div class="value">${totalSoldUnits}</div>
-                   <small>Tổng số lượng đã giao cho khách</small>
+                   <small>Số lượng trong đơn đã giao và thanh toán trong khoảng đã chọn</small>
                </div>
                <div class="summary-card revenue-card">
-                   <h3>Tổng doanh thu</h3>
+                   <h3>Doanh thu thực nhận</h3>
                    <div class="value">${moneyFormat(totalRevenue)}</div>
-                   <small>Từ tất cả đơn hàng</small>
+                   <small>${revenueOrders.length} đơn đã giao và thanh toán trong khoảng đã chọn</small>
                </div>
                <div class="summary-card revenue-card">
                    <h3>Doanh thu / đơn</h3>
                    <div class="value">${moneyFormat(avgRevenuePerOrder)}</div>
-                   <small>Trung bình mỗi đơn hàng</small>
+                   <small>Trung bình trên đơn đã giao và thanh toán</small>
+               </div>
+               <div class="summary-card revenue-card">
+                   <h3>Giá trị đơn đặt</h3>
+                   <div class="value">${moneyFormat(placedOrderValue)}</div>
+                   <small>Tất cả đơn hàng, không lọc trạng thái</small>
                </div>
                <div class="summary-card revenue-card">
                    <h3>Hoa hiện có</h3>
@@ -277,6 +361,52 @@ function renderRevenueTab() {
            </div>
        </section>
    `;
+
+   const periodSelect = document.getElementById("revenue-period");
+   const monthPicker = document.getElementById("revenue-month-picker");
+   const customDates = document.getElementById("revenue-custom-dates");
+   periodSelect.addEventListener("change", () => {
+       revenueDateFilter = periodSelect.value;
+       monthPicker.hidden = revenueDateFilter !== "month";
+       if (revenueDateFilter === "custom") {
+           customDates.hidden = false;
+           return;
+       }
+       customDates.hidden = true;
+       renderRevenueTab();
+   });
+   document.getElementById("revenue-month").addEventListener("change", (event) => {
+       if (!event.target.value) return;
+       revenueMonth = event.target.value;
+       revenueDateFilter = "month";
+       renderRevenueTab();
+   });
+   document.querySelectorAll("[data-month-shift]").forEach((button) => {
+       button.addEventListener("click", () => {
+           const [year, month] = revenueMonth.split("-").map(Number);
+           const shiftedMonth = new Date(year, month - 1 + Number(button.dataset.monthShift), 1);
+           revenueMonth = `${shiftedMonth.getFullYear()}-${String(shiftedMonth.getMonth() + 1).padStart(2, "0")}`;
+           revenueDateFilter = "month";
+           renderRevenueTab();
+       });
+   });
+   document.getElementById("revenue-current-month").addEventListener("click", () => {
+       const now = new Date();
+       revenueMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
+       revenueDateFilter = "month";
+       renderRevenueTab();
+   });
+   document.getElementById("revenue-filter-form").addEventListener("submit", (event) => {
+       event.preventDefault();
+       revenueDateStart = document.getElementById("revenue-date-start").value;
+       revenueDateEnd = document.getElementById("revenue-date-end").value;
+       if (revenueDateStart && revenueDateEnd && revenueDateStart > revenueDateEnd) {
+           alert("Ngày bắt đầu phải trước hoặc bằng ngày kết thúc.");
+           return;
+       }
+       revenueDateFilter = "custom";
+       renderRevenueTab();
+   });
 }
 
 function renderProductTab() {
@@ -633,6 +763,10 @@ function renderOrderCard(order, showCompletionAction = true) {
                    <span class="field-label">Điện thoại</span>
                    <span class="field-value">${order.phone}</span>
                </div>
+               <div class="field">
+                   <span class="field-label">Thanh toán</span>
+                   <span class="field-value">${escapeHtml(order.paymentStatus || (order.paymentMethod === "cod" ? "Thanh toán khi nhận hàng" : "Chưa xác nhận"))}</span>
+               </div>
                <div class="field full-width">
                    <span class="field-label">Địa chỉ</span>
                    <span class="field-value">${order.address || "Chưa cập nhật"}</span>
@@ -966,6 +1100,9 @@ function updateOrderStatus(orderId, status, location, estimatedDelivery) {
    const updatedAt = new Date().toISOString();
    const nextOrders = orders.map((order) => {
        if (String(order.id) !== String(orderId)) return order;
+       const markCodAsPaid = status === "Đã giao"
+           && order.paymentMethod === "cod"
+           && !isOrderPaid(order);
 
        const trackingHistory = Array.isArray(order.trackingHistory) && order.trackingHistory.length
            ? order.trackingHistory
@@ -977,12 +1114,14 @@ function updateOrderStatus(orderId, status, location, estimatedDelivery) {
            }];
        const hasChanges = order.status !== status
            || (order.currentLocation || "") !== location
-           || (order.estimatedDelivery || "") !== estimatedDelivery;
+           || (order.estimatedDelivery || "") !== estimatedDelivery
+           || markCodAsPaid;
        if (!hasChanges) return order;
 
        return {
            ...order,
            status,
+           ...(markCodAsPaid ? { paymentStatus: "Đã thanh toán", paidAt: updatedAt } : {}),
            currentLocation: location,
            estimatedDelivery,
            trackingUpdatedAt: updatedAt,
@@ -1448,8 +1587,14 @@ window.addEventListener("storage", (event) => {
    if (event.key === "flowerInventory" && activeHeading?.textContent === "Quản lý kho hoa") {
        renderProductTab();
    }
-   if (event.key === STORAGE_KEYS.orders && activeHeading?.textContent === "Quản lý đơn hàng") {
-       renderOrdersTab();
+   if (event.key === STORAGE_KEYS.orders) {
+       if (activeHeading?.textContent === "Doanh thu & kho hàng") {
+           renderRevenueTab();
+       } else if (activeHeading?.textContent === "Quản lý đơn hàng") {
+           renderOrdersTab();
+       } else if (main.querySelector(".dashboard")) {
+           renderDashboard();
+       }
    }
    if (event.key === STORAGE_KEYS.reviews && activeHeading?.textContent === "Đánh giá khách hàng") {
        renderReviewsTab();

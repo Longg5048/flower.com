@@ -18,6 +18,7 @@ body {
   bottom: 0;
   left: 0;
   display: flex;
+  flex-direction: row;
   min-height: var(--contact-dock-height);
   align-items: stretch;
   justify-content: center;

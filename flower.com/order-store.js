@@ -186,6 +186,21 @@
     return result.order;
   }
 
+  async function expireReservations() {
+    const { auth } = await getFirebase();
+    await auth.authStateReady();
+    if (!auth.currentUser) throw new Error("Cần đăng nhập quản trị để dọn đơn hết hạn.");
+    const token = await auth.currentUser.getIdToken();
+    const response = await fetch("/api/orders?action=expire", {
+      method: "GET",
+      headers: { Authorization: `Bearer ${token}`, Accept: "application/json" },
+      cache: "no-store"
+    });
+    const result = await response.json().catch(() => ({}));
+    if (!response.ok) throw new Error(result.error || "Không thể dọn đơn giữ hàng hết hạn.");
+    return result.released || 0;
+  }
+
   async function update(id, changes) {
     const { db, firestoreSdk } = await getFirebase();
     const orderRef = firestoreSdk.doc(db, "orders", String(id));
@@ -200,6 +215,7 @@
       const order = orderSnapshot.data();
       const wasCancelled = order.status === "Đã hủy";
       const willBeCancelled = changes.status === "Đã hủy";
+      const willBeDelivered = changes.status === "Đã giao";
       const shouldRestore = !wasCancelled && willBeCancelled && order.inventoryReserved === true;
       const shouldReserve = wasCancelled && !willBeCancelled && order.inventoryReserved === false;
       const items = aggregateOrderItems(order.items);
@@ -225,7 +241,16 @@
 
       transaction.update(orderRef, {
         ...changes,
-        ...((shouldRestore || shouldReserve) ? { inventoryReserved: shouldReserve } : {})
+        ...((shouldRestore || shouldReserve || (willBeDelivered && order.inventoryReserved === true))
+          ? { inventoryReserved: shouldReserve && !willBeDelivered }
+          : {}),
+        ...(shouldReserve ? {
+          reservationExpiresAt: firestoreSdk.Timestamp.fromDate(new Date(Date.now() + (
+            order.paymentMethod === "qr" ? 30 * 60 * 1000 : 24 * 60 * 60 * 1000
+          ))),
+          reservationExpiredAt: firestoreSdk.deleteField()
+        } : {}),
+        ...(willBeDelivered ? { reservationExpiresAt: firestoreSdk.deleteField() } : {})
       });
     });
   }
@@ -262,6 +287,7 @@
     subscribeAdmin,
     subscribeAccount,
     getPublicOrder,
+    expireReservations,
     update,
     remove
   };

@@ -1606,6 +1606,11 @@ async function initializeAdmin() {
 
        await ensureStorage();
        try {
+           await window.FlowerOrderStore.expireReservations();
+       } catch (error) {
+           console.error("Không thể giải phóng tồn kho đơn đã hết hạn:", error);
+       }
+       try {
            const promotions = await window.FlowerOrderStore.initializePromotions(getOffers());
            localStorage.setItem(STORAGE_KEYS.offers, JSON.stringify(promotions));
        } catch (error) {

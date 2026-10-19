@@ -1,8 +1,10 @@
-const { FieldValue } = require("firebase-admin/firestore");
+const { FieldValue, Timestamp } = require("firebase-admin/firestore");
 const { getAdminAuth, getAdminFirestore, sendError } = require("../lib/firebase-admin");
 
 const VND_PER_USD = 25949.123093;
 const MAX_QUANTITY_PER_PRODUCT = 50;
+const QR_RESERVATION_MS = 30 * 60 * 1000;
+const COD_RESERVATION_MS = 24 * 60 * 60 * 1000;
 
 function normalizePhone(value) {
     return String(value || "").replace(/\D/g, "");
@@ -15,6 +17,83 @@ function vnd(value) {
 function priceInUsd(value) {
     const price = Number(value);
     return price > 10000 ? price / VND_PER_USD : price;
+}
+
+function aggregateItems(items) {
+    const quantities = new Map();
+    (Array.isArray(items) ? items : []).forEach((item) => {
+        const id = String(item?.id ?? "");
+        quantities.set(id, (quantities.get(id) || 0) + Math.max(1, Number(item?.quantity) || 1));
+    });
+    return Array.from(quantities, ([id, quantity]) => ({ id, quantity }));
+}
+
+async function expireOneReservation(db, orderRef, now) {
+    return db.runTransaction(async (transaction) => {
+        const orderSnapshot = await transaction.get(orderRef);
+        if (!orderSnapshot.exists) return false;
+        const order = orderSnapshot.data();
+        const expiresAt = order.reservationExpiresAt;
+        if (order.inventoryReserved !== true || typeof expiresAt?.toMillis !== "function"
+            || expiresAt.toMillis() > now.toMillis()
+            || (order.paymentMethod === "qr" && order.paymentVerified === true)) return false;
+
+        const items = aggregateItems(order.items);
+        const shouldRestoreStock = order.status !== "Đã giao";
+        const productRefs = shouldRestoreStock
+            ? items.map((item) => db.collection("products").doc(item.id))
+            : [];
+        const productSnapshots = [];
+        for (const productRef of productRefs) productSnapshots.push(await transaction.get(productRef));
+
+        const expiredAt = new Date(now.toMillis()).toISOString();
+        const status = shouldRestoreStock ? "Đã hủy" : order.status;
+        const location = shouldRestoreStock ? "Đơn hàng hết thời hạn giữ sản phẩm" : order.currentLocation || "";
+        productSnapshots.forEach((snapshot, index) => {
+            if (!snapshot.exists()) return;
+            const currentQuantity = Number(snapshot.data().quantity) || 0;
+            transaction.update(snapshot.ref, { quantity: currentQuantity + items[index].quantity });
+        });
+
+        transaction.update(orderRef, {
+            status,
+            currentLocation: location,
+            inventoryReserved: false,
+            reservationExpiredAt: Timestamp.fromMillis(now.toMillis()),
+            ...(order.paymentMethod === "qr" && order.paymentVerified !== true
+                ? { paymentStatus: "Hết hạn chờ thanh toán" }
+                : {}),
+            trackingUpdatedAt: Timestamp.fromMillis(now.toMillis()),
+            trackingHistory: [...(Array.isArray(order.trackingHistory) ? order.trackingHistory : []), {
+                status,
+                location,
+                estimatedDelivery: "",
+                updatedAt: expiredAt
+            }]
+        });
+        return true;
+    });
+}
+
+async function expireReservations(db, maxOrders = 500) {
+    let released = 0;
+    const batchSize = 100;
+    while (released < maxOrders) {
+        const now = Timestamp.now();
+        const snapshot = await db.collection("orders")
+            .where("inventoryReserved", "==", true)
+            .where("paymentVerified", "==", false)
+            .where("reservationExpiresAt", "<=", now)
+            .orderBy("reservationExpiresAt", "asc")
+            .limit(Math.min(batchSize, maxOrders - released))
+            .get();
+        if (snapshot.empty) break;
+        const results = await Promise.all(snapshot.docs.map((document) => expireOneReservation(db, document.ref, now)));
+        const batchReleased = results.filter(Boolean).length;
+        released += batchReleased;
+        if (batchReleased === 0) break;
+    }
+    return released;
 }
 
 function serializeTimestamp(value) {
@@ -117,6 +196,7 @@ async function quoteOrder(req, res) {
     if (!quote) return sendError(res, 400, "invalid-checkout", "Danh sách sản phẩm không hợp lệ.");
     try {
         const db = getAdminFirestore();
+        await expireReservations(db);
         const productRefs = quote.items.map((item) => db.collection("products").doc(item.id));
         const [products, promotionsSnapshot] = await Promise.all([
             db.getAll(...productRefs),
@@ -197,6 +277,7 @@ async function createOrder(req, res) {
     try {
         const user = await optionalAuthenticatedUser(req);
         const db = getAdminFirestore();
+        await expireReservations(db);
         const orderRef = db.collection("orders").doc();
         const productRefs = checkout.items.map((item) => db.collection("products").doc(item.id));
         const promotionsRef = db.collection("metadata").doc("activePromotions");
@@ -296,7 +377,10 @@ async function createOrder(req, res) {
                 promotionId: promotion ? checkout.promotionId : "",
                 orderNote: String(req.body.orderNote || "").trim().slice(0, 500),
                 items,
-                inventoryReserved: true
+                inventoryReserved: true,
+                reservationExpiresAt: Timestamp.fromMillis(now.getTime() + (
+                    checkout.paymentMethod === "qr" ? QR_RESERVATION_MS : COD_RESERVATION_MS
+                ))
             };
 
             products.forEach((item) => transaction.update(item.ref, { quantity: item.stock - item.quantity }));
@@ -331,6 +415,27 @@ module.exports = async function handler(req, res) {
     if (req.method !== "GET") {
         res.setHeader("Allow", "GET, POST");
         return sendError(res, 405, "method-not-allowed", "Use GET or POST for this endpoint.");
+    }
+
+    if (req.query?.action === "expire") {
+        const match = String(req.headers.authorization || "").match(/^Bearer\s+(.+)$/i);
+        let authorized = Boolean(process.env.CRON_SECRET && match?.[1] === process.env.CRON_SECRET);
+        if (!authorized && match?.[1]) {
+            try {
+                const claims = await getAdminAuth().verifyIdToken(match[1], true);
+                authorized = claims.admin === true;
+            } catch (error) {
+                console.error("Reservation cleanup authentication failed:", error.code || error.message);
+            }
+        }
+        if (!authorized) return sendError(res, 401, "unauthenticated", "Quyền dọn đơn hết hạn không hợp lệ.");
+        try {
+            const released = await expireReservations(getAdminFirestore());
+            return res.status(200).json({ released });
+        } catch (error) {
+            console.error("Reservation cleanup failed:", error.code || error.message);
+            return sendError(res, 503, "order-service-unavailable", "Chưa thể giải phóng tồn kho đơn hết hạn.");
+        }
     }
 
     const id = String(req.query?.id || "").trim();

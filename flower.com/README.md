@@ -71,6 +71,8 @@ flowchart LR
 | Ưu đãi | Firestore `metadata/activePromotions` (bản cache ở `localStorage`) | ✅ |
 | Phiên đăng nhập | `localStorage.loggedUser` | ❌ |
 
+Trang quản trị không còn tự điền dữ liệu demo cho đánh giá và lời nhắn; cả hai đều đọc từ Firestore.
+
 ### Đồng bộ catalog
 
 1. Khi tải trang, `product-store.js` đọc cache cục bộ và `flower.json`.

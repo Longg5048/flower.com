@@ -1,3 +1,4 @@
+const { createHmac } = require("node:crypto");
 const { FieldValue, Timestamp } = require("firebase-admin/firestore");
 const { getAdminAuth, getAdminFirestore, sendError } = require("../lib/firebase-admin");
 
@@ -5,6 +6,8 @@ const VND_PER_USD = 25949.123093;
 const MAX_QUANTITY_PER_PRODUCT = 50;
 const QR_RESERVATION_MS = 30 * 60 * 1000;
 const COD_RESERVATION_MS = 24 * 60 * 60 * 1000;
+const ORDER_LOOKUP_WINDOW_MS = 10 * 60 * 1000;
+const ORDER_LOOKUP_MAX_ATTEMPTS = 20;
 
 function normalizePhone(value) {
     return String(value || "").replace(/\D/g, "");
@@ -101,31 +104,53 @@ function serializeTimestamp(value) {
     return typeof value === "string" ? value : "";
 }
 
-function publicOrder(id, data) {
+function publicTrackingOrder(id, data) {
     return {
         id,
-        customerName: data.customerName || "",
-        phone: data.phone || "",
-        address: data.address || "",
-        createdAt: serializeTimestamp(data.createdAt),
         status: data.status || "Chờ xác nhận",
-        currentLocation: data.currentLocation || "",
         estimatedDelivery: data.estimatedDelivery || "",
         trackingHistory: Array.isArray(data.trackingHistory)
             ? data.trackingHistory.map((event) => ({
-                ...event,
+                status: event.status || data.status || "Chờ xác nhận",
+                estimatedDelivery: event.estimatedDelivery || "",
                 updatedAt: serializeTimestamp(event.updatedAt) || event.updatedAt || ""
             }))
             : [],
-        subtotal: Number(data.subtotal) || 0,
-        savings: Number(data.savings) || 0,
-        tax: Number(data.tax) || 0,
-        total: Number(data.total) || 0,
-        paymentMethod: data.paymentMethod || "",
-        paymentStatus: data.paymentStatus || "Chưa xác nhận",
-        paidAt: data.paidAt || "",
-        items: Array.isArray(data.items) ? data.items : []
+        privacyLimited: true
     };
+}
+
+async function checkOrderLookupLimit(db, req) {
+    const forwardedFor = String(req.headers["x-forwarded-for"] || req.headers["x-real-ip"] || req.socket?.remoteAddress || "");
+    const clientIp = forwardedFor.split(",")[0].trim();
+    if (!clientIp) throw new Error("Client IP is unavailable for order lookup rate limiting.");
+
+    const secret = process.env.FIREBASE_SERVICE_ACCOUNT_JSON;
+    if (!secret) throw new Error("Firebase service credentials are required for order lookup rate limiting.");
+    const key = createHmac("sha256", secret).update(clientIp).digest("hex");
+    const limitRef = db.collection("orderLookupLimits").doc(key);
+    const now = Timestamp.now();
+
+    return db.runTransaction(async (transaction) => {
+        const snapshot = await transaction.get(limitRef);
+        const record = snapshot.exists ? snapshot.data() : {};
+        const windowStartedAt = record.windowStartedAt?.toMillis?.() || 0;
+        const sameWindow = now.toMillis() - windowStartedAt < ORDER_LOOKUP_WINDOW_MS;
+        const attempts = sameWindow ? Number(record.attempts) || 0 : 0;
+        if (attempts >= ORDER_LOOKUP_MAX_ATTEMPTS) {
+            return {
+                allowed: false,
+                retryAfter: Math.max(1, Math.ceil((windowStartedAt + ORDER_LOOKUP_WINDOW_MS - now.toMillis()) / 1000))
+            };
+        }
+
+        transaction.set(limitRef, {
+            windowStartedAt: sameWindow ? record.windowStartedAt : now,
+            attempts: attempts + 1,
+            expiresAt: Timestamp.fromMillis(now.toMillis() + 24 * 60 * 60 * 1000)
+        });
+        return { allowed: true, retryAfter: 0 };
+    });
 }
 
 function validateCheckout(body = {}) {
@@ -388,7 +413,7 @@ async function createOrder(req, res) {
             return { ...orderData, id: orderRef.id, createdAt: now.toISOString() };
         });
 
-        return res.status(201).json({ order: publicOrder(order.id, order), totals: {
+        return res.status(201).json({ order: { id: order.id }, totals: {
             subtotal: order.subtotal,
             savings: order.savings,
             total: order.total
@@ -406,10 +431,37 @@ async function createOrder(req, res) {
     }
 }
 
+async function lookupOrder(req, res) {
+    try {
+        const db = getAdminFirestore();
+        const limit = await checkOrderLookupLimit(db, req);
+        if (!limit.allowed) {
+            res.setHeader("Retry-After", String(limit.retryAfter));
+            return sendError(res, 429, "rate-limited", "Bạn đã tra cứu quá nhiều lần. Vui lòng thử lại sau.");
+        }
+
+        const id = String(req.body?.id || "").trim().replace(/^#/, "");
+        const phone = normalizePhone(req.body?.phone);
+        if (!id || id.length > 128 || id.includes("/") || phone.length < 8 || phone.length > 15) {
+            return sendError(res, 400, "invalid-argument", "Mã đơn hàng hoặc số điện thoại không hợp lệ.");
+        }
+
+        const snapshot = await db.collection("orders").doc(id).get();
+        if (!snapshot.exists || normalizePhone(snapshot.get("phone")) !== phone) {
+            return sendError(res, 404, "order-not-found", "Không tìm thấy đơn hàng. Hãy kiểm tra lại mã đơn và số điện thoại.");
+        }
+        return res.status(200).json({ order: publicTrackingOrder(snapshot.id, snapshot.data()) });
+    } catch (error) {
+        console.error("Order lookup failed:", error.code || error.message);
+        return sendError(res, 503, "order-service-unavailable", "Chưa thể tra cứu đơn hàng. Vui lòng thử lại sau.");
+    }
+}
+
 module.exports = async function handler(req, res) {
     res.setHeader("Cache-Control", "no-store");
     if (req.method === "POST") {
         if (req.body?.action === "quote") return quoteOrder(req, res);
+        if (req.body?.action === "lookup") return lookupOrder(req, res);
         return createOrder(req, res);
     }
     if (req.method !== "GET") {
@@ -438,20 +490,5 @@ module.exports = async function handler(req, res) {
         }
     }
 
-    const id = String(req.query?.id || "").trim();
-    const phone = normalizePhone(req.query?.phone);
-    if (!id || id.length > 128 || id.includes("/") || phone.length < 8 || phone.length > 15) {
-        return sendError(res, 400, "invalid-argument", "A valid order number and phone number are required.");
-    }
-
-    try {
-        const snapshot = await getAdminFirestore().collection("orders").doc(id).get();
-        if (!snapshot.exists || normalizePhone(snapshot.get("phone")) !== phone) {
-            return sendError(res, 404, "order-not-found", "Order was not found.");
-        }
-        return res.status(200).json({ order: publicOrder(snapshot.id, snapshot.data()) });
-    } catch (error) {
-        console.error("Order lookup failed:", error.code || error.message);
-        return sendError(res, 503, "order-service-unavailable", "Order lookup is temporarily unavailable.");
-    }
+    return sendError(res, 405, "method-not-allowed", "Order lookup requires POST.");
 };

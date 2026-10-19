@@ -158,7 +158,7 @@ function setSelectedRating(rating) {
 }
 
 function renderReviewPanel(order) {
-    const canReview = normalizeOrderStatus(order.status) === "Đã giao";
+    const canReview = order.privacyLimited !== true && normalizeOrderStatus(order.status) === "Đã giao";
     reviewPanel.hidden = !canReview;
     if (!canReview) return;
 
@@ -199,6 +199,9 @@ function renderOrder(order) {
     statusElement.classList.add(STATUS_CLASSES[status] || "is-pending");
     document.getElementById("result-location").textContent = order.currentLocation || "Cửa hàng chưa cập nhật vị trí vận chuyển.";
     document.getElementById("result-eta").textContent = formatDate(order.estimatedDelivery, false);
+    document.querySelector(".order-details").hidden = order.privacyLimited === true;
+    document.querySelector(".tracking-details").classList.toggle("is-privacy-limited", order.privacyLimited === true);
+    document.getElementById("tracking-privacy-note").hidden = order.privacyLimited !== true;
     document.getElementById("result-customer").textContent = order.customerName || "Chưa cập nhật";
     document.getElementById("result-phone").textContent = maskPhone(order.phone);
     document.getElementById("result-address").textContent = order.address || "Chưa cập nhật";
@@ -349,7 +352,9 @@ async function searchOrder() {
         reviewPanel.hidden = true;
         message.textContent = error.code === "order-not-found"
             ? "Không tìm thấy đơn hàng. Hãy kiểm tra lại mã đơn và số điện thoại đặt hàng."
-            : "Chưa thể tra cứu đơn hàng dùng chung. Hãy thử lại sau.";
+            : error.code === "rate-limited"
+                ? "Bạn đã tra cứu quá nhiều lần. Vui lòng đợi một chút rồi thử lại."
+                : "Chưa thể tra cứu đơn hàng dùng chung. Hãy thử lại sau.";
         return;
     }
 
@@ -364,7 +369,7 @@ reviewForm.addEventListener("submit", async (event) => {
     event.preventDefault();
     const comment = reviewComment.value.trim();
 
-    if (!currentOrder || normalizeOrderStatus(currentOrder.status) !== "Đã giao") {
+    if (!currentOrder || currentOrder.privacyLimited === true || normalizeOrderStatus(currentOrder.status) !== "Đã giao") {
         reviewFeedback.textContent = "Chỉ có thể đánh giá đơn hàng đã giao.";
         reviewPanel.hidden = true;
         return;

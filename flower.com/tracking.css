@@ -126,6 +126,16 @@ h1,
     font-size: 13px;
 }
 
+.tracking-privacy-note {
+    margin: 0 0 16px;
+    padding: 12px 14px;
+    border-radius: 10px;
+    background: #f8f1f3;
+    color: var(--muted);
+    font-size: 13px;
+    line-height: 1.6;
+}
+
 .tracking-results[hidden],
 .tracking-search[hidden],
 .tracking-lookup-toggle[hidden],
@@ -409,6 +419,10 @@ h1,
     align-items: start;
     gap: 18px;
     margin-top: 18px;
+}
+
+.tracking-details.is-privacy-limited {
+    grid-template-columns: minmax(0, 1fr);
 }
 
 .tracking-panel {

@@ -206,10 +206,13 @@
         });
     }
 
-    function saveProducts(products) {
-        const normalized = cacheProducts(products);
-        writeRemoteProducts(normalized);
-        return normalized;
+    async function saveProducts(products) {
+        const normalized = deduplicateProducts(products);
+        const saved = await writeRemoteProducts(normalized);
+        if (!saved) {
+            throw new Error("Could not synchronize the product catalog with Firestore.");
+        }
+        return cacheProducts(normalized);
     }
 
     async function synchronizeProducts(localProducts, catalog) {

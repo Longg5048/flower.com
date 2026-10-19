@@ -662,7 +662,7 @@ function addCategory(event) {
    renderCategoriesTab();
 }
 
-function renameCategory(oldCategory) {
+async function renameCategory(oldCategory) {
    const newCategory = window.prompt("Nhập tên phân loại mới:", oldCategory)?.trim();
    if (!newCategory || newCategory === oldCategory) return;
    if (getCategories().some((category) => category.toLocaleLowerCase("vi") === newCategory.toLocaleLowerCase("vi"))) {
@@ -670,30 +670,43 @@ function renameCategory(oldCategory) {
        return;
    }
 
-   saveCategories(getCategories().map((category) => category === oldCategory ? newCategory : category));
-   FlowerInventory.saveProducts(getProducts().map((product) =>
+   const categories = getCategories().map((category) => category === oldCategory ? newCategory : category);
+   if (!await saveAdminProducts(getProducts().map((product) =>
        product.category === oldCategory ? { ...product, category: newCategory } : product
-   ));
+   ))) return;
+   saveCategories(categories);
    renderCategoriesTab();
 }
 
-function deleteCategory(category) {
+async function deleteCategory(category) {
    const productCount = getProducts().filter((product) => product.category === category).length;
    const message = productCount
        ? `Xóa phân loại “${category}” và bỏ phân loại khỏi ${productCount} sản phẩm?`
        : `Xóa phân loại “${category}”?`;
    if (!window.confirm(message)) return;
 
-   saveCategories(getCategories().filter((existing) => existing !== category));
-   FlowerInventory.saveProducts(getProducts().map((product) =>
+   const categories = getCategories().filter((existing) => existing !== category);
+   if (!await saveAdminProducts(getProducts().map((product) =>
        product.category === category ? { ...product, category: "" } : product
-   ));
+   ))) return;
+   saveCategories(categories);
    renderCategoriesTab();
 }
 
 function getProductById(productId) {
    const products = getProducts();
    return products.find((product) => String(product.id) === String(productId));
+}
+
+async function saveAdminProducts(products) {
+   try {
+       await FlowerInventory.saveProducts(products);
+       return true;
+   } catch (error) {
+       console.error("Could not synchronize product catalog:", error);
+       alert("Không thể đồng bộ thay đổi sản phẩm với kho dữ liệu chung. Vui lòng thử lại.");
+       return false;
+   }
 }
 
 function renderCompletionAction(type, record) {
@@ -1046,7 +1059,7 @@ function renderMessagesTab() {
    `;
 }
 
-function saveProductQuantity(id, quantity) {
+async function saveProductQuantity(id, quantity) {
    const products = getProducts();
    const nextProducts = products.map((item) => {
        if (String(item.id) === String(id)) {
@@ -1054,11 +1067,11 @@ function saveProductQuantity(id, quantity) {
        }
        return item;
    });
-    FlowerInventory.saveProducts(nextProducts);
+    if (!await saveAdminProducts(nextProducts)) return;
    renderProductTab();
 }
 
-function addNewProduct(event) {
+async function addNewProduct(event) {
    event.preventDefault();
    const title = document.getElementById("product-title").value.trim();
    const image = document.getElementById("product-image").value.trim();
@@ -1079,18 +1092,18 @@ function addNewProduct(event) {
        ? products.map((item) => String(item.id) === String(editingProductId) ? { ...item, ...productData } : item)
        : [...products, { id: Date.now(), ...productData }];
 
-    FlowerInventory.saveProducts(nextProducts);
+    if (!await saveAdminProducts(nextProducts)) return;
    editingProductId = null;
    alert(isEditing ? "Cập nhật sản phẩm thành công!" : "Thêm sản phẩm thành công!");
    renderProductTab();
 }
 
-function deleteProduct(id) {
+async function deleteProduct(id) {
    const product = getProductById(id);
    if (!product || !window.confirm(`Bạn có chắc muốn xóa “${getVietnameseProductName(product.title)}”?`)) return;
 
    const products = getProducts().filter((item) => String(item.id) !== String(id));
-    FlowerInventory.saveProducts(products);
+    if (!await saveAdminProducts(products)) return;
    if (String(editingProductId) === String(id)) editingProductId = null;
    renderProductTab();
 }

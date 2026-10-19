@@ -1,0 +1,48 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function isAdmin() {
+      return request.auth != null && request.auth.token.admin == true;
+    }
+
+    match /products/{productId} {
+      allow get, list: if true;
+      allow create, update, delete: if isAdmin();
+    }
+
+    match /metadata/{metadataId} {
+      allow read, write: if isAdmin();
+    }
+
+    match /reviews/{reviewId} {
+      allow get, list: if true;
+      allow create: if request.auth != null
+        && request.resource.data.keys().hasOnly([
+          'productIds', 'productName', 'customerName', 'rating', 'comment', 'createdAt'
+        ])
+        && request.resource.data.keys().hasAll([
+          'productIds', 'productName', 'customerName', 'rating', 'comment', 'createdAt'
+        ])
+        && request.resource.data.productIds is list
+        && request.resource.data.productIds.size() > 0
+        && request.resource.data.productIds.size() <= 10
+        && request.resource.data.productName is string
+        && request.resource.data.productName.size() <= 500
+        && request.resource.data.customerName is string
+        && request.resource.data.customerName.size() <= 80
+        && request.resource.data.rating is int
+        && request.resource.data.rating >= 1
+        && request.resource.data.rating <= 5
+        && request.resource.data.comment is string
+        && request.resource.data.comment.size() > 0
+        && request.resource.data.comment.size() <= 1000
+        && request.resource.data.createdAt == request.time;
+      allow update, delete: if isAdmin();
+    }
+
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

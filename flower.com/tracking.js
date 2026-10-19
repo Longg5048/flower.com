@@ -360,7 +360,7 @@ ratingStars.forEach((star) => {
     star.addEventListener("click", () => setSelectedRating(Number(star.dataset.rating)));
 });
 
-reviewForm.addEventListener("submit", (event) => {
+reviewForm.addEventListener("submit", async (event) => {
     event.preventDefault();
     const comment = reviewComment.value.trim();
 
@@ -392,25 +392,34 @@ reviewForm.addEventListener("submit", (event) => {
         return;
     }
 
+    const items = Array.isArray(currentOrder.items) ? currentOrder.items : [];
     const review = {
-        id: Date.now(),
         orderId: currentOrder.id,
+        productIds: [...new Set(items.map((item) => item.id).filter((id) => id !== undefined && id !== null).map(String))],
         customerName: currentOrder.customerName || "Khách hàng",
-        phone: currentOrder.phone || "",
-        productName: (currentOrder.items || []).map((item) => item.title).filter(Boolean).join(", ") || `Đơn hàng #${currentOrder.id}`,
+        productName: items.map((item) => item.title).filter(Boolean).join(", ") || `Đơn hàng #${currentOrder.id}`,
         rating: selectedRating,
-        comment,
-        createdAt: new Date().toISOString(),
-        reply: ""
+        comment
     };
 
-    reviews.push(review);
+    const submitButton = reviewForm.querySelector(".review-submit");
+    submitButton.disabled = true;
+    reviewFeedback.textContent = "Đang gửi đánh giá...";
+    let reviewId;
+    try {
+        reviewId = await window.FlowerReviewStore.submit(review);
+    } catch (error) {
+        console.error("Không thể lưu đánh giá:", error);
+        reviewFeedback.textContent = error.message || "Chưa thể gửi đánh giá. Hãy thử lại sau.";
+        submitButton.disabled = false;
+        return;
+    }
+    const savedReview = { ...review, id: reviewId, createdAt: new Date().toISOString(), reply: "" };
+    reviews.push(savedReview);
     try {
         localStorage.setItem("flowerReviews", JSON.stringify(reviews));
     } catch (error) {
-        console.error("Không thể lưu đánh giá:", error);
-        reviewFeedback.textContent = "Không thể lưu đánh giá. Hãy kiểm tra dung lượng trình duyệt rồi thử lại.";
-        return;
+        console.warn("Đánh giá đã được đồng bộ công khai nhưng không lưu được bản xem trên thiết bị này:", error);
     }
     renderReviewPanel(currentOrder);
 });

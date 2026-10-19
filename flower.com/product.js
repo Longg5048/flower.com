@@ -308,6 +308,72 @@ const productPage = document.querySelector(".product-page")
 const detailQuantity = document.getElementById("detail-quantity")
 const detailQuantityError = document.getElementById("detail-quantity-error")
 let selectedProduct = null
+let unsubscribeProductReviews = null
+let subscribedReviewProductId = null
+
+function renderProductReviews(reviews) {
+  const section = document.getElementById("product-reviews")
+  const summary = document.getElementById("product-reviews-summary")
+  const list = document.getElementById("product-reviews-list")
+  const average = reviews.length
+    ? (reviews.reduce((total, review) => total + Number(review.rating || 0), 0) / reviews.length).toFixed(1)
+    : "0"
+
+  section.hidden = false
+  summary.textContent = reviews.length
+    ? `${reviews.length} đánh giá · trung bình ${average}/5 sao`
+    : "Sản phẩm chưa có đánh giá. Hãy là người đầu tiên chia sẻ cảm nhận!"
+  list.replaceChildren()
+
+  reviews.forEach((review) => {
+    const card = document.createElement("article")
+    const meta = document.createElement("div")
+    const name = document.createElement("span")
+    const stars = document.createElement("span")
+    const date = document.createElement("time")
+    const comment = document.createElement("p")
+    const rating = Math.max(1, Math.min(5, Number(review.rating) || 0))
+    const createdAt = review.createdAt?.toDate?.() || new Date(review.createdAt || "")
+
+    card.className = "product-review-card"
+    meta.className = "product-review-meta"
+    name.className = "product-review-name"
+    name.textContent = review.customerName || "Khách hàng"
+    stars.className = "product-review-stars"
+    stars.setAttribute("aria-label", `${rating} trên 5 sao`)
+    stars.textContent = `${"★".repeat(rating)}${"☆".repeat(5 - rating)}`
+    date.textContent = Number.isNaN(createdAt.getTime())
+      ? ""
+      : new Intl.DateTimeFormat("vi-VN", { dateStyle: "medium" }).format(createdAt)
+    if (!Number.isNaN(createdAt.getTime())) date.dateTime = createdAt.toISOString()
+    comment.className = "product-review-comment"
+    comment.textContent = review.comment || ""
+    meta.append(name, stars, date)
+    card.append(meta, comment)
+    list.append(card)
+  })
+}
+
+function watchProductReviews(product) {
+  const section = document.getElementById("product-reviews")
+  const summary = document.getElementById("product-reviews-summary")
+  const productId = String(product.id)
+  section.hidden = false
+  if (subscribedReviewProductId === productId) return
+
+  if (unsubscribeProductReviews) unsubscribeProductReviews()
+  subscribedReviewProductId = productId
+  summary.textContent = "Đang tải đánh giá..."
+  if (!window.FlowerReviewStore) {
+    summary.textContent = "Chưa thể kết nối tới dịch vụ đánh giá."
+    return
+  }
+
+  unsubscribeProductReviews = window.FlowerReviewStore.subscribe(productId, renderProductReviews, () => {
+    summary.textContent = "Chưa thể tải đánh giá lúc này. Vui lòng tải lại trang."
+  })
+}
+
 const pageParams = new URLSearchParams(window.location.search)
 const initialSearch = pageParams.get("search") || pageParams.get("q") || ""
 const initialFlowerType = pageParams.get("flower") || ""
@@ -398,6 +464,7 @@ function renderProductDetail(product) {
     ? mainImage.getAttribute("src")
     : ""
   selectedProduct = product
+  watchProductReviews(product)
   const productName = product.title || "Sản phẩm hoa"
   const images = getProductImages(product)
   const thumbnails = document.getElementById("detail-thumbnails")

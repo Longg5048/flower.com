@@ -45,6 +45,7 @@ Currency --> UI
 - `admin.js` gọi API MockAPI riêng để CRUD catalog quản trị.
 - Trang `/owner.html` và API cấp/gỡ quyền admin hoạt động trên bản Vercel có cấu hình Firebase Admin. Xem [`../ADMIN-SETUP.md`](../ADMIN-SETUP.md) để cấu hình.
 - Product names and descriptions are stored directly in `flower.json` in Vietnamese. `currency.js` formats catalog prices as VND; catalog/API prices remain in USD.
+- Customer product reviews are stored in Firestore and shown publicly on each product detail page. Customers must sign in with Firebase Authentication to submit a review. Deploy the rules in `firestore.rules` with `firebase deploy --only firestore:rules`; reviews previously saved only in browser `localStorage` are not shared between visitors.
 
 ### Chạy và triển khai
 

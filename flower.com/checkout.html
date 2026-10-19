@@ -178,7 +178,7 @@
 
   function renderPromotionOptions() {
     const availablePromotions = getAvailableCartPromotions(Cart);
-    const selectedPromotionId = localStorage.getItem("flowerSelectedPromotion") || "";
+    const selectedPromotionId = FlowerSafeStorage.readText("flowerSelectedPromotion", "") || "";
     promotionSelect.replaceChildren(new Option("Không áp dụng ưu đãi", ""));
 
     availablePromotions.forEach((promotion) => {
@@ -193,7 +193,7 @@
     );
     promotionSelect.value = selectionIsAvailable ? selectedPromotionId : "";
     if (!selectionIsAvailable && selectedPromotionId) {
-      localStorage.removeItem("flowerSelectedPromotion");
+      FlowerSafeStorage.remove("flowerSelectedPromotion");
     }
     promotionMessage.textContent = availablePromotions.length
       ? "Ưu đãi chỉ áp dụng cho những sản phẩm được chọn trong chương trình."
@@ -202,16 +202,22 @@
 
   promotionSelect.addEventListener("change", () => {
     if (promotionSelect.value) {
-      localStorage.setItem("flowerSelectedPromotion", promotionSelect.value);
+      FlowerSafeStorage.writeText("flowerSelectedPromotion", promotionSelect.value);
     } else {
-      localStorage.removeItem("flowerSelectedPromotion");
+      FlowerSafeStorage.remove("flowerSelectedPromotion");
     }
     void refreshServerQuote();
   });
 
-  function saveCart() {
-    localStorage.setItem("cart", JSON.stringify(Cart));
-    DisplayProduct();
+  function saveCart(nextCart) {
+    try {
+      FlowerSafeStorage.writeJson("cart", nextCart, { required: true });
+      Cart = nextCart;
+      DisplayProduct();
+    } catch (error) {
+      console.error("Không thể lưu giỏ hàng:", error);
+      checkoutMessage.textContent = "Chưa thể lưu thay đổi giỏ hàng. Hãy kiểm tra dung lượng hoặc quyền lưu trữ của trình duyệt rồi thử lại.";
+    }
   }
 
   function DisplayProduct() {
@@ -265,20 +271,21 @@
       remove.textContent = "Xóa";
 
       decrease.addEventListener("click", () => {
-        product.quantity = itemQuantity - 1;
-        saveCart();
+        saveCart(Cart.map((item) => item.id === product.id
+          ? { ...item, quantity: itemQuantity - 1 }
+          : item));
       });
       increase.addEventListener("click", () => {
         if (hasStockLimit && itemQuantity >= stock) {
           checkoutMessage.textContent = `Chỉ còn ${stock} sản phẩm trong kho.`;
           return;
         }
-        product.quantity = itemQuantity + 1;
-        saveCart();
+        saveCart(Cart.map((item) => item.id === product.id
+          ? { ...item, quantity: itemQuantity + 1 }
+          : item));
       });
       remove.addEventListener("click", () => {
-        Cart = Cart.filter((item) => item.id !== product.id);
-        saveCart();
+        saveCart(Cart.filter((item) => item.id !== product.id));
       });
 
       controls.append(decrease, quantity, increase, remove);
@@ -408,8 +415,8 @@
     };
 
     try {
-      localStorage.setItem("flowerCheckout", JSON.stringify(checkout));
-      localStorage.setItem("flowerPaymentReference", paymentReference);
+      FlowerSafeStorage.writeJson("flowerCheckout", checkout, { required: true });
+      FlowerSafeStorage.writeText("flowerPaymentReference", paymentReference, { required: true });
       window.location.assign("./placeorder.html");
     } catch (error) {
       console.error("Không thể lưu thông tin thanh toán:", error);

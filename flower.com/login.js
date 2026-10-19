@@ -43,7 +43,7 @@ function getSavedAccounts() {
 
 function saveAccounts(accounts) {
     try {
-        localStorage.setItem(accountStorageKey, JSON.stringify(accounts));
+        window.FlowerSafeStorage.writeJson(accountStorageKey, accounts, { required: true });
         return true;
     } catch (error) {
         console.error("Không thể lưu danh sách tài khoản:", error);
@@ -118,15 +118,15 @@ function getFirebaseErrorMessage(error) {
 
 function saveCustomerSession(user, provider) {
     try {
-        localStorage.setItem("loggedUser", JSON.stringify({
+        window.FlowerSafeStorage.writeJson("loggedUser", {
             name: user.displayName || user.name || "Khách hàng",
             email: user.email || "",
             phone: user.phoneNumber || user.phone || "",
             uid: user.uid || "",
             authProvider: provider,
             role: "customer"
-        }));
-        localStorage.removeItem("loggedAdmin");
+        }, { required: true });
+        window.FlowerSafeStorage.remove("loggedAdmin");
         window.location.assign("./product.html");
     } catch (error) {
         console.error("Không thể lưu phiên đăng nhập:", error);
@@ -138,14 +138,14 @@ async function saveAuthenticatedSession(user, provider) {
     const token = await user.getIdTokenResult();
     if (token.claims.role === "owner") {
         try {
-            localStorage.setItem("loggedUser", JSON.stringify({
+            window.FlowerSafeStorage.writeJson("loggedUser", {
                 name: user.displayName || "Chủ cửa hàng",
                 email: user.email || "",
                 uid: user.uid || "",
                 authProvider: provider,
                 role: "owner"
-            }));
-            localStorage.setItem("loggedAdmin", "true");
+            }, { required: true });
+            window.FlowerSafeStorage.remove("loggedAdmin");
             window.location.assign("./owner.html");
         } catch (error) {
             console.error("Không thể lưu phiên chủ cửa hàng:", error);
@@ -156,14 +156,14 @@ async function saveAuthenticatedSession(user, provider) {
 
     if (token.claims.admin === true) {
         try {
-            localStorage.setItem("loggedUser", JSON.stringify({
+            window.FlowerSafeStorage.writeJson("loggedUser", {
                 name: user.displayName || "Quản trị viên",
                 email: user.email || "",
                 uid: user.uid || "",
                 authProvider: provider,
                 role: "admin"
-            }));
-            localStorage.setItem("loggedAdmin", "true");
+            }, { required: true });
+            window.FlowerSafeStorage.remove("loggedAdmin");
             window.location.assign("./admin.html");
         } catch (error) {
             console.error("Không thể lưu phiên quản trị:", error);

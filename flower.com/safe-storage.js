@@ -10,12 +10,17 @@
     flowerMessages: "phản hồi cũ",
     flowerReviews: "đánh giá cũ",
     usersData: "danh sách tài khoản",
-    flowerInventory: "kho sản phẩm"
+    flowerInventory: "kho sản phẩm",
+    flowerSelectedPromotion: "ưu đãi đã chọn",
+    flowerMessagesMigratedV1: "trạng thái chuyển phản hồi",
+    flowerReviewsAdminMigratedV1: "trạng thái chuyển đánh giá",
+    loggedAdmin: "phiên quản trị"
   };
 
-  function showStorageNotice(key) {
-    if (reportedKeys.has(key) || !root.document?.body) return;
-    reportedKeys.add(key);
+  function showStorageNotice(key, action = "read") {
+    const noticeKey = `${action}:${key}`;
+    if (reportedKeys.has(noticeKey) || !root.document?.body) return;
+    reportedKeys.add(noticeKey);
 
     const notice = root.document.createElement("div");
     notice.setAttribute("role", "alert");
@@ -28,12 +33,13 @@
     ].join(";");
 
     const message = root.document.createElement("span");
-    message.textContent = `Không đọc được ${labels[key] || "dữ liệu đã lưu"}. Dữ liệu gốc vẫn được giữ nguyên, ứng dụng không tự ghi đè bằng dữ liệu mẫu. Hãy tải lại trang; nếu lỗi còn, liên hệ quản trị viên.`;
+    const actionText = action === "write" ? "lưu" : action === "remove" ? "xóa" : "đọc";
+    message.textContent = `Không thể ${actionText} ${labels[key] || "dữ liệu đã lưu"}. Thao tác có thể chưa được hoàn tất; dữ liệu cũ không bị ứng dụng tự ý ghi đè. Hãy tải lại trang; nếu lỗi còn, liên hệ quản trị viên.`;
 
     const close = root.document.createElement("button");
     close.type = "button";
     close.textContent = "Đóng";
-    close.setAttribute("aria-label", "Đóng thông báo lỗi dữ liệu");
+    close.setAttribute("aria-label", "Đóng thông báo lỗi lưu trữ");
     close.style.cssText = "margin-left:12px;padding:5px 10px;border:0;border-radius:6px;background:#7c2d12;color:#fff;cursor:pointer";
     close.addEventListener("click", () => notice.remove());
 
@@ -56,7 +62,7 @@
       error.key = key;
       if (cause) error.cause = cause;
       if (typeof onError === "function") onError(error);
-      showStorageNotice(key);
+      showStorageNotice(key, "read");
       if (throwOnError) throw error;
       return fallback;
     }
@@ -86,5 +92,64 @@
     return value;
   }
 
-  root.FlowerSafeStorage = { readJson };
+  function writeJson(key, value, options = {}) {
+    const { required = false } = options;
+    let serialized;
+    try {
+      serialized = JSON.stringify(value);
+      if (serialized === undefined) throw new TypeError("Giá trị không thể chuyển thành JSON.");
+    } catch (cause) {
+      return failWrite(key, cause, required);
+    }
+    try {
+      root.localStorage.setItem(key, serialized);
+      return true;
+    } catch (cause) {
+      return failWrite(key, cause, required);
+    }
+  }
+
+  function readText(key, fallback = null) {
+    try {
+      const value = root.localStorage.getItem(key);
+      return value === null ? fallback : value;
+    } catch (cause) {
+      failWrite(key, cause, false, "read");
+      return fallback;
+    }
+  }
+
+  function writeText(key, value, options = {}) {
+    const { required = false } = options;
+    try {
+      root.localStorage.setItem(key, String(value));
+      return true;
+    } catch (cause) {
+      return failWrite(key, cause, required);
+    }
+  }
+
+  function remove(key, options = {}) {
+    const { required = false } = options;
+    try {
+      root.localStorage.removeItem(key);
+      return true;
+    } catch (cause) {
+      return failWrite(key, cause, required, "remove");
+    }
+  }
+
+  function failWrite(key, cause, required, action = "write") {
+    const verb = action === "remove" ? "xóa" : action === "read" ? "đọc" : "lưu";
+    const error = new Error("Không thể " + verb + " dữ liệu đã lưu.");
+    error.name = "SafeStorageError";
+    error.code = action === "remove" ? "storage-remove-failed" : action === "read" ? "storage-read-failed" : "storage-write-failed";
+    error.key = key;
+    error.cause = cause;
+    showStorageNotice(key, action);
+    if (required) throw error;
+    return false;
+  }
+
+  root.FlowerSafeStorage = { readJson, readText, writeJson, writeText, remove };
 })(typeof globalThis !== "undefined" ? globalThis : this);

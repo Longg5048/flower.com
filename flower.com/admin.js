@@ -106,7 +106,7 @@ function readLegacyCategories() {
 function cacheCategories(categories) {
    categoriesCache = categories;
    try {
-       localStorage.setItem(STORAGE_KEYS.categories, JSON.stringify(categories));
+       window.FlowerSafeStorage.writeJson(STORAGE_KEYS.categories, categories);
    } catch (error) {
        console.warn("Không lưu được bản sao phân loại trên thiết bị:", error);
    }
@@ -157,7 +157,7 @@ function getOffers() {
 
 async function saveOffers(offers) {
    await window.FlowerOrderStore.savePromotions(offers);
-   localStorage.setItem(STORAGE_KEYS.offers, JSON.stringify(offers));
+   window.FlowerSafeStorage.writeJson(STORAGE_KEYS.offers, offers);
 }
 
 function getOrders() {
@@ -1423,10 +1423,15 @@ if (usersPage) {
 
 if (logOutPage) {
    logOutPage.addEventListener("click", async () => {
-       localStorage.removeItem("loggedUser");
-       localStorage.removeItem("loggedAdmin");
-       await authApi.signOut(authApi.auth);
-       window.location.assign("./login.html");
+       try {
+           await authApi.signOut(authApi.auth);
+           window.FlowerSafeStorage.remove("loggedUser", { required: true });
+           window.FlowerSafeStorage.remove("loggedAdmin");
+           window.location.assign("./login.html");
+       } catch (error) {
+           console.error("Không thể hoàn tất đăng xuất:", error);
+           alert("Chưa thể xóa phiên đăng nhập khỏi trình duyệt. Hãy thử lại trước khi rời trang.");
+       }
    });
 }
 
@@ -1623,8 +1628,8 @@ async function initializeAdmin() {
        const token = await currentUser.getIdTokenResult();
        if (token.claims.admin !== true) {
            await authSdk.signOut(auth);
-           localStorage.removeItem("loggedUser");
-           localStorage.removeItem("loggedAdmin");
+           window.FlowerSafeStorage.remove("loggedUser");
+           window.FlowerSafeStorage.remove("loggedAdmin");
            window.location.replace("./login.html");
            return;
        }
@@ -1634,12 +1639,12 @@ async function initializeAdmin() {
            fallback: {},
            validate: (value) => value !== null && typeof value === "object" && !Array.isArray(value)
        });
-       localStorage.setItem("loggedUser", JSON.stringify({
+       window.FlowerSafeStorage.writeJson("loggedUser", {
            ...storedAccount,
            uid: currentUser.uid,
            email: currentUser.email || "",
            role: currentUserRole
-       }));
+       });
 
        await ensureStorage();
        try {
@@ -1649,7 +1654,7 @@ async function initializeAdmin() {
        }
        try {
            const promotions = await window.FlowerOrderStore.initializePromotions(getOffers());
-           localStorage.setItem(STORAGE_KEYS.offers, JSON.stringify(promotions));
+           window.FlowerSafeStorage.writeJson(STORAGE_KEYS.offers, promotions);
        } catch (error) {
            console.error("Không thể đồng bộ ưu đãi dùng chung:", error);
        }
@@ -1690,14 +1695,14 @@ async function initializeAdmin() {
                throwOnError: true
            });
            await window.FlowerMessageStore.migrateLegacyMessages(legacyMessages);
-           localStorage.removeItem("flowerMessages");
-           localStorage.setItem(messageMigrationKey, "true");
+           window.FlowerSafeStorage.remove("flowerMessages", { required: true });
+           window.FlowerSafeStorage.writeText(messageMigrationKey, "true", { required: true });
        } catch (error) {
            console.error("Không thể chuyển phản hồi cũ lên Firestore:", error);
        }
        try {
            const reviewMigrationKey = "flowerReviewsAdminMigratedV1";
-           if (localStorage.getItem(reviewMigrationKey) !== "true") {
+           if (window.FlowerSafeStorage.readText(reviewMigrationKey) !== "true") {
                const legacyReviews = window.FlowerSafeStorage.readJson("flowerReviews", {
                    fallback: [],
                    validate: (value) => Array.isArray(value)
@@ -1705,7 +1710,7 @@ async function initializeAdmin() {
                    throwOnError: true
                });
                await window.FlowerReviewStore.migrateLegacyAdminReviews(legacyReviews);
-               localStorage.setItem(reviewMigrationKey, "true");
+               window.FlowerSafeStorage.writeText(reviewMigrationKey, "true", { required: true });
            }
        } catch (error) {
            console.error("Không thể chuyển đánh giá quản trị cũ lên Firestore:", error);

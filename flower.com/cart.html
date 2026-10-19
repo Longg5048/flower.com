@@ -57,6 +57,19 @@
           && value.every((item) => item && typeof item === "object" && !Array.isArray(item) && item.id !== undefined)
       });
 
+      function saveCart(nextCart) {
+        try {
+          FlowerSafeStorage.writeJson("cart", nextCart, { required: true });
+          Cart = nextCart;
+          DisplayProduct();
+          return true;
+        } catch (error) {
+          console.error("Không thể lưu giỏ hàng:", error);
+          alert("Chưa thể lưu thay đổi giỏ hàng. Hãy kiểm tra dung lượng hoặc quyền lưu trữ của trình duyệt rồi thử lại.");
+          return false;
+        }
+      }
+
       function DisplayProduct() {
         const cartTotal = document.getElementById("cartTotal");
         cartTotal.textContent = Cart.length;
@@ -94,28 +107,28 @@
 
           Decrease.addEventListener("click", () => {
             if (productQuantity > 1) {
-              product.quantity = productQuantity - 1;
-              localStorage.setItem("cart", JSON.stringify(Cart));
-              DisplayProduct();
+              saveCart(Cart.map((item) => item.id === product.id
+                ? { ...item, quantity: productQuantity - 1 }
+                : item));
             }
           });
           Increase.addEventListener("click", () => {
             if (hasStockLimit && productQuantity >= stockQuantity) return;
-            product.quantity = productQuantity + 1;
-            localStorage.setItem("cart", JSON.stringify(Cart));
-            DisplayProduct();
+            saveCart(Cart.map((item) => item.id === product.id
+              ? { ...item, quantity: productQuantity + 1 }
+              : item));
           });
           Remove.addEventListener("click", () => {
-            Cart = Cart.filter((ele) => ele.id !== product.id);
-            localStorage.setItem("cart", JSON.stringify(Cart));
-            DisplayProduct();
-            Swal.fire({
-              position: "center",
-              icon: "success",
-              title: "Đã xóa sản phẩm khỏi giỏ hàng",
-              showConfirmButton: false,
-              timer: 1500
-            });
+            const nextCart = Cart.filter((ele) => ele.id !== product.id);
+            if (saveCart(nextCart)) {
+              Swal.fire({
+                position: "center",
+                icon: "success",
+                title: "Đã xóa sản phẩm khỏi giỏ hàng",
+                showConfirmButton: false,
+                timer: 1500
+              });
+            }
           });
           card.append(
             image,

@@ -40,7 +40,7 @@ function setTrustedPromotions(promotions) {
   trustedPromotions = Array.isArray(promotions) ? promotions : [];
 }
 
-function calculateCartTotals(cart, promotionId = localStorage.getItem("flowerSelectedPromotion")) {
+function calculateCartTotals(cart, promotionId = window.FlowerSafeStorage.readText("flowerSelectedPromotion", "")) {
   const selectedPromotion = getAvailableCartPromotions(cart).find(
     (promotion) => String(promotion.id) === String(promotionId || "")
   );

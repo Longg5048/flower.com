@@ -86,13 +86,15 @@
         return;
       }
 
-      localStorage.removeItem("cart");
-      localStorage.removeItem("flowerCheckout");
-      localStorage.removeItem("flowerSelectedPromotion");
-      localStorage.removeItem("flowerPaymentReference");
-      alert(checkoutData.paymentMethod === "qr"
+      const cleanupSucceeded = ["cart", "flowerCheckout", "flowerSelectedPromotion", "flowerPaymentReference"]
+        .map((key) => FlowerSafeStorage.remove(key))
+        .every(Boolean);
+      const successMessage = checkoutData.paymentMethod === "qr"
         ? "Đã nhận đơn hàng. Cửa hàng sẽ đối chiếu giao dịch trước khi xác nhận thanh toán."
-        : "Đặt hàng thành công! Đơn hàng đã được gửi tới cửa hàng.");
+        : "Đặt hàng thành công! Đơn hàng đã được gửi tới cửa hàng.";
+      alert(cleanupSucceeded
+        ? successMessage
+        : `${successMessage}\n\nĐơn đã được lưu, nhưng trình duyệt chưa xóa được giỏ hàng. Đừng gửi lại đơn này; hãy theo dõi mã đơn ở trang tiếp theo.`);
       window.location.href = `./tracking.html?id=${encodeURIComponent(orderId)}`;
     }
 

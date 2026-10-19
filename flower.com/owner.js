@@ -26,8 +26,8 @@ async function initializeAuth() {
     const token = await currentUser.getIdTokenResult(true);
     if (token.claims.role !== "owner") {
         await authSdk.signOut(auth);
-        localStorage.removeItem("loggedUser");
-        localStorage.removeItem("loggedAdmin");
+        window.FlowerSafeStorage.remove("loggedUser");
+        window.FlowerSafeStorage.remove("loggedAdmin");
         window.location.replace("./login.html");
         return false;
     }
@@ -147,8 +147,8 @@ loadMoreButton.addEventListener("click", () => loadUsers(loadMoreButton.dataset.
 document.getElementById("owner-logout").addEventListener("click", async () => {
     try {
         await authApi.signOut(authApi.auth);
-        localStorage.removeItem("loggedUser");
-        localStorage.removeItem("loggedAdmin");
+        window.FlowerSafeStorage.remove("loggedUser", { required: true });
+        window.FlowerSafeStorage.remove("loggedAdmin");
         window.location.assign("./login.html");
     } catch (error) {
         console.error("Không thể đăng xuất chủ cửa hàng:", error);

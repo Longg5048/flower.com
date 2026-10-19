@@ -41,7 +41,7 @@ function getSavedAccounts() {
 
 function saveAccounts(accounts) {
     try {
-        localStorage.setItem(accountStorageKey, JSON.stringify(accounts));
+        window.FlowerSafeStorage.writeJson(accountStorageKey, accounts, { required: true });
         return true;
     } catch (error) {
         console.error("Không thể lưu danh sách tài khoản:", error);

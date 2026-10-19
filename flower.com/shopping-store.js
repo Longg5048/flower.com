@@ -71,6 +71,14 @@
     }
 
     function writeList(key, items) {
+      if (typeof root.FlowerSafeStorage?.writeJson === "function") {
+        try {
+          root.FlowerSafeStorage.writeJson(key, items, { required: true });
+          return;
+        } catch (error) {
+          throw new ShoppingStoreError("Không thể lưu thay đổi. Hãy kiểm tra dung lượng trình duyệt rồi thử lại.", "storage-write-failed", error);
+        }
+      }
       try {
         storage().setItem(key, JSON.stringify(items));
       } catch (error) {

@@ -100,7 +100,11 @@
 
     function cacheProducts(products, notify = true) {
         const normalized = deduplicateProducts(products);
-        storage()?.setItem(PRODUCT_KEY, JSON.stringify(normalized));
+        if (typeof window !== "undefined" && window.FlowerSafeStorage?.writeJson) {
+            window.FlowerSafeStorage.writeJson(PRODUCT_KEY, normalized);
+        } else {
+            storage()?.setItem(PRODUCT_KEY, JSON.stringify(normalized));
+        }
         if (notify) {
             window.dispatchEvent(new CustomEvent("flowerinventorychange", { detail: normalized }));
         }
@@ -155,7 +159,11 @@
 
     function cacheCategories(categories, notify = true) {
         const normalized = normalizeCategories(categories);
-        storage()?.setItem(CATEGORY_KEY, JSON.stringify(normalized));
+        if (typeof window !== "undefined" && window.FlowerSafeStorage?.writeJson) {
+            window.FlowerSafeStorage.writeJson(CATEGORY_KEY, normalized);
+        } else {
+            storage()?.setItem(CATEGORY_KEY, JSON.stringify(normalized));
+        }
         if (notify && typeof window !== "undefined") {
             window.dispatchEvent(new CustomEvent("flowercategorieschange", { detail: normalized }));
         }

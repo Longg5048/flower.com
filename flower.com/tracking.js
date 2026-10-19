@@ -54,7 +54,7 @@ function formatDate(value, includeTime = true) {
 function readStoredList(key, label) {
     let storedValue;
     try {
-        storedValue = localStorage.getItem(key);
+        storedValue = window.FlowerSafeStorage.readText(key);
     } catch (error) {
         console.error(`Không thể đọc ${label}:`, error);
         throw new Error(`Không thể đọc ${label}. Vui lòng kiểm tra cài đặt trình duyệt rồi thử lại.`);
@@ -430,7 +430,7 @@ reviewForm.addEventListener("submit", async (event) => {
     const savedReview = { ...review, id: reviewId, createdAt: new Date().toISOString(), reply: "" };
     reviews.push(savedReview);
     try {
-        localStorage.setItem("flowerReviews", JSON.stringify(reviews));
+        window.FlowerSafeStorage.writeJson("flowerReviews", reviews);
     } catch (error) {
         console.warn("Đánh giá đã được đồng bộ công khai nhưng không lưu được bản xem trên thiết bị này:", error);
     }

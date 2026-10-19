@@ -43,7 +43,7 @@ if (!account) {
     try {
         account = await restoreFirebaseAccount();
         if (account) {
-            localStorage.setItem("loggedUser", JSON.stringify(account));
+            window.FlowerSafeStorage.writeJson("loggedUser", account);
         }
     } catch (error) {
         console.error("Không thể khôi phục phiên Firebase:", error);
@@ -85,7 +85,13 @@ document.getElementById("logout-button").addEventListener("click", async () => {
         }
     }
 
-    localStorage.removeItem("loggedUser");
-    localStorage.removeItem("loggedAdmin");
+    try {
+        window.FlowerSafeStorage.remove("loggedUser", { required: true });
+        window.FlowerSafeStorage.remove("loggedAdmin");
+    } catch (error) {
+        console.error("Không thể xóa phiên tài khoản trên trình duyệt:", error);
+        message.textContent = "Chưa thể xóa phiên đăng nhập trên trình duyệt này. Hãy thử lại trước khi rời trang.";
+        return;
+    }
     window.location.assign("./login.html");
 });

@@ -18,6 +18,9 @@ let productSearchTerm = "";
 let ordersCache = [];
 let orderStoreError = null;
 let stopOrderSubscription = null;
+let reviewsCache = [];
+let stopReviewSubscription = null;
+let categoriesCache = [];
 let revenueDateFilter = "month";
 const initialRevenueDate = new Date();
 let revenueMonth = `${initialRevenueDate.getFullYear()}-${String(initialRevenueDate.getMonth() + 1).padStart(2, "0")}`;
@@ -25,8 +28,6 @@ let revenueDateStart = "";
 let revenueDateEnd = "";
 
 const STORAGE_KEYS = {
-   reviews: "flowerReviews",
-   messages: "flowerMessages",
    categories: "flowerCategories",
    offers: "flowerPromotions"
 };
@@ -39,15 +40,18 @@ function moneyFormat(value) {
 }
 
 function isOrderPaid(order) {
-   // This storefront has no trusted bank-transfer verification integration.
-   // Never treat a QR order as paid based on browser-stored fields.
-   if (order.paymentMethod === "qr") return false;
+   // QR transfers count only after an admin checked the bank statement and
+   // confirmed it with "Xác nhận đã nhận tiền" (Security Rules: admin-only write).
+   if (order.paymentMethod === "qr") return order.paymentVerified === true;
    const status = String(order.paymentStatus || "").trim().toLocaleLowerCase("vi");
    return ["đã thanh toán", "paid"].includes(status);
 }
 
 function getPaymentDisplayStatus(order) {
-   if (order.paymentMethod === "qr") return "Chờ cửa hàng xác minh";
+   if (order.paymentMethod === "qr") {
+       if (order.paymentVerified === true) return "Đã thanh toán (đã đối soát)";
+       return order.paymentStatus === "Hết hạn chờ thanh toán" ? order.paymentStatus : "Chờ cửa hàng xác minh";
+   }
    return order.paymentStatus || (order.paymentMethod === "cod" ? "Thanh toán khi nhận hàng" : "Chưa xác nhận");
 }
 
@@ -84,68 +88,38 @@ function getSelectedRevenueOrders(orders) {
    });
 }
 
-function getDemoReviews() {
-   const now = Date.now();
-   return [
-       {
-          id: 2001,
-          customerName: "Nguyễn Thị Lan",
-          phone: "0908123456",
-          productName: "Vibrant Spring Basket",
-          rating: 5,
-          comment: "Hoa rất đẹp, gói hàng cẩn thận và đúng hẹn. Tôi rất hài lòng.",
-          createdAt: new Date(now - 86400000).toISOString(),
-          reply: "Cảm ơn chị Lan đã tin tưởng. Chúng tôi rất vui được phục vụ!"
-       },
-       {
-          id: 2002,
-          customerName: "Trần Bảo Anh",
-          phone: "0987654321",
-          productName: "Rising Star",
-          rating: 4,
-          comment: "Mẫu hoa đẹp, màu sắc hài hòa, nhưng tôi muốn thêm một chút hương thơm hơn.",
-          createdAt: new Date(now - 259200000).toISOString(),
-          reply: "Cảm ơn phản hồi của anh/chị. Chúng tôi sẽ ghi nhận và cải thiện trong lần sau."
-       }
-   ];
-}
-
-function getDemoMessages() {
-   const now = Date.now();
-   return [
-       {
-          id: 3001,
-          customerName: "Phạm Minh Quân",
-          phone: "0912345678",
-          subject: "Tư vấn sáng tạo hoa",
-          message: "Tôi muốn đặt hoa cho sinh nhật bạn gái theo phong cách tối giản, màu hồng và trắng, gói trang trọng.",
-          createdAt: new Date(now - 172800000).toISOString(),
-          reply: "Chúng tôi sẽ gợi ý mẫu hoa hồng trắng kết hợp xanh lá tươi, phù hợp phong cách tối giản."
-       },
-       {
-          id: 3002,
-          customerName: "Lê Hoài Nam",
-          phone: "0909988777",
-          subject: "Tư vấn thiết kế hoa",
-          message: "Có thể thiết kế giỏ hoa theo chủ đề tiệc cưới có thêm nơ và dây ruy băng không?",
-          createdAt: new Date(now - 432000000).toISOString(),
-          reply: "Có thể, chúng tôi có gói tùy chỉnh theo chủ đề cưới với nơ và dây ruy băng theo ý khách hàng."
-       }
-   ];
-}
-
 async function ensureStorage() {
    await FlowerInventory.initialize();
+}
 
-   const existingReviews = JSON.parse(localStorage.getItem(STORAGE_KEYS.reviews) || "[]");
-   const existingMessages = JSON.parse(localStorage.getItem(STORAGE_KEYS.messages) || "[]");
+function readLegacyCategories() {
+   try {
+       const categories = JSON.parse(localStorage.getItem(STORAGE_KEYS.categories) || "[]");
+       return Array.isArray(categories) ? categories : [];
+   } catch {
+       return [];
+   }
+}
 
-   if (!localStorage.getItem(STORAGE_KEYS.reviews) || !existingReviews.length) {
-       localStorage.setItem(STORAGE_KEYS.reviews, JSON.stringify(getDemoReviews()));
+function cacheCategories(categories) {
+   categoriesCache = categories;
+   try {
+       localStorage.setItem(STORAGE_KEYS.categories, JSON.stringify(categories));
+   } catch (error) {
+       console.warn("Không lưu được bản sao phân loại trên thiết bị:", error);
    }
-   if (!localStorage.getItem(STORAGE_KEYS.messages) || !existingMessages.length) {
-       localStorage.setItem(STORAGE_KEYS.messages, JSON.stringify(getDemoMessages()));
+}
+
+// Loads categories from Firestore; on first run, uploads the ones this browser had saved locally.
+async function loadCategories() {
+   const remoteCategories = await window.FlowerOrderStore.getCategories();
+   if (remoteCategories) {
+       cacheCategories(remoteCategories);
+       return;
    }
+   const legacyCategories = readLegacyCategories();
+   await window.FlowerOrderStore.saveCategories(legacyCategories);
+   cacheCategories(legacyCategories);
 }
 
 function getProducts() {
@@ -153,7 +127,7 @@ function getProducts() {
 }
 
 function getCategories() {
-   const storedCategories = JSON.parse(localStorage.getItem(STORAGE_KEYS.categories) || "[]");
+   const storedCategories = categoriesCache;
    const productCategories = getProducts().map((product) => product.category);
    return [...new Set(
        [...(Array.isArray(storedCategories) ? storedCategories : []), ...productCategories]
@@ -166,7 +140,14 @@ function saveCategories(categories) {
    const normalizedCategories = [...new Set(
        categories.map((category) => String(category || "").trim()).filter(Boolean)
    )];
-   localStorage.setItem(STORAGE_KEYS.categories, JSON.stringify(normalizedCategories));
+   const previousCategories = categoriesCache;
+   cacheCategories(normalizedCategories);
+   window.FlowerOrderStore.saveCategories(normalizedCategories).catch((error) => {
+       console.error("Không thể lưu phân loại lên Firestore:", error);
+       cacheCategories(previousCategories);
+       alert("Chưa thể lưu phân loại lên hệ thống. Hãy thử lại sau.");
+       if (main.querySelector(".panel h2")?.textContent === "Quản lý phân loại") renderCategoriesTab();
+   });
 }
 
 function getOffers() {
@@ -184,11 +165,23 @@ function getOrders() {
 }
 
 function getReviews() {
-   return JSON.parse(localStorage.getItem(STORAGE_KEYS.reviews) || "[]");
+   return [...reviewsCache];
 }
 
+// Customer messages are the notes left on orders at checkout.
 function getMessages() {
-   return JSON.parse(localStorage.getItem(STORAGE_KEYS.messages) || "[]");
+   return ordersCache
+       .filter((order) => String(order.orderNote || "").trim())
+       .map((order) => ({
+           id: order.id,
+           customerName: order.customerName,
+           phone: order.phone,
+           subject: `Lời nhắn kèm đơn #${order.id}`,
+           message: order.orderNote,
+           createdAt: order.createdAt,
+           reply: order.orderNoteReply || "",
+           completedAt: order.orderNoteCompletedAt || ""
+       }));
 }
 
 function renderDashboard() {
@@ -716,12 +709,12 @@ function renderActiveOrderSummary(order) {
 
 function renderOrderSummary(order) {
    const itemSummary = (order.items || [])
-       .map((item) => `${getVietnameseProductName(item.title)} × ${item.quantity}`)
+       .map((item) => `${escapeHtml(getVietnameseProductName(item.title))} × ${Number(item.quantity) || 0}`)
        .join(", ") || "Không có sản phẩm";
    return `
        <article class="record-summary">
            <div class="completed-order-info">
-               <strong>Đơn #${order.id} · ${order.customerName}</strong>
+               <strong>Đơn #${escapeHtml(order.id)} · ${escapeHtml(order.customerName)}</strong>
                <span><b>Sản phẩm:</b> ${itemSummary}</span>
                <span><b>Thời gian đặt:</b> ${new Date(order.createdAt).toLocaleString("vi-VN")}</span>
            </div>
@@ -743,10 +736,10 @@ function renderOrderCard(order, showCompletionAction = true) {
                <div>
                    <div class="title-row">
                        <span class="card-icon">🧾</span>
-                       <strong>Đơn #${order.id} - ${order.customerName}</strong>
+                       <strong>Đơn #${escapeHtml(order.id)} - ${escapeHtml(order.customerName)}</strong>
                    </div>
                    <div class="order-meta">
-                       <span>📞 ${order.phone}</span>
+                       <span>📞 ${escapeHtml(order.phone)}</span>
                        <span>🕒 ${new Date(order.createdAt).toLocaleString("vi-VN")}</span>
                        ${order.savings != null ? `<span>🎁 Ưu đãi: ${moneyFormat(order.savings)}</span>` : ""}
                        <span>💰 ${moneyFormat(order.total)}</span>
@@ -758,11 +751,11 @@ function renderOrderCard(order, showCompletionAction = true) {
            <div class="info-grid two-col">
                <div class="field">
                    <span class="field-label">Khách hàng</span>
-                   <span class="field-value">${order.customerName}</span>
+                   <span class="field-value">${escapeHtml(order.customerName)}</span>
                </div>
                <div class="field">
                    <span class="field-label">Điện thoại</span>
-                   <span class="field-value">${order.phone}</span>
+                   <span class="field-value">${escapeHtml(order.phone)}</span>
                </div>
                <div class="field">
                    <span class="field-label">Thanh toán</span>
@@ -770,7 +763,7 @@ function renderOrderCard(order, showCompletionAction = true) {
                </div>
                <div class="field full-width">
                    <span class="field-label">Địa chỉ</span>
-                   <span class="field-value">${order.address || "Chưa cập nhật"}</span>
+                   <span class="field-value">${escapeHtml(order.address || "Chưa cập nhật")}</span>
                </div>
            </div>
 
@@ -781,10 +774,10 @@ function renderOrderCard(order, showCompletionAction = true) {
                    const image = item.image || product.image || "./images/flowerflow-logo.png";
                    return `
                        <div class="product-card">
-                           <img src="${image}" alt="${getVietnameseProductName(item.title)}">
+                           <img src="${escapeHtml(image)}" alt="${escapeHtml(getVietnameseProductName(item.title))}">
                            <div class="product-card-content">
-                               <strong>${getVietnameseProductName(item.title)}</strong>
-                               <span>Số lượng: ${item.quantity}</span>
+                               <strong>${escapeHtml(getVietnameseProductName(item.title))}</strong>
+                               <span>Số lượng: ${Number(item.quantity) || 0}</span>
                                <span>Giá: ${moneyFormat(item.price)}</span>
                            </div>
                        </div>
@@ -820,7 +813,10 @@ function renderOrderCard(order, showCompletionAction = true) {
                                <option value="${status}" ${status === normalizeOrderStatus(order.status) ? "selected" : ""}>${status}</option>
                            `).join("")}
                        </select>
-                       <button class="status-save" data-order-id="${order.id}">Cập nhật trạng thái</button>
+                       <button class="status-save" data-order-id="${escapeHtml(order.id)}">Cập nhật trạng thái</button>
+                       ${order.paymentMethod === "qr" && order.paymentVerified !== true && normalizeOrderStatus(order.status) !== "Đã hủy"
+                           ? `<button class="secondary-btn verify-payment" data-order-id="${escapeHtml(order.id)}" type="button">Xác nhận đã nhận tiền</button>`
+                           : ""}
                        ${showCompletionAction ? renderCompletionAction("orders", order) : ""}
                    </div>
                </div>
@@ -879,6 +875,7 @@ function renderOrdersTab() {
 function refreshOrdersView() {
    const heading = main.querySelector(".panel h2")?.textContent;
    if (heading === "Quản lý đơn hàng") renderOrdersTab();
+   else if (heading === "Phản hồi từ khách hàng") renderMessagesTab();
    else if (heading === "Doanh thu & kho hàng") renderRevenueTab();
    else if (main.querySelector(".dashboard") || !heading) renderDashboard();
 }
@@ -893,7 +890,7 @@ function renderReviewCard(review, showCompletionAction = true) {
                        <strong>${escapeHtml(review.customerName)}</strong>
                    </div>
                    <div class="review-meta">
-                       <span>📞 ${review.phone}</span>
+                       ${review.phone ? `<span>📞 ${escapeHtml(review.phone)}</span>` : ""}
                        <span>🕒 ${new Date(review.createdAt).toLocaleString("vi-VN")}</span>
                    </div>
                </div>
@@ -975,10 +972,10 @@ function renderMessageCard(message, showCompletionAction = true) {
                <div>
                    <div class="title-row">
                        <span class="card-icon">💬</span>
-                       <strong>${message.customerName}</strong>
+                       <strong>${escapeHtml(message.customerName)}</strong>
                    </div>
                    <div class="message-meta">
-                       <span>📞 ${message.phone}</span>
+                       <span>📞 ${escapeHtml(message.phone)}</span>
                        <span>🕒 ${new Date(message.createdAt).toLocaleString("vi-VN")}</span>
                    </div>
                </div>
@@ -991,17 +988,17 @@ function renderMessageCard(message, showCompletionAction = true) {
            <div class="info-grid single-col">
                <div class="field">
                    <span class="field-label">Chủ đề</span>
-                   <span class="field-value">${message.subject || "Tư vấn đặt hàng"}</span>
+                   <span class="field-value">${escapeHtml(message.subject || "Tư vấn đặt hàng")}</span>
                </div>
            </div>
 
            <div class="section-label">Nội dung khách nhắn</div>
-           <div class="detail-block quote-box">${message.message}</div>
-           ${message.reply ? `<div class="reply-banner"><strong>Phản hồi của bạn:</strong> ${message.reply}</div>` : ""}
+           <div class="detail-block quote-box">${escapeHtml(message.message)}</div>
+           ${message.reply ? `<div class="reply-banner"><strong>Phản hồi của bạn:</strong> ${escapeHtml(message.reply)}</div>` : ""}
 
            <div class="reply-box">
                <label class="field-label">Trả lời khách</label>
-               <textarea class="reply-input" data-message-id="${message.id}" placeholder="Nhập câu trả lời cho khách hàng...">${message.reply || ""}</textarea>
+               <textarea class="reply-input" data-message-id="${message.id}" placeholder="Nhập câu trả lời cho khách hàng...">${escapeHtml(message.reply || "")}</textarea>
                <button class="send-reply" data-message-id="${message.id}">Trả lời</button>
            </div>
        </div>
@@ -1020,8 +1017,8 @@ function renderMessageSummary(message) {
    return `
        <article class="record-summary">
            <div class="completed-order-info">
-               <strong>${message.customerName} · ${message.subject || "Tư vấn đặt hàng"}</strong>
-               <span class="record-summary-preview"><b>Nội dung:</b> ${message.message}</span>
+               <strong>${escapeHtml(message.customerName)} · ${escapeHtml(message.subject || "Tư vấn đặt hàng")}</strong>
+               <span class="record-summary-preview"><b>Nội dung:</b> ${escapeHtml(message.message)}</span>
                <span><b>Thời gian:</b> ${new Date(message.createdAt).toLocaleString("vi-VN")}</span>
            </div>
            <div class="record-summary-actions">
@@ -1141,35 +1138,50 @@ async function updateOrderStatus(orderId, status, location, estimatedDelivery) {
    }
 }
 
-function updateReviewReply(reviewId, reply) {
-   const reviews = getReviews();
-   const nextReviews = reviews.map((review) => {
-       if (String(review.id) === String(reviewId)) {
-           return { ...review, reply };
-       }
-       return review;
-   });
-   localStorage.setItem(STORAGE_KEYS.reviews, JSON.stringify(nextReviews));
-   renderReviewsTab();
+async function verifyOrderPayment(orderId) {
+   const order = getOrders().find((item) => String(item.id) === String(orderId));
+   if (!order) return;
+   const confirmed = window.confirm(
+       `Xác nhận đã nhận ${moneyFormat(order.total)} cho đơn #${order.id}` +
+       (order.paymentReference ? ` (nội dung ${order.paymentReference})` : "") +
+       "? Chỉ xác nhận sau khi đã kiểm tra sao kê ngân hàng."
+   );
+   if (!confirmed) return;
+   try {
+       await window.FlowerOrderStore.update(orderId, {
+           paymentVerified: true,
+           paymentStatus: "Đã thanh toán",
+           paidAt: new Date().toISOString()
+       });
+   } catch (error) {
+       console.error("Không thể xác nhận thanh toán trên Firestore:", error);
+       alert("Chưa thể xác nhận thanh toán. Hãy thử lại sau.");
+   }
 }
 
-function updateMessageReply(messageId, reply) {
-   const messages = getMessages();
-   const nextMessages = messages.map((message) => {
-       if (String(message.id) === String(messageId)) {
-           return { ...message, reply };
-       }
-       return message;
-   });
-   localStorage.setItem(STORAGE_KEYS.messages, JSON.stringify(nextMessages));
-   renderMessagesTab();
+async function updateReviewReply(reviewId, reply) {
+   try {
+       await window.FlowerReviewStore.update(reviewId, { reply });
+   } catch (error) {
+       console.error("Không thể lưu phản hồi đánh giá:", error);
+       alert("Chưa thể lưu phản hồi. Hãy thử lại sau.");
+   }
+}
+
+async function updateMessageReply(messageId, reply) {
+   try {
+       await window.FlowerOrderStore.update(messageId, { orderNoteReply: reply });
+   } catch (error) {
+       console.error("Không thể lưu câu trả lời:", error);
+       alert("Chưa thể lưu câu trả lời. Hãy thử lại sau.");
+   }
 }
 
 async function deleteAdminRecord(type, id) {
    const records = {
        orders: { label: "đơn hàng", render: renderOrdersTab },
-       reviews: { key: STORAGE_KEYS.reviews, label: "đánh giá", render: renderReviewsTab },
-       messages: { key: STORAGE_KEYS.messages, label: "phản hồi", render: renderMessagesTab }
+       reviews: { label: "đánh giá", render: renderReviewsTab },
+       messages: { label: "lời nhắn", render: renderMessagesTab }
    };
    const record = records[type];
    if (!record) {
@@ -1189,22 +1201,21 @@ async function deleteAdminRecord(type, id) {
        return;
    }
 
-   const savedRecords = JSON.parse(localStorage.getItem(record.key) || "[]");
-   const remainingRecords = savedRecords.filter((item) => String(item.id) !== String(id));
-   if (remainingRecords.length === savedRecords.length) {
-       console.error(`Không tìm thấy ${record.label} cần xóa:`, id);
-       return;
+   try {
+       // Deleting a message only clears the note; the order itself stays.
+       if (type === "reviews") await window.FlowerReviewStore.remove(id);
+       else await window.FlowerOrderStore.update(id, { orderNote: "", orderNoteReply: "", orderNoteCompletedAt: null });
+   } catch (error) {
+       console.error(`Không thể xóa ${record.label} trên Firestore:`, error);
+       alert(`Chưa thể xóa ${record.label}. Hãy thử lại sau.`);
    }
-
-   localStorage.setItem(record.key, JSON.stringify(remainingRecords));
-   record.render();
 }
 
 async function setRecordCompletion(type, id, completed) {
    const records = {
        orders: { label: "đơn hàng", render: renderOrdersTab },
-       reviews: { key: STORAGE_KEYS.reviews, label: "đánh giá", render: renderReviewsTab },
-       messages: { key: STORAGE_KEYS.messages, label: "phản hồi", render: renderMessagesTab }
+       reviews: { label: "đánh giá", render: renderReviewsTab },
+       messages: { label: "lời nhắn", render: renderMessagesTab }
    };
    const record = records[type];
    if (!record) {
@@ -1224,22 +1235,14 @@ async function setRecordCompletion(type, id, completed) {
        return;
    }
 
-   const savedRecords = JSON.parse(localStorage.getItem(record.key) || "[]");
-   let found = false;
-   const updatedRecords = savedRecords.map((item) => {
-       if (String(item.id) !== String(id)) return item;
-       found = true;
-       if (completed) return { ...item, completedAt: new Date().toISOString() };
-       const { completedAt, ...restoredItem } = item;
-       return restoredItem;
-   });
-   if (!found) {
-       console.error(`Không tìm thấy ${record.label} cần cập nhật:`, id);
-       return;
+   const completedAt = completed ? new Date().toISOString() : null;
+   try {
+       if (type === "reviews") await window.FlowerReviewStore.update(id, { completedAt });
+       else await window.FlowerOrderStore.update(id, { orderNoteCompletedAt: completedAt });
+   } catch (error) {
+       console.error(`Không thể cập nhật ${record.label} trên Firestore:`, error);
+       alert(`Chưa thể cập nhật ${record.label}. Hãy thử lại sau.`);
    }
-
-   localStorage.setItem(record.key, JSON.stringify(updatedRecords));
-   record.render();
 }
 
 function renderUsersTab() {
@@ -1513,6 +1516,12 @@ main.addEventListener("click", (event) => {
        }
    }
 
+   const verifyPayment = event.target.closest(".verify-payment");
+   if (verifyPayment) {
+       verifyOrderPayment(verifyPayment.dataset.orderId);
+       return;
+   }
+
    const statusSave = event.target.closest(".status-save");
    if (statusSave) {
        const orderId = statusSave.dataset.orderId;
@@ -1630,6 +1639,18 @@ async function initializeAdmin() {
            console.error("Không thể kết nối kho đơn hàng Firestore:", error);
            orderStoreError = error;
        }
+       try {
+           await loadCategories();
+       } catch (error) {
+           console.error("Không thể tải phân loại từ Firestore:", error);
+           cacheCategories(readLegacyCategories());
+       }
+       stopReviewSubscription = window.FlowerReviewStore.subscribeAll((reviews) => {
+           reviewsCache = reviews;
+           const heading = main.querySelector(".panel h2")?.textContent;
+           if (heading === "Đánh giá khách hàng") renderReviewsTab();
+           else if (main.querySelector(".dashboard")) renderDashboard();
+       }, (error) => console.error("Không thể đồng bộ đánh giá từ Firestore:", error));
        bindAdminEvents({ auth, signOut: authSdk.signOut });
        renderDashboard();
    } catch (error) {
@@ -1643,13 +1664,11 @@ window.addEventListener("storage", (event) => {
    if (event.key === "flowerInventory" && activeHeading?.textContent === "Quản lý kho hoa") {
        renderProductTab();
    }
-   if (event.key === STORAGE_KEYS.reviews && activeHeading?.textContent === "Đánh giá khách hàng") {
-       renderReviewsTab();
-   }
 });
 
 window.addEventListener("pagehide", () => {
    if (stopOrderSubscription) stopOrderSubscription();
+   if (stopReviewSubscription) stopReviewSubscription();
 });
 
 window.addEventListener("flowerinventorychange", () => {

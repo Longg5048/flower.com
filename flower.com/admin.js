@@ -84,70 +84,6 @@ function getSelectedRevenueOrders(orders) {
    });
 }
 
-function getDemoReviews() {
-   const now = Date.now();
-   return [
-       {
-          id: 2001,
-          customerName: "Nguyễn Thị Lan",
-          phone: "0908123456",
-          productName: "Vibrant Spring Basket",
-          rating: 5,
-          comment: "Hoa rất đẹp, gói hàng cẩn thận và đúng hẹn. Tôi rất hài lòng.",
-          createdAt: new Date(now - 86400000).toISOString(),
-          reply: "Cảm ơn chị Lan đã tin tưởng. Chúng tôi rất vui được phục vụ!"
-       },
-       {
-          id: 2002,
-          customerName: "Trần Bảo Anh",
-          phone: "0987654321",
-          productName: "Rising Star",
-          rating: 4,
-          comment: "Mẫu hoa đẹp, màu sắc hài hòa, nhưng tôi muốn thêm một chút hương thơm hơn.",
-          createdAt: new Date(now - 259200000).toISOString(),
-          reply: "Cảm ơn phản hồi của anh/chị. Chúng tôi sẽ ghi nhận và cải thiện trong lần sau."
-       }
-   ];
-}
-
-function getDemoMessages() {
-   const now = Date.now();
-   return [
-       {
-          id: 3001,
-          customerName: "Phạm Minh Quân",
-          phone: "0912345678",
-          subject: "Tư vấn sáng tạo hoa",
-          message: "Tôi muốn đặt hoa cho sinh nhật bạn gái theo phong cách tối giản, màu hồng và trắng, gói trang trọng.",
-          createdAt: new Date(now - 172800000).toISOString(),
-          reply: "Chúng tôi sẽ gợi ý mẫu hoa hồng trắng kết hợp xanh lá tươi, phù hợp phong cách tối giản."
-       },
-       {
-          id: 3002,
-          customerName: "Lê Hoài Nam",
-          phone: "0909988777",
-          subject: "Tư vấn thiết kế hoa",
-          message: "Có thể thiết kế giỏ hoa theo chủ đề tiệc cưới có thêm nơ và dây ruy băng không?",
-          createdAt: new Date(now - 432000000).toISOString(),
-          reply: "Có thể, chúng tôi có gói tùy chỉnh theo chủ đề cưới với nơ và dây ruy băng theo ý khách hàng."
-       }
-   ];
-}
-
-async function ensureStorage() {
-   await FlowerInventory.initialize();
-
-   const existingReviews = JSON.parse(localStorage.getItem(STORAGE_KEYS.reviews) || "[]");
-   const existingMessages = JSON.parse(localStorage.getItem(STORAGE_KEYS.messages) || "[]");
-
-   if (!localStorage.getItem(STORAGE_KEYS.reviews) || !existingReviews.length) {
-       localStorage.setItem(STORAGE_KEYS.reviews, JSON.stringify(getDemoReviews()));
-   }
-   if (!localStorage.getItem(STORAGE_KEYS.messages) || !existingMessages.length) {
-       localStorage.setItem(STORAGE_KEYS.messages, JSON.stringify(getDemoMessages()));
-   }
-}
-
 function getProducts() {
     return FlowerInventory.readProducts();
 }
@@ -1604,7 +1540,7 @@ async function initializeAdmin() {
            role: currentUserRole
        }));
 
-       await ensureStorage();
+       await FlowerInventory.initialize();
        try {
            await window.FlowerOrderStore.expireReservations();
        } catch (error) {

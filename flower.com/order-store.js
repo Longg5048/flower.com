@@ -121,6 +121,21 @@
     return getPromotions();
   }
 
+  // Admin-defined categories, kept even when no product uses them yet.
+  async function getCategories() {
+    const { db, firestoreSdk } = await getFirebase();
+    const snapshot = await firestoreSdk.getDoc(firestoreSdk.doc(db, "metadata", "storeCategories"));
+    return snapshot.exists() && Array.isArray(snapshot.data().items) ? snapshot.data().items : null;
+  }
+
+  async function saveCategories(categories) {
+    const { db, firestoreSdk } = await getFirebase();
+    await firestoreSdk.setDoc(firestoreSdk.doc(db, "metadata", "storeCategories"), {
+      items: Array.isArray(categories) ? categories : [],
+      updatedAt: firestoreSdk.serverTimestamp()
+    });
+  }
+
   async function initializePromotions(legacyPromotions = []) {
     const { auth, db, firestoreSdk } = await getFirebase();
     await auth.authStateReady();
@@ -285,6 +300,8 @@
     getPromotions,
     savePromotions,
     initializePromotions,
+    getCategories,
+    saveCategories,
     subscribeAdmin,
     subscribeAccount,
     getPublicOrder,

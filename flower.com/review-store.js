@@ -74,5 +74,46 @@
     return result.id;
   }
 
-  root.FlowerReviewStore = { subscribe, submit };
+  function serializeReview(doc) {
+    const data = doc.data();
+    return {
+      id: doc.id,
+      ...data,
+      createdAt: data.createdAt?.toDate?.().toISOString() || data.createdAt || ""
+    };
+  }
+
+  // Admin only (Security Rules): every review, newest first.
+  function subscribeAll(onReviews, onError = () => {}) {
+    let unsubscribe = null;
+    let cancelled = false;
+
+    getFirebase().then(({ db, firestoreSdk }) => {
+      if (cancelled) return;
+      unsubscribe = firestoreSdk.onSnapshot(firestoreSdk.collection(db, "reviews"), (snapshot) => {
+        onReviews(snapshot.docs.map(serializeReview).sort(
+          (first, second) => String(second.createdAt).localeCompare(String(first.createdAt))
+        ));
+      }, onError);
+    }).catch(onError);
+
+    return () => {
+      cancelled = true;
+      if (unsubscribe) unsubscribe();
+    };
+  }
+
+  async function update(id, changes) {
+    const { db, firestoreSdk } = await getFirebase();
+    const reviewChanges = { ...changes };
+    if (reviewChanges.completedAt === null) reviewChanges.completedAt = firestoreSdk.deleteField();
+    await firestoreSdk.updateDoc(firestoreSdk.doc(db, "reviews", String(id)), reviewChanges);
+  }
+
+  async function remove(id) {
+    const { db, firestoreSdk } = await getFirebase();
+    await firestoreSdk.deleteDoc(firestoreSdk.doc(db, "reviews", String(id)));
+  }
+
+  root.FlowerReviewStore = { subscribe, submit, subscribeAll, update, remove };
 })(typeof window !== "undefined" ? window : globalThis);

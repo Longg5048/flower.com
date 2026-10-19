@@ -9,7 +9,7 @@ FlowerFlow là ứng dụng frontend tĩnh (HTML, CSS, JavaScript thuần, khôn
 - **Firebase Authentication** để đăng nhập khách hàng và quản trị viên.
 - **Cloud Firestore** để lưu catalog, đánh giá và đơn hàng dùng chung giữa các thiết bị.
 - **Vercel Functions** (`api/`) để chạy các thao tác cần Firebase Admin SDK.
-- **`localStorage`** để cache catalog và lưu dữ liệu tạm trên trình duyệt (giỏ hàng, ưu đãi, tin nhắn...).
+- **`localStorage`** để cache catalog và lưu giỏ hàng, danh sách yêu thích trên trình duyệt.
 
 ```mermaid
 flowchart LR
@@ -25,7 +25,7 @@ flowchart LR
     Tracking -->|Mã đơn + số điện thoại| OrderAPI --> Orders
     Checkout --> VietQR[VietQR]
     Admin["admin.js"] -->|Cập nhật sản phẩm| Store
-    Admin <-->|Danh mục, ưu đãi, tin nhắn| Cache
+    Admin <-->|Đơn, ưu đãi, phân loại, đánh giá| Firestore
     Admin -->|ID token| AdminAPI["/api/admin/users"]
     Owner["owner.js"] -->|ID token| OwnerAPI["/api/owner/users"]
     AdminAPI --> FirebaseAdmin[Firebase Admin SDK]
@@ -49,7 +49,7 @@ flowchart LR
 | Tài khoản | `login.*`, `account.*`, `forgot-password.*` | Đăng ký, đăng nhập, khôi phục mật khẩu, hồ sơ |
 | Tiền tệ | `currency.js` | Định dạng giá sang VND (catalog lưu giá theo USD) |
 | Liên hệ | `contact-tools.js/.css` | Thanh liên hệ Facebook và Zalo (ẩn trên trang quản trị) |
-| Quản trị | `admin.html`, `admin.js`, `admin.css` | Sản phẩm, danh mục, ưu đãi, đơn hàng, doanh thu, đánh giá, tin nhắn, người dùng |
+| Quản trị | `admin.html`, `admin.js`, `admin.css` | Sản phẩm, danh mục, ưu đãi, đơn hàng, xác minh thanh toán QR, doanh thu, đánh giá, lời nhắn, người dùng. Dữ liệu khách gửi được escape trước khi hiển thị để chống XSS |
 | Owner | `owner.html`, `owner.js` | Cấp hoặc gỡ quyền admin |
 | API | `api/admin/users.js`, `api/owner/users.js`, `api/orders.js`, `lib/firebase-admin.js` | Xác minh quyền quản trị và tra cứu đơn khách bằng mã đơn cùng số điện thoại |
 
@@ -65,12 +65,13 @@ flowchart LR
 | Tài khoản Firebase, vai trò | Firebase Authentication (custom claims) | ✅ |
 | Giỏ hàng, yêu thích | `localStorage.cart`, `localStorage.wish` | ❌ |
 | Đơn hàng mới | `/api/orders` xác minh rồi ghi Firestore `orders` | ✅ |
-| Đánh giá trong trang quản trị, tin nhắn | `localStorage.flowerReviews`, `localStorage.flowerMessages` | ❌ |
-| Danh mục | `localStorage.flowerCategories` | ❌ |
+| Đánh giá trong trang quản trị (phản hồi, hoàn thành) | Firestore `reviews` | ✅ |
+| Lời nhắn của khách và câu trả lời | Trường `orderNote`, `orderNoteReply`, `orderNoteCompletedAt` của đơn trong `orders` | ✅ |
+| Phân loại | Firestore `metadata/storeCategories` (bản cache ở `localStorage.flowerCategories`) | ✅ |
 | Ưu đãi | Firestore `metadata/activePromotions` (bản cache ở `localStorage`) | ✅ |
 | Phiên đăng nhập | `localStorage.loggedUser` | ❌ |
 
-Danh sách đánh giá và tin nhắn trong trang quản trị giữ nguyên trạng thái hiện có; danh sách vắng mặt hoặc rỗng sẽ không tự được điền dữ liệu demo.
+Trang quản trị không còn tự điền dữ liệu demo cho đánh giá và lời nhắn; cả hai đều đọc từ Firestore.
 
 ### Đồng bộ catalog
 
@@ -94,7 +95,7 @@ Admin có thể chuyển đơn sang bất kỳ trạng thái nào. Các tên tr�
 
 Đơn mới được gửi tới `/api/orders`. Backend chỉ nhận mã sản phẩm, số lượng và thông tin giao hàng; tự đọc giá, tồn kho, ưu đãi từ Firestore, tính lại tổng tiền và dành tồn kho trong cùng một transaction trước khi ghi đơn. Hệ thống giữ hàng 30 phút với QR chưa xác minh và 24 giờ với COD; đơn hết hạn hoặc bị hủy sẽ được hoàn kho bằng transaction. QR đã xác minh giữ hàng đến khi hoàn tất hoặc hủy đơn. Đơn đã giao chốt phần tồn kho đã bán, không hoàn kho khi dọn đơn. Việc dọn chạy khi báo giá/đặt hàng, lúc quản trị mở dashboard và theo lịch Vercel. Khách đã đăng nhập chỉ đọc được đơn có UID của mình; khách chưa đăng nhập tra cứu qua API bằng mã đơn và số điện thoại. Chỉ tài khoản có claim `admin: true` được xem danh sách, cập nhật hoặc xóa đơn. Dữ liệu đơn cũ trong `localStorage.flowerOrders` không tự động chuyển lên Firestore.
 
-Đơn QR luôn ở trạng thái chờ xác minh. Dự án chưa tích hợp API/webhook ngân hàng, vì vậy không có luồng nào tự đánh dấu đơn QR đã thanh toán hoặc tính vào doanh thu.
+Đơn QR ở trạng thái chờ xác minh cho đến khi admin đối chiếu sao kê và bấm “Xác nhận đã nhận tiền”. Thao tác này đặt `paymentVerified: true`, `paymentStatus: "Đã thanh toán"` và `paidAt`; chỉ admin được ghi các trường này (Security Rules). Đơn đã xác minh không bị dọn khi hết thời gian giữ hàng và được tính vào doanh thu sau khi giao. Dự án chưa tích hợp API/webhook ngân hàng nên chưa có đối soát tự động.
 
 Tra cứu công khai gửi mã đơn và số điện thoại bằng `POST`; backend giới hạn 20 lượt mỗi IP trong 10 phút, lưu khóa IP dưới dạng HMAC và tự xóa bản ghi giới hạn sau 24 giờ. Kết quả công khai chỉ gồm mã đơn, trạng thái, thời gian dự kiến và lịch sử trạng thái; địa chỉ, số điện thoại, người nhận, sản phẩm và thông tin thanh toán chỉ được đọc khi khách đăng nhập đúng tài khoản sở hữu đơn. Mã đơn không khớp và số điện thoại không khớp cùng trả về một lỗi.
 

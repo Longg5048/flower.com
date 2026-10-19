@@ -36,7 +36,11 @@
 
 ## Giới thiệu
 
-FlowerFlow là website bán hoa viết bằng HTML, CSS và JavaScript thuần, không dùng framework và không cần bước build. Phía khách hàng gồm các trang cửa hàng tĩnh; phần dữ liệu và xác thực dùng Firebase (Authentication, Firestore); các API quản trị cần quyền cao chạy dưới dạng Vercel Functions với Firebase Admin SDK.
+FlowerFlow là website bán hoa gồm ba lớp:
+
+- **Frontend:** các trang HTML, CSS và JavaScript thuần, không framework, không cần bước build.
+- **Backend:** Vercel Functions (Node.js) dùng Firebase Admin SDK. `/api/orders` tự tính giá, ưu đãi và giữ tồn kho khi tạo đơn, nên khách không thể sửa giá từ trình duyệt; các API khác quản lý tài khoản và quyền.
+- **Cơ sở dữ liệu:** Cloud Firestore lưu sản phẩm, đơn hàng, đánh giá, ưu đãi và phân loại, được bảo vệ bằng Security Rules; Firebase Authentication quản lý tài khoản và phân quyền.
 
 ## Tính năng
 
@@ -49,7 +53,8 @@ FlowerFlow là website bán hoa viết bằng HTML, CSS và JavaScript thuần, 
 | Đánh giá sản phẩm | Khách đã đăng nhập gửi đánh giá 1–5 sao; đánh giá hiển thị công khai trên trang sản phẩm |
 | Giỏ hàng và yêu thích | Đồng bộ giữa các trang, gộp sản phẩm trùng, giới hạn theo tồn kho |
 | Ưu đãi | Chọn chương trình khuyến mãi áp dụng cho các sản phẩm phù hợp khi thanh toán |
-| Thanh toán | Thu thập thông tin giao hàng, tạo mã QR chuyển khoản Vietcombank (VietQR) |
+| Đặt hàng | Server báo giá, kiểm tra tồn kho và giữ hàng (QR 30 phút, COD 24 giờ); đơn hết hạn tự hủy và hoàn kho |
+| Thanh toán | Thanh toán khi nhận hàng hoặc mã QR chuyển khoản Vietcombank (VietQR) |
 | Theo dõi đơn | Tra cứu bằng mã đơn và số điện thoại; tự hiển thị đơn của tài khoản đang đăng nhập |
 | Tài khoản | Đăng ký, đăng nhập bằng email/mật khẩu hoặc Google, quên mật khẩu, trang hồ sơ |
 | Liên hệ | Thanh liên hệ nhanh qua Facebook và Zalo |
@@ -60,9 +65,10 @@ FlowerFlow là website bán hoa viết bằng HTML, CSS và JavaScript thuần, 
 | --- | --- |
 | Sản phẩm | Thêm, sửa, xóa, cập nhật tồn kho; đồng bộ lên Firestore theo thời gian thực |
 | Danh mục và ưu đãi | Quản lý danh mục hoa và chương trình khuyến mãi |
-| Đơn hàng | Cập nhật trạng thái: Chờ xác nhận, Đang giao, Đã giao, Đã hủy |
+| Đơn hàng | Xem đơn của mọi khách theo thời gian thực, cập nhật trạng thái (Chờ xác nhận, Đang giao, Đã giao, Đã hủy) |
+| Xác minh thanh toán | Bấm “Xác nhận đã nhận tiền” cho đơn QR sau khi đối chiếu sao kê; chỉ đơn đã xác minh mới tính vào doanh thu |
 | Doanh thu | Báo cáo doanh thu theo hôm nay, theo tháng, toàn thời gian hoặc khoảng ngày tùy chọn |
-| Đánh giá và tin nhắn | Xem và quản lý phản hồi của khách |
+| Đánh giá và lời nhắn | Trả lời, đánh dấu hoàn thành hoặc xóa đánh giá và lời nhắn khách để lại khi đặt hàng |
 | Người dùng | Danh sách tài khoản Firebase và nhà cung cấp đăng nhập (qua API bảo vệ) |
 | Owner | Cấp hoặc gỡ quyền admin cho từng tài khoản tại `/owner.html` |
 
@@ -72,8 +78,8 @@ FlowerFlow là website bán hoa viết bằng HTML, CSS và JavaScript thuần, 
 | --- | --- |
 | Giao diện | HTML5, CSS3, JavaScript (ES modules), không framework |
 | Xác thực | Firebase Authentication (Email/Password, Google) |
-| Dữ liệu | Cloud Firestore (sản phẩm, đánh giá), có cache `localStorage` |
-| API quản trị | Vercel Functions và `firebase-admin` |
+| Backend | Vercel Functions (Node.js 24), `firebase-admin`, Vercel Cron |
+| Cơ sở dữ liệu | Cloud Firestore (Security Rules, chỉ mục trong `firestore.indexes.json`) |
 | Thanh toán | VietQR (mã QR chuyển khoản ngân hàng) |
 | Kiểm thử | `node:assert` có sẵn của Node.js, không cần thư viện ngoài |
 | Hosting | Vercel |
@@ -83,7 +89,8 @@ FlowerFlow là website bán hoa viết bằng HTML, CSS và JavaScript thuần, 
 ```text
 .
 ├── flower.com/                 # Gốc dự án Vercel (Root Directory)
-│   ├── api/
+│   ├── api/                    # Backend: Vercel Functions
+│   │   ├── orders.js           # Báo giá, tạo đơn, tra cứu đơn, dọn đơn hết hạn
 │   │   ├── admin/users.js      # API liệt kê người dùng (yêu cầu quyền admin)
 │   │   └── owner/users.js      # API cấp/gỡ quyền admin (yêu cầu quyền owner)
 │   ├── lib/firebase-admin.js   # Khởi tạo Firebase Admin, xác minh ID token
@@ -95,7 +102,8 @@ FlowerFlow là website bán hoa viết bằng HTML, CSS và JavaScript thuần, 
 │   ├── firebase.json           # Cấu hình Firebase CLI
 │   ├── product-store.js        # Đồng bộ catalog giữa Firestore và localStorage
 │   ├── shopping-store.js       # Logic giỏ hàng và danh sách yêu thích
-│   ├── review-store.js         # Đọc/ghi đánh giá sản phẩm trên Firestore
+│   ├── order-store.js          # Gọi API đơn hàng; đọc/cập nhật đơn, ưu đãi, phân loại trên Firestore
+│   ├── review-store.js         # Đọc/ghi đánh giá; trả lời, ẩn, xóa đánh giá (admin)
 │   ├── store-header.js, store-footer.js   # Header/footer dùng chung
 │   ├── *.html, *.css, *.js     # Các trang: chủ, sản phẩm, giỏ hàng, thanh toán, quản trị...
 │   └── package.json
@@ -160,7 +168,8 @@ Quy tắc bảo mật được quản lý trong [`flower.com/firestore.rules`](f
 | --- | --- | --- |
 | `products` | Công khai | Chỉ admin |
 | `reviews` | Công khai | Tạo: người dùng đã đăng nhập (kiểm tra schema, 1–5 sao, tối đa 1000 ký tự); sửa/xóa: chỉ admin |
-| `metadata` | Chỉ admin | Chỉ admin |
+| `orders` | Admin, hoặc khách đọc đơn có UID của mình | Tạo: chỉ backend; sửa/xóa: chỉ admin |
+| `metadata` (ưu đãi, phân loại, trạng thái catalog) | Chỉ admin | Chỉ admin |
 | Còn lại | Từ chối | Từ chối |
 
 Triển khai quy tắc bằng [Firebase CLI](https://firebase.google.com/docs/cli):
@@ -222,8 +231,8 @@ Mỗi lần đổi vai trò, refresh token của người dùng bị thu hồi �
 
 Dự án đang ở giai đoạn **v0.1.0 (chưa phát hành)**. Trước khi vận hành thật, cần lưu ý:
 
-- **Đơn hàng, tin nhắn, danh mục và ưu đãi đang lưu trong `localStorage`** của trình duyệt, nên không đồng bộ giữa các thiết bị. Báo cáo doanh thu chỉ phản ánh dữ liệu của trình duyệt đang dùng.
-- **Thanh toán QR chưa có bước đối soát tự động.** Admin cần tự kiểm tra giao dịch ngân hàng trước khi xác nhận đơn.
+- **Thanh toán QR chưa có bước đối soát tự động.** Admin cần tự kiểm tra sao kê ngân hàng rồi bấm “Xác nhận đã nhận tiền” trước khi đơn hết thời gian giữ hàng (30 phút).
+- Dữ liệu cũ chỉ lưu trong `localStorage` (đơn hàng, đánh giá, lời nhắn trước khi có backend) không được chuyển lên Firestore. Phân loại cũ được tải lên ở lần đầu admin mở trang quản trị.
 - **Chế độ tài khoản demo** (dùng khi Firebase chưa bật Email/Password) lưu mật khẩu không mã hóa trong `localStorage`. Không dùng mật khẩu thật ở chế độ này.
 - Giỏ hàng và danh sách yêu thích chỉ lưu cục bộ theo trình duyệt.
 
@@ -231,8 +240,9 @@ Dự án đang ở giai đoạn **v0.1.0 (chưa phát hành)**. Trước khi v�
 
 - [x] Lưu đánh giá sản phẩm trên Firestore
 - [x] Quản lý Firestore Security Rules trong repository
-- [ ] Chuyển đơn hàng, tin nhắn và ưu đãi lên Firestore
-- [ ] Đồng bộ trang quản lý đánh giá của admin với Firestore
+- [x] Backend tạo đơn: báo giá, kiểm tra tồn kho, giữ hàng và tự hủy đơn hết hạn
+- [x] Chuyển đơn hàng, ưu đãi, phân loại, lời nhắn và trang quản lý đánh giá lên Firestore
+- [x] Xác minh thanh toán QR thủ công trong trang quản trị
 - [ ] Tích hợp xác nhận thanh toán tự động (webhook ngân hàng hoặc cổng thanh toán)
 - [ ] Thiết lập CI chạy `npm test` trên GitHub Actions
 - [ ] Tách `admin.js` thành các module theo chức năng

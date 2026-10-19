@@ -32,8 +32,8 @@
     const paymentButton = document.querySelector(".placeorder > button");
     const paymentNote = document.getElementById("payment-confirmation-note");
     if (checkoutData?.paymentMethod === "qr") {
-      paymentButton.textContent = "Tôi đã chuyển khoản · Xác nhận đơn hàng";
-      paymentNote.textContent = `Thanh toán Vietcombank · STK 1063118243 · DO BA THAI. Nội dung: ${checkoutData.paymentReference || "mã đơn của bạn"}. Bấm xác nhận chỉ sau khi đã chuyển khoản.`;
+      paymentButton.textContent = "Gửi đơn hàng chờ xác minh";
+      paymentNote.textContent = `Quét mã Vietcombank để chuyển khoản · STK 1063118243 · DO BA THAI. Nội dung: ${checkoutData.paymentReference || "mã đơn của bạn"}. Gửi đơn không xác nhận đã nhận tiền; cửa hàng cần đối chiếu giao dịch.`;
     }
 
     function saveOrderToAdmin() {
@@ -76,9 +76,10 @@
         tax: 0,
         total: toVndAmount(totals.total),
         paymentMethod: checkoutData.paymentMethod,
-        paymentStatus: checkoutData.paymentMethod === "qr" ? "Đã thanh toán" : "Thanh toán khi nhận hàng",
+        paymentStatus: checkoutData.paymentMethod === "qr" ? "Chờ xác minh thanh toán" : "Thanh toán khi nhận hàng",
         paymentReference: checkoutData.paymentReference || "",
-        paidAt: checkoutData.paymentMethod === "qr" ? createdAt : "",
+        paidAt: "",
+        paymentVerified: false,
         promotionId: checkoutData.promotionId || "",
         items: Cart.map((item) => ({
           id: item.id,
@@ -113,7 +114,7 @@
       localStorage.removeItem("flowerSelectedPromotion");
       localStorage.removeItem("flowerPaymentReference");
       alert(checkoutData.paymentMethod === "qr"
-        ? "Đã ghi nhận xác nhận thanh toán và gửi đơn hàng tới cửa hàng."
+        ? "Đã nhận đơn hàng. Cửa hàng sẽ đối chiếu giao dịch trước khi xác nhận thanh toán."
         : "Đặt hàng thành công! Đơn hàng đã được gửi tới cửa hàng.");
       window.location.href = `./tracking.html?id=${encodeURIComponent(orderId)}`;
     }

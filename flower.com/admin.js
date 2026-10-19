@@ -37,7 +37,16 @@ function moneyFormat(value) {
 }
 
 function isOrderPaid(order) {
-   return ["đã thanh toán", "paid"].includes(String(order.paymentStatus || "").trim().toLocaleLowerCase("vi"));
+   // This storefront has no trusted bank-transfer verification integration.
+   // Never treat a QR order as paid based on browser-stored fields.
+   if (order.paymentMethod === "qr") return false;
+   const status = String(order.paymentStatus || "").trim().toLocaleLowerCase("vi");
+   return ["đã thanh toán", "paid"].includes(status);
+}
+
+function getPaymentDisplayStatus(order) {
+   if (order.paymentMethod === "qr") return "Chờ cửa hàng xác minh";
+   return order.paymentStatus || (order.paymentMethod === "cod" ? "Thanh toán khi nhận hàng" : "Chưa xác nhận");
 }
 
 function isOrderDelivered(order) {
@@ -765,7 +774,7 @@ function renderOrderCard(order, showCompletionAction = true) {
                </div>
                <div class="field">
                    <span class="field-label">Thanh toán</span>
-                   <span class="field-value">${escapeHtml(order.paymentStatus || (order.paymentMethod === "cod" ? "Thanh toán khi nhận hàng" : "Chưa xác nhận"))}</span>
+                   <span class="field-value">${escapeHtml(getPaymentDisplayStatus(order))}</span>
                </div>
                <div class="field full-width">
                    <span class="field-label">Địa chỉ</span>

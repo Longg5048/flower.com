@@ -199,8 +199,9 @@ function renderOrder(order) {
     document.getElementById("result-customer").textContent = order.customerName || "Chưa cập nhật";
     document.getElementById("result-phone").textContent = maskPhone(order.phone);
     document.getElementById("result-address").textContent = order.address || "Chưa cập nhật";
-    document.getElementById("result-payment-status").textContent = order.paymentStatus
-        || (order.paymentMethod === "qr" ? "Chờ thanh toán" : "Thanh toán khi nhận hàng");
+    document.getElementById("result-payment-status").textContent = order.paymentMethod === "qr"
+        ? "Chờ cửa hàng xác minh"
+        : order.paymentStatus || "Thanh toán khi nhận hàng";
     renderHistory(order);
     renderProducts(order.items);
     renderReviewPanel(order);

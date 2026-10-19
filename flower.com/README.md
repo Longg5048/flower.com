@@ -67,11 +67,14 @@ flowchart LR
 | Đơn hàng mới | `/api/orders` xác minh rồi ghi Firestore `orders` | ✅ |
 | Đánh giá trong trang quản trị (phản hồi, hoàn thành) | Firestore `reviews` | ✅ |
 | Lời nhắn của khách và câu trả lời | Trường `orderNote`, `orderNoteReply`, `orderNoteCompletedAt` của đơn trong `orders` | ✅ |
+| Phản hồi cũ trên trình duyệt | Firestore `messages` (chuyển khi quản trị đăng nhập) | ✅ |
 | Phân loại | Firestore `metadata/storeCategories` (bản cache ở `localStorage.flowerCategories`) | ✅ |
 | Ưu đãi | Firestore `metadata/activePromotions` (bản cache ở `localStorage`) | ✅ |
 | Phiên đăng nhập | `localStorage.loggedUser` | ❌ |
 
 Trang quản trị không còn tự điền dữ liệu demo cho đánh giá và lời nhắn; cả hai đều đọc từ Firestore.
+
+Phản hồi cũ trong `localStorage.flowerMessages` được chuyển sang Firestore `messages` khi quản trị đăng nhập. Đánh giá cũ được hợp nhất một lần với Firestore; bản cache đánh giá cục bộ của khách vẫn được giữ để tránh gửi trùng trên cùng trình duyệt.
 
 ### Đồng bộ catalog
 

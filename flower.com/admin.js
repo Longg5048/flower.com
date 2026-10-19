@@ -21,6 +21,9 @@ let stopOrderSubscription = null;
 let reviewsCache = [];
 let stopReviewSubscription = null;
 let categoriesCache = [];
+let stopCategorySubscription = null;
+let messagesCache = [];
+let stopMessageSubscription = null;
 let revenueDateFilter = "month";
 const initialRevenueDate = new Date();
 let revenueMonth = `${initialRevenueDate.getFullYear()}-${String(initialRevenueDate.getMonth() + 1).padStart(2, "0")}`;
@@ -112,14 +115,9 @@ function cacheCategories(categories) {
 
 // Loads categories from Firestore; on first run, uploads the ones this browser had saved locally.
 async function loadCategories() {
-   const remoteCategories = await window.FlowerOrderStore.getCategories();
-   if (remoteCategories) {
-       cacheCategories(remoteCategories);
-       return;
-   }
-   const legacyCategories = readLegacyCategories();
-   await window.FlowerOrderStore.saveCategories(legacyCategories);
-   cacheCategories(legacyCategories);
+   const categories = await FlowerInventory.initializeCategories(readLegacyCategories());
+   cacheCategories(categories);
+   return categories;
 }
 
 function getProducts() {
@@ -170,10 +168,11 @@ function getReviews() {
 
 // Customer messages are the notes left on orders at checkout.
 function getMessages() {
-   return ordersCache
+   const orderMessages = ordersCache
        .filter((order) => String(order.orderNote || "").trim())
        .map((order) => ({
-           id: order.id,
+           id: String(order.id),
+           source: "order",
            customerName: order.customerName,
            phone: order.phone,
            subject: `Lời nhắn kèm đơn #${order.id}`,
@@ -182,6 +181,9 @@ function getMessages() {
            reply: order.orderNoteReply || "",
            completedAt: order.orderNoteCompletedAt || ""
        }));
+   return [...orderMessages, ...messagesCache].sort(
+       (first, second) => new Date(second.createdAt || 0) - new Date(first.createdAt || 0)
+   );
 }
 
 function renderDashboard() {
@@ -1169,8 +1171,14 @@ async function updateReviewReply(reviewId, reply) {
 }
 
 async function updateMessageReply(messageId, reply) {
+   const message = getMessages().find((item) => String(item.id) === String(messageId));
+   if (!message) return;
    try {
-       await window.FlowerOrderStore.update(messageId, { orderNoteReply: reply });
+       if (message.source === "legacy") {
+           await window.FlowerMessageStore.updateAdminMessage(messageId, { reply });
+       } else {
+           await window.FlowerOrderStore.update(messageId, { orderNoteReply: reply });
+       }
    } catch (error) {
        console.error("Không thể lưu câu trả lời:", error);
        alert("Chưa thể lưu câu trả lời. Hãy thử lại sau.");
@@ -1202,9 +1210,17 @@ async function deleteAdminRecord(type, id) {
    }
 
    try {
-       // Deleting a message only clears the note; the order itself stays.
        if (type === "reviews") await window.FlowerReviewStore.remove(id);
-       else await window.FlowerOrderStore.update(id, { orderNote: "", orderNoteReply: "", orderNoteCompletedAt: null });
+       else {
+           const message = getMessages().find((item) => String(item.id) === String(id));
+           if (message?.source === "legacy") await window.FlowerMessageStore.deleteAdminMessage(id);
+           else if (message) await window.FlowerOrderStore.update(id, {
+               orderNote: "",
+               orderNoteReply: "",
+               orderNoteCompletedAt: null,
+               orderNoteArchivedAt: new Date().toISOString()
+           });
+       }
    } catch (error) {
        console.error(`Không thể xóa ${record.label} trên Firestore:`, error);
        alert(`Chưa thể xóa ${record.label}. Hãy thử lại sau.`);
@@ -1238,7 +1254,14 @@ async function setRecordCompletion(type, id, completed) {
    const completedAt = completed ? new Date().toISOString() : null;
    try {
        if (type === "reviews") await window.FlowerReviewStore.update(id, { completedAt });
-       else await window.FlowerOrderStore.update(id, { orderNoteCompletedAt: completedAt });
+       else {
+           const message = getMessages().find((item) => String(item.id) === String(id));
+           if (message?.source === "legacy") {
+               await window.FlowerMessageStore.updateAdminMessage(id, { completedAt });
+           } else if (message) {
+               await window.FlowerOrderStore.update(id, { orderNoteCompletedAt: completedAt });
+           }
+       }
    } catch (error) {
        console.error(`Không thể cập nhật ${record.label} trên Firestore:`, error);
        alert(`Chưa thể cập nhật ${record.label}. Hãy thử lại sau.`);
@@ -1641,9 +1664,32 @@ async function initializeAdmin() {
        }
        try {
            await loadCategories();
+           stopCategorySubscription = FlowerInventory.subscribeCategories((categories) => {
+               cacheCategories(categories);
+               if (main.querySelector(".panel h2")?.textContent === "Quản lý phân loại") renderCategoriesTab();
+           }, (error) => console.error("Không thể đồng bộ phân loại từ Firestore:", error));
        } catch (error) {
            console.error("Không thể tải phân loại từ Firestore:", error);
            cacheCategories(readLegacyCategories());
+       }
+       try {
+           const messageMigrationKey = "flowerMessagesMigratedV1";
+           const legacyMessages = JSON.parse(localStorage.getItem("flowerMessages") || "[]");
+           await window.FlowerMessageStore.migrateLegacyMessages(legacyMessages);
+           localStorage.removeItem("flowerMessages");
+           localStorage.setItem(messageMigrationKey, "true");
+       } catch (error) {
+           console.error("Không thể chuyển phản hồi cũ lên Firestore:", error);
+       }
+       try {
+           const reviewMigrationKey = "flowerReviewsAdminMigratedV1";
+           if (localStorage.getItem(reviewMigrationKey) !== "true") {
+               const legacyReviews = JSON.parse(localStorage.getItem("flowerReviews") || "[]");
+               await window.FlowerReviewStore.migrateLegacyAdminReviews(legacyReviews);
+               localStorage.setItem(reviewMigrationKey, "true");
+           }
+       } catch (error) {
+           console.error("Không thể chuyển đánh giá quản trị cũ lên Firestore:", error);
        }
        stopReviewSubscription = window.FlowerReviewStore.subscribeAll((reviews) => {
            reviewsCache = reviews;
@@ -1651,6 +1697,11 @@ async function initializeAdmin() {
            if (heading === "Đánh giá khách hàng") renderReviewsTab();
            else if (main.querySelector(".dashboard")) renderDashboard();
        }, (error) => console.error("Không thể đồng bộ đánh giá từ Firestore:", error));
+       stopMessageSubscription = await window.FlowerMessageStore.subscribeAdmin((messages) => {
+           messagesCache = messages;
+           if (main.querySelector(".panel h2")?.textContent === "Phản hồi từ khách hàng") renderMessagesTab();
+           else if (main.querySelector(".dashboard")) renderDashboard();
+       }, (error) => console.error("Không thể đồng bộ phản hồi từ Firestore:", error));
        bindAdminEvents({ auth, signOut: authSdk.signOut });
        renderDashboard();
    } catch (error) {
@@ -1669,6 +1720,8 @@ window.addEventListener("storage", (event) => {
 window.addEventListener("pagehide", () => {
    if (stopOrderSubscription) stopOrderSubscription();
    if (stopReviewSubscription) stopReviewSubscription();
+   if (stopCategorySubscription) stopCategorySubscription();
+   if (stopMessageSubscription) stopMessageSubscription();
 });
 
 window.addEventListener("flowerinventorychange", () => {

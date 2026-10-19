@@ -404,15 +404,7 @@ const flowerCategoryLabels = {
 }
 
 function getAdminCategories() {
-  try {
-    const categories = JSON.parse(localStorage.getItem("flowerCategories") || "[]")
-    return Array.isArray(categories)
-      ? categories.map((category) => String(category || "").trim()).filter(Boolean)
-      : []
-  } catch (error) {
-    console.error("Không thể tải danh sách phân loại:", error)
-    return []
-  }
+  return FlowerInventory.readCategories()
 }
 
 function populateFlowerCategoryFilter() {
@@ -745,6 +737,11 @@ window.addEventListener("flowerinventorychange", (event) => {
   navigateToProductDetail()
 })
 
+window.addEventListener("flowercategorieschange", () => {
+  populateFlowerCategoryFilter()
+  renderProducts()
+})
+
 async function fetchAndRenderProducts() {
   const requestedProductId = new URLSearchParams(window.location.search).get("id")
   if (requestedProductId) {
@@ -754,6 +751,12 @@ async function fetchAndRenderProducts() {
   try {
     products = await FlowerInventory.initialize()
     if (!products.length) throw new Error("Kho sản phẩm hiện chưa có dữ liệu hoặc dịch vụ danh mục đang không khả dụng.")
+    try {
+      await FlowerInventory.getCategories()
+      FlowerInventory.subscribeCategories(() => {})
+    } catch (error) {
+      console.warn("Đang dùng cache danh mục do chưa tải được Firestore:", error)
+    }
     populateFlowerCategoryFilter()
     renderProducts()
     navigateToProductDetail()

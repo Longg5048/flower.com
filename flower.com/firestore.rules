@@ -12,13 +12,13 @@ service cloud.firestore {
     }
 
     match /metadata/{metadataId} {
-      allow get: if isAdmin() || metadataId == 'activePromotions';
+      allow get: if isAdmin() || metadataId in ['activePromotions', 'storeCategories'];
       allow list, create, update, delete: if isAdmin();
     }
 
     match /reviews/{reviewId} {
       allow get, list: if true;
-      allow create: if request.auth != null
+      allow create: if isAdmin() || (request.auth != null
         && request.resource.data.keys().hasOnly([
           'productIds', 'productName', 'customerName', 'rating', 'comment', 'createdAt'
         ])
@@ -38,8 +38,12 @@ service cloud.firestore {
         && request.resource.data.comment is string
         && request.resource.data.comment.size() > 0
         && request.resource.data.comment.size() <= 1000
-        && request.resource.data.createdAt == request.time;
+        && request.resource.data.createdAt == request.time);
       allow update, delete: if isAdmin();
+    }
+
+    match /messages/{messageId} {
+      allow read, write: if isAdmin();
     }
 
     match /orders/{orderId} {

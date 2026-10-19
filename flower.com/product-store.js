@@ -1,9 +1,11 @@
 (() => {
     const PRODUCT_KEY = "flowerInventory";
+    const CATEGORY_KEY = "flowerCategories";
     let initialization;
     let synchronization;
     let firebaseApiPromise;
     let unsubscribeProducts;
+    let unsubscribeCategories;
 
     function storage() {
         try {
@@ -130,6 +132,98 @@
             console.warn("Không đọc được sản phẩm trên Firestore:", error);
             return null;
         }
+    }
+
+    function normalizeCategories(categories) {
+        return [...new Set((Array.isArray(categories) ? categories : [])
+            .map((category) => String(category || "").trim())
+            .filter(Boolean))].sort((left, right) => left.localeCompare(right, "vi"));
+    }
+
+    function cacheCategories(categories, notify = true) {
+        const normalized = normalizeCategories(categories);
+        storage()?.setItem(CATEGORY_KEY, JSON.stringify(normalized));
+        if (notify && typeof window !== "undefined") {
+            window.dispatchEvent(new CustomEvent("flowercategorieschange", { detail: normalized }));
+        }
+        return normalized;
+    }
+
+    function readCategories() {
+        try {
+            const categories = JSON.parse(storage()?.getItem(CATEGORY_KEY) || "[]");
+            return normalizeCategories(categories);
+        } catch (error) {
+            console.warn("Không đọc được cache danh mục:", error);
+            return [];
+        }
+    }
+
+    async function getCategories() {
+        const firebase = await getFirebaseApi();
+        if (!firebase) return readCategories();
+        const reference = firebase.firestoreSdk.doc(firebase.db, "metadata", "storeCategories");
+        const snapshot = await firebase.firestoreSdk.getDoc(reference);
+        const categories = snapshot.exists() ? snapshot.data().items : [];
+        return cacheCategories(categories, false);
+    }
+
+    async function initializeCategories(legacyCategories = []) {
+        const firebase = await getFirebaseApi();
+        if (!firebase) throw new Error("Không kết nối được Firestore để tải danh mục dùng chung.");
+        await firebase.auth.authStateReady();
+        const isAdmin = Boolean(firebase.auth.currentUser
+            && (await firebase.auth.currentUser.getIdTokenResult()).claims.admin === true);
+        const reference = firebase.firestoreSdk.doc(firebase.db, "metadata", "storeCategories");
+        if (!isAdmin) return getCategories();
+        const categories = await firebase.firestoreSdk.runTransaction(firebase.db, async (transaction) => {
+            const snapshot = await transaction.get(reference);
+            if (snapshot.exists()) return snapshot.data().items;
+            const initialCategories = normalizeCategories(legacyCategories);
+            transaction.set(reference, {
+                items: initialCategories,
+                updatedAt: firebase.firestoreSdk.serverTimestamp()
+            });
+            return initialCategories;
+        });
+        return cacheCategories(categories);
+    }
+
+    async function saveCategories(categories) {
+        const firebase = await getFirebaseApi();
+        if (!firebase) throw new Error("Không kết nối được Firestore để lưu danh mục dùng chung.");
+        await firebase.auth.authStateReady();
+        if (!firebase.auth.currentUser
+            || (await firebase.auth.currentUser.getIdTokenResult()).claims.admin !== true) {
+            throw new Error("Chỉ quản trị viên mới được thay đổi danh mục.");
+        }
+        const normalized = normalizeCategories(categories);
+        await firebase.firestoreSdk.setDoc(
+            firebase.firestoreSdk.doc(firebase.db, "metadata", "storeCategories"),
+            { items: normalized, updatedAt: firebase.firestoreSdk.serverTimestamp() }
+        );
+        return cacheCategories(normalized);
+    }
+
+    function subscribeCategories(onCategories, onError = () => {}) {
+        if (unsubscribeCategories) unsubscribeCategories();
+        let active = true;
+        getFirebaseApi().then((firebase) => {
+            if (!active || !firebase) return;
+            unsubscribeCategories = firebase.firestoreSdk.onSnapshot(
+                firebase.firestoreSdk.doc(firebase.db, "metadata", "storeCategories"),
+                (snapshot) => {
+                    const categories = cacheCategories(snapshot.exists() ? snapshot.data().items : []);
+                    onCategories(categories);
+                },
+                onError
+            );
+        }).catch(onError);
+        return () => {
+            active = false;
+            if (unsubscribeCategories) unsubscribeCategories();
+            unsubscribeCategories = null;
+        };
     }
 
     async function writeRemoteProducts(products, markCatalogSeeded = false) {
@@ -283,7 +377,18 @@
         return initialization;
     }
 
-    const api = { initialize, readProducts, saveProducts, mergeCatalogProducts, normalizeProduct };
+    const api = {
+        initialize,
+        readProducts,
+        saveProducts,
+        mergeCatalogProducts,
+        normalizeProduct,
+        getCategories,
+        readCategories,
+        initializeCategories,
+        saveCategories,
+        subscribeCategories
+    };
     if (typeof window !== "undefined") window.FlowerInventory = api;
     if (typeof module !== "undefined" && module.exports) module.exports = api;
 })();

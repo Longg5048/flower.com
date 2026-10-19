@@ -83,6 +83,43 @@
     };
   }
 
+  async function migrateLegacyAdminReviews(reviews = []) {
+    const { auth, db, firestoreSdk } = await getFirebase();
+    await auth.authStateReady();
+    if (!auth.currentUser || (await auth.currentUser.getIdTokenResult()).claims.admin !== true) {
+      throw new Error("Chỉ quản trị viên mới được chuyển đánh giá cũ.");
+    }
+    for (const review of Array.isArray(reviews) ? reviews : []) {
+      if (!review || !Array.isArray(review.productIds) || !review.productIds.length) continue;
+      const id = String(review.id || "").replace(/[^A-Za-z0-9_-]/g, "").slice(0, 100);
+      if (!id) continue;
+      const reference = firestoreSdk.doc(db, "reviews", id);
+      const existing = await firestoreSdk.getDoc(reference);
+      const adminFields = {};
+      if (String(review.reply || "").trim()) adminFields.reply = String(review.reply).slice(0, 1000);
+      if (review.completedAt) adminFields.completedAt = review.completedAt;
+      if (existing.exists()) {
+        if (Object.keys(adminFields).length) await firestoreSdk.updateDoc(reference, adminFields);
+        continue;
+      }
+
+      const productIds = [...new Set(review.productIds.map(String).filter(Boolean))].slice(0, 10);
+      const comment = String(review.comment || "").trim().slice(0, 1000);
+      if (!productIds.length || !comment) continue;
+      const createdAt = new Date(review.createdAt || 0);
+      await firestoreSdk.setDoc(reference, {
+        productIds,
+        productName: String(review.productName || "Sản phẩm hoa").slice(0, 500),
+        customerName: String(review.customerName || "Khách hàng").slice(0, 80),
+        rating: Math.max(1, Math.min(5, Math.round(Number(review.rating) || 0))),
+        comment,
+        createdAt: Number.isNaN(createdAt.getTime()) ? firestoreSdk.serverTimestamp() : createdAt,
+        ...(review.orderId ? { orderId: String(review.orderId).slice(0, 100) } : {}),
+        ...adminFields
+      });
+    }
+  }
+
   // Admin only (Security Rules): every review, newest first.
   function subscribeAll(onReviews, onError = () => {}) {
     let unsubscribe = null;
@@ -115,5 +152,5 @@
     await firestoreSdk.deleteDoc(firestoreSdk.doc(db, "reviews", String(id)));
   }
 
-  root.FlowerReviewStore = { subscribe, submit, subscribeAll, update, remove };
+  root.FlowerReviewStore = { subscribe, submit, subscribeAll, migrateLegacyAdminReviews, update, remove };
 })(typeof window !== "undefined" ? window : globalThis);

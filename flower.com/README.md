@@ -94,6 +94,8 @@ Admin có thể chuyển đơn sang bất kỳ trạng thái nào. Các tên tr�
 
 Đơn QR luôn ở trạng thái chờ xác minh. Dự án chưa tích hợp API/webhook ngân hàng, vì vậy không có luồng nào tự đánh dấu đơn QR đã thanh toán hoặc tính vào doanh thu.
 
+Tra cứu công khai gửi mã đơn và số điện thoại bằng `POST`; backend giới hạn 20 lượt mỗi IP trong 10 phút, lưu khóa IP dưới dạng HMAC và tự xóa bản ghi giới hạn sau 24 giờ. Kết quả công khai chỉ gồm mã đơn, trạng thái, thời gian dự kiến và lịch sử trạng thái; địa chỉ, số điện thoại, người nhận, sản phẩm và thông tin thanh toán chỉ được đọc khi khách đăng nhập đúng tài khoản sở hữu đơn. Mã đơn không khớp và số điện thoại không khớp cùng trả về một lỗi.
+
 ## Bảo mật Firestore
 
 Quy tắc nằm trong `firestore.rules` (khai báo trong `firebase.json`). Tóm tắt:
@@ -104,7 +106,7 @@ Quy tắc nằm trong `firestore.rules` (khai báo trong `firebase.json`). Tóm 
 - `orders`: không cho client tạo trực tiếp; API backend tạo đơn sau khi tính giá và xác minh tồn kho. Khách đã đăng nhập chỉ đọc đơn của UID mình; chỉ admin được đọc toàn bộ, cập nhật hoặc xóa.
 - Mọi đường dẫn khác bị từ chối.
 
-Triển khai: `firebase deploy --only firestore:rules,firestore:indexes`. API tạo/tra cứu đơn cần `FIREBASE_SERVICE_ACCOUNT_JSON` và `FIREBASE_PROJECT_ID` trong Vercel; tài khoản dịch vụ cần quyền đọc/ghi Firestore (Cloud Datastore User). Cấu hình `CRON_SECRET` trong Vercel để bảo vệ lượt dọn đơn theo lịch. Đánh giá và đơn cũ chỉ lưu trong `localStorage` không tự chia sẻ giữa các thiết bị.
+Triển khai: `firebase deploy --only firestore:rules,firestore:indexes`. Lệnh này cũng khai báo TTL 24 giờ cho các bản ghi giới hạn tra cứu; Firestore có thể xóa bản ghi trễ tối đa khoảng một ngày sau hạn. API tạo/tra cứu đơn cần `FIREBASE_SERVICE_ACCOUNT_JSON` và `FIREBASE_PROJECT_ID` trong Vercel; tài khoản dịch vụ cần quyền đọc/ghi Firestore (Cloud Datastore User). Cấu hình `CRON_SECRET` trong Vercel để bảo vệ lượt dọn đơn theo lịch. Đánh giá và đơn cũ chỉ lưu trong `localStorage` không tự chia sẻ giữa các thiết bị.
 
 ## Xác thực
 

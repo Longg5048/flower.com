@@ -172,9 +172,10 @@
   }
 
   async function getPublicOrder(id, phone) {
-    const params = new URLSearchParams({ id: String(id), phone: String(phone) });
-    const response = await fetch(`/api/orders?${params}`, {
-      headers: { Accept: "application/json" },
+    const response = await fetch("/api/orders", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", Accept: "application/json" },
+      body: JSON.stringify({ action: "lookup", id: String(id), phone: String(phone) }),
       cache: "no-store"
     });
     const result = await response.json().catch(() => ({}));

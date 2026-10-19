@@ -1,11 +1,7 @@
 import { firebaseConfig, isFirebaseConfigured } from "./firebase-config.js";
 
-const accountStorageKey = "usersData";
 const form = document.getElementById("recovery-form");
 const emailInput = document.getElementById("recovery-email");
-const localPasswordFields = document.getElementById("local-password-fields");
-const newPasswordInput = document.getElementById("new-password");
-const confirmPasswordInput = document.getElementById("confirm-password");
 const message = document.getElementById("recovery-message");
 const submitButton = document.getElementById("recovery-submit");
 
@@ -15,39 +11,8 @@ function showMessage(text, isError = true) {
     message.classList.toggle("status-success", !isError);
 }
 
-function getSavedAccounts() {
-    try {
-        let readFailed = false;
-        const accounts = window.FlowerSafeStorage.readJson(accountStorageKey, {
-            fallback: [],
-            validate: (value) => Array.isArray(value)
-                && value.every((account) => account && typeof account === "object" && !Array.isArray(account)),
-            onError: () => {
-                readFailed = true;
-                showMessage("Không thể đọc danh sách tài khoản đã lưu trên trình duyệt.");
-            }
-        });
-        if (readFailed) return null;
-        if (!Array.isArray(accounts)) {
-            throw new TypeError("Danh sách tài khoản không hợp lệ.");
-        }
-        return accounts;
-    } catch (error) {
-        console.error("Không thể đọc danh sách tài khoản đã lưu:", error);
-        showMessage("Không thể đọc danh sách tài khoản đã lưu trên trình duyệt.");
-        return null;
-    }
-}
-
-function saveAccounts(accounts) {
-    try {
-        window.FlowerSafeStorage.writeJson(accountStorageKey, accounts, { required: true });
-        return true;
-    } catch (error) {
-        console.error("Không thể lưu danh sách tài khoản:", error);
-        showMessage("Không thể lưu tài khoản trên trình duyệt này.");
-        return false;
-    }
+if (!window.FlowerSafeStorage.remove("usersData")) {
+    showMessage("Không xóa được mật khẩu cũ từng lưu trên trình duyệt. Hãy xóa dữ liệu trang web trong cài đặt trình duyệt.");
 }
 
 function getFirebaseErrorMessage(error) {
@@ -72,10 +37,8 @@ async function sendFirebaseResetEmail(email) {
 }
 
 if (!isFirebaseConfigured) {
-    localPasswordFields.hidden = false;
-    submitButton.textContent = "Cập nhật mật khẩu";
     document.getElementById("recovery-intro").textContent =
-        "Nhập địa chỉ thư điện tử của tài khoản rồi tạo mật khẩu mới. Tài khoản lưu trên trình duyệt này không đồng bộ sang thiết bị khác.";
+        "Chức năng đặt lại mật khẩu cần Firebase Authentication. Mật khẩu không được lưu trên trình duyệt này.";
 }
 
 const emailFromLogin = new URLSearchParams(window.location.search).get("email");
@@ -92,55 +55,21 @@ form.addEventListener("submit", async (event) => {
         emailInput.focus();
         return;
     }
+    if (!isFirebaseConfigured) {
+        showMessage("Chưa thể khôi phục tài khoản. Cửa hàng cần cấu hình Firebase Authentication trước.");
+        return;
+    }
 
     submitButton.disabled = true;
     message.textContent = "";
     message.classList.remove("status-error", "status-success");
-
-    if (isFirebaseConfigured) {
-        try {
-            await sendFirebaseResetEmail(email);
+    try {
+        await sendFirebaseResetEmail(email);
         showMessage("Đã gửi liên kết đặt lại mật khẩu đến thư điện tử của bạn.", false);
-        } catch (error) {
+    } catch (error) {
         console.error("Gửi thư khôi phục mật khẩu thất bại:", error);
-            showMessage(getFirebaseErrorMessage(error));
-        } finally {
-            submitButton.disabled = false;
-        }
-        return;
-    }
-
-    const newPassword = newPasswordInput.value;
-    const confirmPassword = confirmPasswordInput.value;
-    if (newPassword.length < 6) {
-        showMessage("Mật khẩu mới cần có ít nhất 6 ký tự.");
-        newPasswordInput.focus();
+        showMessage(getFirebaseErrorMessage(error));
+    } finally {
         submitButton.disabled = false;
-        return;
     }
-    if (newPassword !== confirmPassword) {
-        showMessage("Mật khẩu xác nhận không khớp.");
-        confirmPasswordInput.focus();
-        submitButton.disabled = false;
-        return;
-    }
-
-    const accounts = getSavedAccounts();
-    if (!accounts) {
-        submitButton.disabled = false;
-        return;
-    }
-    const account = accounts.find((item) => (item.email || "").toLowerCase() === email);
-    if (!account) {
-        showMessage("Địa chỉ thư điện tử này chưa đăng ký trên trình duyệt.");
-        submitButton.disabled = false;
-        return;
-    }
-
-    account.password = newPassword;
-    if (saveAccounts(accounts)) {
-        showMessage("Mật khẩu đã được cập nhật. Bạn có thể đăng nhập ngay.", false);
-        form.reset();
-    }
-    submitButton.disabled = false;
 });

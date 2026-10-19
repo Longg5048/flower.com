@@ -7,7 +7,6 @@ const display = document.getElementById("display");
 const signupDisplay = document.getElementById("signup-display");
 const signIn = document.querySelector("#signIn");
 const signUp = document.querySelector("#signUp");
-const accountStorageKey = "usersData";
 
 let firebaseAuthApiPromise;
 
@@ -21,56 +20,8 @@ function showFormMessage(target, message, isError = true) {
     target.classList.toggle("status-success", !isError);
 }
 
-function getSavedAccounts() {
-    try {
-        let readFailed = false;
-        const savedAccounts = window.FlowerSafeStorage.readJson(accountStorageKey, {
-            fallback: [],
-            validate: (value) => Array.isArray(value)
-                && value.every((account) => account && typeof account === "object" && !Array.isArray(account)),
-            onError: () => {
-                readFailed = true;
-                showMessage("Không thể đọc danh sách tài khoản đã lưu trên trình duyệt.");
-            }
-        });
-        return readFailed ? null : savedAccounts;
-    } catch (error) {
-        console.error("Không thể đọc danh sách tài khoản đã lưu:", error);
-        showMessage("Không thể đọc danh sách tài khoản đã lưu trên trình duyệt.");
-        return null;
-    }
-}
-
-function saveAccounts(accounts) {
-    try {
-        window.FlowerSafeStorage.writeJson(accountStorageKey, accounts, { required: true });
-        return true;
-    } catch (error) {
-        console.error("Không thể lưu danh sách tài khoản:", error);
-        showMessage("Không thể lưu tài khoản trên trình duyệt này.");
-        return false;
-    }
-}
-
-function saveLocalAccount({ name, email, password, phone }) {
-    const users = getSavedAccounts();
-    if (!users) return false;
-
-    if (users.some((user) => (user.email || "").toLowerCase() === email)) {
-        showFormMessage(signupDisplay, "Địa chỉ thư điện tử này đã được đăng ký trên trình duyệt này. Hãy chuyển sang Đăng nhập.");
-        return false;
-    }
-
-    users.push({ name, email, password, phone });
-    if (!saveAccounts(users)) return false;
-
-    showFormMessage(
-        signupDisplay,
-        "Đã tạo tài khoản trên trình duyệt này. Tài khoản không đồng bộ sang thiết bị khác.",
-        false
-    );
-    signUp.reset();
-    return true;
+if (!window.FlowerSafeStorage.remove("usersData")) {
+    showMessage("Không xóa được mật khẩu cũ từng lưu trên trình duyệt. Hãy xóa dữ liệu trang web trong cài đặt trình duyệt.");
 }
 
 async function getFirebaseAuthApi() {
@@ -261,16 +212,11 @@ signUp.addEventListener("submit", async (event) => {
             saveCustomerSession({ ...credential.user, displayName: name, phoneNumber: phone }, "password");
         } catch (error) {
             console.error("Tạo tài khoản Firebase thất bại:", error);
-            if (error.code === "auth/operation-not-allowed") {
-                saveLocalAccount({ name, email, password, phone });
-                return;
-            }
             showFormMessage(signupDisplay, getFirebaseErrorMessage(error));
         }
         return;
     }
-
-    saveLocalAccount({ name, email, password, phone });
+    showFormMessage(signupDisplay, "Đăng ký chưa sẵn sàng. Cửa hàng cần cấu hình Firebase Authentication trước.");
 });
 
 signIn.addEventListener("submit", async (event) => {
@@ -286,34 +232,11 @@ signIn.addEventListener("submit", async (event) => {
             await saveAuthenticatedSession(credential.user, "password");
         } catch (error) {
             console.error("Đăng nhập Firebase thất bại:", error);
-
-            const savedAccounts = getSavedAccounts();
-            if (!savedAccounts) return;
-
-            const savedAccount = savedAccounts.find(
-                (account) => (account.email || "").toLowerCase() === email
-            );
-            if (savedAccount && savedAccount.password === password) {
-                saveCustomerSession(savedAccount, "local");
-                return;
-            }
-
             showMessage(getFirebaseErrorMessage(error));
         }
         return;
     }
-
-    const users = getSavedAccounts();
-    if (!users) return;
-    const user = users.find((account) => (account.email || "").toLowerCase() === email);
-
-    if (!user) {
-        showMessage("Tài khoản chưa đăng ký.");
-    } else if (user.password !== password) {
-        showMessage("Sai thông tin đăng nhập.");
-    } else {
-        saveCustomerSession(user, "local");
-    }
+    showMessage("Đăng nhập chưa sẵn sàng. Cửa hàng cần cấu hình Firebase Authentication trước.");
 });
 
 document.getElementById("forgotPassword").addEventListener("click", (event) => {

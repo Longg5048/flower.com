@@ -66,6 +66,7 @@
         orderNote: order.orderNote || "",
         paymentMethod: order.paymentMethod,
         paymentReference: order.paymentReference || "",
+        idempotencyKey: order.idempotencyKey || "",
         promotionId: order.promotionId || "",
         expectedTotals,
         items: (Array.isArray(order.items) ? order.items : []).map((item) => ({

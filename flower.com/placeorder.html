@@ -41,6 +41,7 @@
     const paymentButton = document.querySelector(".placeorder > button");
     const paymentNote = document.getElementById("payment-confirmation-note");
     let serverQuote = null;
+    let orderSubmissionInProgress = false;
     paymentButton.disabled = true;
     if (checkoutData?.paymentMethod === "qr") {
       paymentButton.textContent = "Gửi đơn hàng chờ xác minh";
@@ -48,12 +49,13 @@
     }
 
     async function saveOrderToAdmin() {
+      if (orderSubmissionInProgress) return;
       if (!Cart.length) {
         alert("Giỏ hàng đang trống.");
         return;
       }
 
-      if (!checkoutData?.customerName || !checkoutData?.phone || !checkoutData?.address || !checkoutData?.paymentMethod) {
+      if (!checkoutData?.customerName || !checkoutData?.phone || !checkoutData?.address || !checkoutData?.paymentMethod || !checkoutData?.idempotencyKey) {
         alert("Vui lòng hoàn tất thông tin giao hàng và thanh toán trước.");
         window.location.assign("./checkout.html");
         return;
@@ -76,11 +78,13 @@
       };
 
       let orderId;
+      orderSubmissionInProgress = true;
       paymentButton.disabled = true;
       try {
         orderId = await window.FlowerOrderStore.create(order, serverQuote.totals);
       } catch (error) {
         console.error("Không thể lưu đơn hàng tập trung:", error);
+        orderSubmissionInProgress = false;
         paymentButton.disabled = false;
         alert(error.message || "Chưa thể xác nhận giá và tồn kho. Hãy quay lại trang thanh toán rồi thử lại.");
         return;

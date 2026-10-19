@@ -159,6 +159,7 @@ function validateCheckout(body = {}) {
     const address = String(body.address || "").trim();
     const paymentMethod = String(body.paymentMethod || "");
     const promotionId = String(body.promotionId || "").trim();
+    const idempotencyKey = String(body.idempotencyKey || "").trim();
     const items = body.items;
     const expectedTotals = body.expectedTotals;
 
@@ -166,6 +167,7 @@ function validateCheckout(body = {}) {
         || !address || address.length > 500
         || normalizePhone(phone).length < 8 || normalizePhone(phone).length > 15
         || !["qr", "cod"].includes(paymentMethod)
+        || !/^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(idempotencyKey)
         || promotionId.length > 100
         || !expectedTotals
         || !["subtotal", "savings", "tax", "total"].every((key) => (
@@ -194,6 +196,7 @@ function validateCheckout(body = {}) {
         address,
         paymentMethod,
         promotionId,
+        idempotencyKey,
         paymentReference: String(body.paymentReference || "").replace(/[^A-Za-z0-9_-]/g, "").slice(0, 50),
         expectedTotals,
         items: normalizedItems
@@ -303,12 +306,30 @@ async function createOrder(req, res) {
         const user = await optionalAuthenticatedUser(req);
         const db = getAdminFirestore();
         await expireReservations(db);
-        const orderRef = db.collection("orders").doc();
+        const idempotencyRef = db.collection("orderRequests").doc(checkout.idempotencyKey);
         const productRefs = checkout.items.map((item) => db.collection("products").doc(item.id));
         const promotionsRef = db.collection("metadata").doc("activePromotions");
         const now = new Date();
 
         const order = await db.runTransaction(async (transaction) => {
+            const previousRequest = await transaction.get(idempotencyRef);
+            if (previousRequest.exists) {
+                const previousOrderRef = db.collection("orders").doc(String(previousRequest.data().orderId || ""));
+                const previousOrder = await transaction.get(previousOrderRef);
+                if (!previousOrder.exists) {
+                    const error = new Error("Yêu cầu đặt hàng này đã được xử lý nhưng đơn không còn tồn tại.");
+                    error.code = "idempotency-conflict";
+                    throw error;
+                }
+                const previousData = previousOrder.data();
+                return {
+                    id: previousOrder.id,
+                    subtotal: previousData.subtotal,
+                    savings: previousData.savings,
+                    total: previousData.total
+                };
+            }
+
             const [productSnapshots, promotionSnapshot] = await Promise.all([
                 transaction.getAll(...productRefs),
                 transaction.get(promotionsRef)
@@ -369,6 +390,7 @@ async function createOrder(req, res) {
                 error.code = "price-changed";
                 throw error;
             }
+            const orderRef = db.collection("orders").doc();
             const paymentReference = checkout.paymentReference || `FF${orderRef.id.slice(-12).toUpperCase()}`;
             const items = products.map((item) => ({
                 id: item.id,
@@ -410,6 +432,11 @@ async function createOrder(req, res) {
 
             products.forEach((item) => transaction.update(item.ref, { quantity: item.stock - item.quantity }));
             transaction.create(orderRef, orderData);
+            transaction.create(idempotencyRef, {
+                orderId: orderRef.id,
+                uid: user?.uid || "",
+                createdAt: FieldValue.serverTimestamp()
+            });
             return { ...orderData, id: orderRef.id, createdAt: now.toISOString() };
         });
 
@@ -422,7 +449,7 @@ async function createOrder(req, res) {
         if (String(error.code || "").startsWith("auth/")) {
             return sendError(res, 401, "unauthenticated", "Phiên đăng nhập hết hạn. Vui lòng đăng nhập lại rồi đặt hàng.");
         }
-        if (["invalid-checkout", "invalid-promotion", "insufficient-stock", "product-unavailable", "price-changed"].includes(error.code)) {
+        if (["invalid-checkout", "invalid-promotion", "insufficient-stock", "product-unavailable", "price-changed", "idempotency-conflict"].includes(error.code)) {
             const status = error.code === "invalid-checkout" ? 400 : 409;
             return sendError(res, status, error.code, error.message);
         }

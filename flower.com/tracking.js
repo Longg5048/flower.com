@@ -130,11 +130,11 @@ function renderProducts(items) {
         const row = makeElement("div", "tracking-product");
         const image = document.createElement("img");
         image.src = product.image || "";
-        image.alt = product.title || "Sản phẩm trong đơn hàng";
+        image.alt = getVietnameseProductName(product.title || "Sản phẩm trong đơn hàng");
         image.addEventListener("error", () => image.remove(), { once: true });
         row.append(
             image,
-            makeElement("span", "tracking-product-name", product.title || "Sản phẩm"),
+            makeElement("span", "tracking-product-name", getVietnameseProductName(product.title || "Sản phẩm")),
             makeElement("span", "tracking-product-quantity", `× ${Math.max(1, Number(product.quantity) || 1)}`)
         );
         container.append(row);
@@ -397,7 +397,7 @@ reviewForm.addEventListener("submit", async (event) => {
         orderId: currentOrder.id,
         productIds: [...new Set(items.map((item) => item.id).filter((id) => id !== undefined && id !== null).map(String))],
         customerName: currentOrder.customerName || "Khách hàng",
-        productName: items.map((item) => item.title).filter(Boolean).join(", ") || `Đơn hàng #${currentOrder.id}`,
+        productName: items.map((item) => getVietnameseProductName(item.title)).filter(Boolean).join(", ") || `Đơn hàng #${currentOrder.id}`,
         rating: selectedRating,
         comment
     };

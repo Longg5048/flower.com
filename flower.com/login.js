@@ -48,7 +48,7 @@ function saveLocalAccount({ name, email, password, phone }) {
     if (!users) return false;
 
     if (users.some((user) => (user.email || "").toLowerCase() === email)) {
-        showFormMessage(signupDisplay, "Email này đã được đăng ký trên trình duyệt này. Hãy chuyển sang Đăng nhập.");
+        showFormMessage(signupDisplay, "Địa chỉ thư điện tử này đã được đăng ký trên trình duyệt này. Hãy chuyển sang Đăng nhập.");
         return false;
     }
 
@@ -91,17 +91,17 @@ async function getFirebaseAuthApi() {
 
 function getFirebaseErrorMessage(error) {
     const messages = {
-        "auth/email-already-in-use": "Email này đã được đăng ký. Hãy chuyển sang Đăng nhập.",
-        "auth/invalid-credential": "Email hoặc mật khẩu không chính xác. Nếu đăng ký bằng Google, hãy chọn Đăng nhập bằng Google.",
-        "auth/invalid-login-credentials": "Email hoặc mật khẩu không chính xác. Nếu đăng ký bằng Google, hãy chọn Đăng nhập bằng Google.",
-        "auth/invalid-email": "Địa chỉ email không hợp lệ.",
+        "auth/email-already-in-use": "Địa chỉ thư điện tử này đã được đăng ký. Hãy chuyển sang Đăng nhập.",
+        "auth/invalid-credential": "Địa chỉ thư điện tử hoặc mật khẩu không chính xác. Nếu đăng ký bằng Google, hãy chọn Đăng nhập bằng Google.",
+        "auth/invalid-login-credentials": "Địa chỉ thư điện tử hoặc mật khẩu không chính xác. Nếu đăng ký bằng Google, hãy chọn Đăng nhập bằng Google.",
+        "auth/invalid-email": "Địa chỉ thư điện tử không hợp lệ.",
         "auth/invalid-api-key": "Cấu hình Firebase không hợp lệ. Kiểm tra firebase-config.js.",
         "auth/network-request-failed": "Không kết nối được Firebase. Kiểm tra mạng rồi thử lại.",
-        "auth/operation-not-allowed": "Firebase chưa bật đăng nhập bằng email và mật khẩu. Nếu tài khoản dùng Google, hãy chọn nút Đăng nhập bằng Google. Muốn bật email/mật khẩu: Firebase Console → Authentication → Sign-in method → Email/Password → Enable.",
+        "auth/operation-not-allowed": "Firebase chưa bật đăng nhập bằng thư điện tử và mật khẩu. Nếu tài khoản dùng Google, hãy chọn nút Đăng nhập bằng Google. Để bật: Firebase Console → Xác thực → Phương thức đăng nhập → Thư điện tử/Mật khẩu → Bật.",
         "auth/popup-closed-by-user": "Bạn đã đóng cửa sổ đăng nhập Google.",
         "auth/popup-blocked": "Trình duyệt đã chặn cửa sổ đăng nhập. Hãy cho phép cửa sổ bật lên rồi thử lại.",
         "auth/too-many-requests": "Bạn đã thử quá nhiều lần. Vui lòng thử lại sau.",
-        "auth/unauthorized-domain": "Tên miền trang web chưa được cấp phép. Trong Firebase Console, vào Authentication → Settings → Authorized domains và thêm tên miền hiện tại (ví dụ: localhost hoặc domain triển khai; không nhập http:// hay đường dẫn).",
+        "auth/unauthorized-domain": "Tên miền trang web chưa được cấp phép. Trong Firebase Console, vào Xác thực → Cài đặt → Tên miền được phép và thêm tên miền hiện tại (ví dụ: localhost hoặc tên miền triển khai; không nhập http:// hay đường dẫn).",
         "auth/weak-password": "Mật khẩu cần có ít nhất 6 ký tự."
     };
     return messages[error.code] || "Đăng nhập chưa thành công. Vui lòng thử lại.";
@@ -130,7 +130,7 @@ async function saveAuthenticatedSession(user, provider) {
     if (token.claims.role === "owner") {
         try {
             localStorage.setItem("loggedUser", JSON.stringify({
-                name: user.displayName || "Owner",
+                name: user.displayName || "Chủ cửa hàng",
                 email: user.email || "",
                 uid: user.uid || "",
                 authProvider: provider,
@@ -139,7 +139,7 @@ async function saveAuthenticatedSession(user, provider) {
             localStorage.setItem("loggedAdmin", "true");
             window.location.assign("./owner.html");
         } catch (error) {
-            console.error("Không thể lưu phiên Owner:", error);
+            console.error("Không thể lưu phiên chủ cửa hàng:", error);
             showMessage("Đăng nhập được nhưng không thể lưu phiên trên trình duyệt này.");
         }
         return;
@@ -148,7 +148,7 @@ async function saveAuthenticatedSession(user, provider) {
     if (token.claims.admin === true) {
         try {
             localStorage.setItem("loggedUser", JSON.stringify({
-                name: user.displayName || "Admin",
+                name: user.displayName || "Quản trị viên",
                 email: user.email || "",
                 uid: user.uid || "",
                 authProvider: provider,

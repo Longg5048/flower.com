@@ -42,7 +42,7 @@ function saveAccounts(accounts) {
 
 function getFirebaseErrorMessage(error) {
     const messages = {
-        "auth/invalid-email": "Địa chỉ email không hợp lệ.",
+        "auth/invalid-email": "Địa chỉ thư điện tử không hợp lệ.",
         "auth/invalid-api-key": "Cấu hình Firebase không hợp lệ. Kiểm tra firebase-config.js.",
         "auth/network-request-failed": "Không kết nối được Firebase. Kiểm tra mạng rồi thử lại.",
         "auth/too-many-requests": "Bạn đã thử quá nhiều lần. Vui lòng thử lại sau.",
@@ -65,7 +65,7 @@ if (!isFirebaseConfigured) {
     localPasswordFields.hidden = false;
     submitButton.textContent = "Cập nhật mật khẩu";
     document.getElementById("recovery-intro").textContent =
-        "Nhập email tài khoản và tạo mật khẩu mới. Tài khoản lưu trên trình duyệt này không đồng bộ sang thiết bị khác.";
+        "Nhập địa chỉ thư điện tử của tài khoản rồi tạo mật khẩu mới. Tài khoản lưu trên trình duyệt này không đồng bộ sang thiết bị khác.";
 }
 
 const emailFromLogin = new URLSearchParams(window.location.search).get("email");
@@ -78,7 +78,7 @@ form.addEventListener("submit", async (event) => {
     const email = emailInput.value.trim().toLowerCase();
 
     if (!emailInput.validity.valid) {
-        showMessage("Vui lòng nhập địa chỉ email hợp lệ.");
+        showMessage("Vui lòng nhập địa chỉ thư điện tử hợp lệ.");
         emailInput.focus();
         return;
     }
@@ -90,9 +90,9 @@ form.addEventListener("submit", async (event) => {
     if (isFirebaseConfigured) {
         try {
             await sendFirebaseResetEmail(email);
-            showMessage("Đã gửi liên kết đặt lại mật khẩu vào email của bạn.", false);
+        showMessage("Đã gửi liên kết đặt lại mật khẩu đến thư điện tử của bạn.", false);
         } catch (error) {
-            console.error("Gửi email khôi phục mật khẩu thất bại:", error);
+        console.error("Gửi thư khôi phục mật khẩu thất bại:", error);
             showMessage(getFirebaseErrorMessage(error));
         } finally {
             submitButton.disabled = false;
@@ -122,7 +122,7 @@ form.addEventListener("submit", async (event) => {
     }
     const account = accounts.find((item) => (item.email || "").toLowerCase() === email);
     if (!account) {
-        showMessage("Email chưa đăng ký trên trình duyệt này.");
+        showMessage("Địa chỉ thư điện tử này chưa đăng ký trên trình duyệt.");
         submitButton.disabled = false;
         return;
     }

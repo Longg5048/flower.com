@@ -442,10 +442,10 @@ function renderProductTab() {
                    <tbody>
                        ${filteredProducts.map((item) => `
                            <tr>
-                               <td><img src="${escapeHtml(item.image)}" alt="${escapeHtml(item.title)}"></td>
+                               <td><img src="${escapeHtml(item.image)}" alt="${escapeHtml(getVietnameseProductName(item.title))}"></td>
                                <td>
-                                   <div><strong>${escapeHtml(item.title)}</strong></div>
-                                   <small>${escapeHtml(item.description || "")}</small>
+                                   <div><strong>${escapeHtml(getVietnameseProductName(item.title))}</strong></div>
+                                   <small>${escapeHtml(getVietnameseProductDescription(item.description || ""))}</small>
                                </td>
                                <td>${escapeHtml(item.category || "Chưa phân loại")}</td>
                                <td>${formatVnd(item.price)}</td>
@@ -466,7 +466,7 @@ function renderProductTab() {
            <div class="panel">
                <h2>${editingProduct ? "Chỉnh sửa sản phẩm" : "Thêm hoa mới"}</h2>
                <form id="add-product-form" class="product-form">
-                   <input type="text" id="product-title" placeholder="Tên hoa" value="${escapeHtml(editingProduct?.title || "")}" required maxlength="120">
+                   <input type="text" id="product-title" placeholder="Tên hoa" value="${escapeHtml(getVietnameseProductName(editingProduct?.title || ""))}" required maxlength="120">
                    <input type="url" id="product-image" placeholder="Link hình ảnh" value="${escapeHtml(editingProduct?.image || "")}" required>
                    <label class="field-label" for="product-category">Phân loại sản phẩm</label>
                    <select id="product-category">
@@ -475,7 +475,7 @@ function renderProductTab() {
                    </select>
                    <input type="number" id="product-price" placeholder="Giá (VND)" value="${editingProduct ? toVndAmount(editingProduct.price) : ""}" min="1" step="1" required>
                    <input type="number" id="product-quantity" placeholder="Số lượng" value="${editingProduct ? Number(editingProduct.quantity) || 0 : ""}" min="0" step="1" required>
-                   <textarea id="product-description" placeholder="Mô tả sản phẩm" required maxlength="1000">${escapeHtml(editingProduct?.description || "")}</textarea>
+                   <textarea id="product-description" placeholder="Mô tả sản phẩm" required maxlength="1000">${escapeHtml(getVietnameseProductDescription(editingProduct?.description || ""))}</textarea>
                    <div class="product-form-actions">
                        <button type="submit" class="submit-btn">${editingProduct ? "Lưu thay đổi" : "Thêm sản phẩm"}</button>
                        ${editingProduct ? '<button type="button" class="secondary-btn" data-action="cancel-edit">Hủy</button>' : ""}
@@ -544,7 +544,7 @@ function renderOffersTab() {
                        ${products.map((product) => `
                            <label class="offer-product-option">
                                <input type="checkbox" name="productIds" value="${escapeHtml(product.id)}">
-                               <span>${escapeHtml(product.title)}</span>
+                               <span>${escapeHtml(getVietnameseProductName(product.title))}</span>
                                <small>${formatVnd(product.price)}</small>
                            </label>
                        `).join("") || '<p class="empty-state">Chưa có sản phẩm để áp dụng ưu đãi.</p>'}
@@ -715,7 +715,7 @@ function renderActiveOrderSummary(order) {
 
 function renderOrderSummary(order) {
    const itemSummary = (order.items || [])
-       .map((item) => `${item.title} × ${item.quantity}`)
+       .map((item) => `${getVietnameseProductName(item.title)} × ${item.quantity}`)
        .join(", ") || "Không có sản phẩm";
    return `
        <article class="record-summary">
@@ -780,9 +780,9 @@ function renderOrderCard(order, showCompletionAction = true) {
                    const image = item.image || product.image || "./images/flowerflow-logo.png";
                    return `
                        <div class="product-card">
-                           <img src="${image}" alt="${item.title}">
+                           <img src="${image}" alt="${getVietnameseProductName(item.title)}">
                            <div class="product-card-content">
-                               <strong>${item.title}</strong>
+                               <strong>${getVietnameseProductName(item.title)}</strong>
                                <span>Số lượng: ${item.quantity}</span>
                                <span>Giá: ${moneyFormat(item.price)}</span>
                            </div>
@@ -894,7 +894,7 @@ function renderReviewCard(review, showCompletionAction = true) {
            <div class="info-grid two-col">
                <div class="field">
                    <span class="field-label">Sản phẩm</span>
-                   <span class="field-value">${escapeHtml(review.productName)}</span>
+                   <span class="field-value">${escapeHtml(getVietnameseProductName(review.productName))}</span>
                </div>
                <div class="field">
                    <span class="field-label">Xếp hạng</span>
@@ -926,7 +926,7 @@ function renderReviewSummary(review) {
    return `
        <article class="record-summary">
            <div class="completed-order-info">
-               <strong>${escapeHtml(review.customerName)} · ${escapeHtml(review.productName)}</strong>
+               <strong>${escapeHtml(review.customerName)} · ${escapeHtml(getVietnameseProductName(review.productName))}</strong>
                <span class="rating-value">${"★".repeat(Number(review.rating || 0))}${"☆".repeat(5 - Number(review.rating || 0))}</span>
                <span class="record-summary-preview"><b>Đánh giá:</b> ${escapeHtml(review.comment || "Không có nhận xét")}</span>
                <span><b>Thời gian:</b> ${new Date(review.createdAt).toLocaleString("vi-VN")}</span>
@@ -1078,7 +1078,7 @@ function addNewProduct(event) {
 
 function deleteProduct(id) {
    const product = getProductById(id);
-   if (!product || !window.confirm(`Bạn có chắc muốn xóa “${product.title}”?`)) return;
+   if (!product || !window.confirm(`Bạn có chắc muốn xóa “${getVietnameseProductName(product.title)}”?`)) return;
 
    const products = getProducts().filter((item) => String(item.id) !== String(id));
     FlowerInventory.saveProducts(products);

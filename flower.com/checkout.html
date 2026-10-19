@@ -125,6 +125,7 @@
   </main>
   <script src="./store-footer.js?v=2"></script>
   <script src="./currency.js?v=8"></script>
+  <script src="./product-names.js"></script>
   <script>
   const CartContainer = document.getElementById("product-container");
   const checkoutForm = document.getElementById("checkout-form");
@@ -227,9 +228,9 @@
 
       card.className = "checkout-item";
       image.src = product.image || "";
-      image.alt = product.title;
+      image.alt = getVietnameseProductName(product.title);
       image.loading = "lazy";
-      name.textContent = product.title;
+      name.textContent = getVietnameseProductName(product.title);
       unitPrice.className = "checkout-unit-price";
       unitPrice.textContent = formatVnd(product.price);
       details.className = "checkout-item-details";

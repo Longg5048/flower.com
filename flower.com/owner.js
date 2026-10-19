@@ -50,8 +50,8 @@ async function callOwnerApi(payload) {
         data = JSON.parse(responseText);
     } catch {
         const error = new Error(response.status === 404
-            ? "Owner API is not available on this local static server."
-            : "Owner API returned an invalid response.");
+            ? "API quản lý chủ cửa hàng chưa chạy trên máy này."
+            : "API quản lý chủ cửa hàng trả về dữ liệu không hợp lệ.");
         error.code = "api-not-available";
         throw error;
     }
@@ -73,22 +73,22 @@ function addCell(row, text) {
 function renderUser(user) {
     const row = document.createElement("tr");
     addCell(row, user.displayName || "Chưa có tên");
-    addCell(row, user.email || "Chưa có email");
+    addCell(row, user.email || "Chưa có thư điện tử");
     addCell(row, user.uid);
-    addCell(row, user.role === "owner" ? "Owner" : user.role === "admin" ? "Admin" : "Khách");
+    addCell(row, user.role === "owner" ? "Chủ cửa hàng" : user.role === "admin" ? "Quản trị viên" : "Khách hàng");
     addCell(row, user.disabled ? "Đã khóa" : "Đang hoạt động");
 
     const actionCell = document.createElement("td");
     const actionButton = document.createElement("button");
     actionButton.type = "button";
     actionButton.className = user.role === "admin" ? "delete-record owner-action" : "primary-btn owner-action";
-    actionButton.textContent = user.role === "admin" ? "Gỡ admin" : "Cấp admin";
+    actionButton.textContent = user.role === "admin" ? "Gỡ quyền quản trị" : "Cấp quyền quản trị";
     actionButton.disabled = user.role === "owner" || user.uid === currentUser.uid ||
         (user.disabled && user.role !== "admin");
-    if (user.role === "owner") actionButton.textContent = "Owner";
+    if (user.role === "owner") actionButton.textContent = "Chủ cửa hàng";
     actionButton.addEventListener("click", async () => {
         const grant = user.role !== "admin";
-        const verb = grant ? "cấp quyền admin cho" : "gỡ quyền admin của";
+        const verb = grant ? "cấp quyền quản trị cho" : "gỡ quyền quản trị của";
         if (!window.confirm(`Bạn chắc chắn muốn ${verb} ${user.email || user.uid}?`)) return;
 
         actionButton.disabled = true;
@@ -97,7 +97,7 @@ function renderUser(user) {
                 action: grant ? "grant-admin" : "remove-admin",
                 uid: user.uid
             });
-            status.textContent = `Đã ${grant ? "cấp" : "gỡ"} quyền admin. Tài khoản đó cần đăng nhập lại.`;
+            status.textContent = `Đã ${grant ? "cấp" : "gỡ"} quyền quản trị. Tài khoản đó cần đăng nhập lại.`;
             await loadUsers();
         } catch (error) {
             console.error("Không thể thay đổi quyền tài khoản:", error);
@@ -130,11 +130,11 @@ async function loadUsers(pageToken) {
             ? `Đang hiển thị ${usersBody.rows.length} tài khoản${result.nextPageToken ? " (có thể tải thêm)." : "."}`
             : "Chưa có tài khoản Firebase nào.";
     } catch (error) {
-        console.error("Không thể tải danh sách tài khoản Owner:", error);
+        console.error("Không thể tải danh sách tài khoản chủ cửa hàng:", error);
         status.textContent = error.code === "permission-denied"
-            ? "Tài khoản hiện tại không có quyền Owner."
+            ? "Tài khoản hiện tại không có quyền chủ cửa hàng."
             : error.code === "api-not-available"
-                ? "API quản lý Owner chưa được chạy ở bản local. Deploy lên Vercel hoặc chạy Vercel Dev để dùng chức năng này."
+                ? "API quản lý chủ cửa hàng chưa chạy trên máy này. Hãy triển khai lên Vercel hoặc chạy công cụ Vercel Dev để sử dụng chức năng này."
             : "Không tải được danh sách tài khoản. Kiểm tra cấu hình API và kết nối.";
     } finally {
         refreshButton.disabled = false;
@@ -151,7 +151,7 @@ document.getElementById("owner-logout").addEventListener("click", async () => {
         localStorage.removeItem("loggedAdmin");
         window.location.assign("./login.html");
     } catch (error) {
-        console.error("Không thể đăng xuất Owner:", error);
+        console.error("Không thể đăng xuất chủ cửa hàng:", error);
         status.textContent = "Chưa thể đăng xuất. Vui lòng thử lại.";
     }
 });
@@ -161,6 +161,6 @@ try {
         await loadUsers();
     }
 } catch (error) {
-    console.error("Không thể xác thực trang Owner:", error);
-    status.textContent = "Không thể xác thực Owner. Hãy đăng nhập lại sau khi kiểm tra cấu hình Firebase.";
+    console.error("Không thể xác thực trang chủ cửa hàng:", error);
+    status.textContent = "Không thể xác thực quyền chủ cửa hàng. Hãy đăng nhập lại sau khi kiểm tra cấu hình Firebase.";
 }

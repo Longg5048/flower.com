@@ -60,7 +60,7 @@ if (!account || account.role === "admin" || account.role === "owner") {
     document.getElementById("account-provider").textContent = account.authProvider === "google"
         ? "Google"
         : account.authProvider === "password"
-            ? "Email và mật khẩu"
+        ? "Thư điện tử và mật khẩu"
             : "Tài khoản trình duyệt";
 }
 

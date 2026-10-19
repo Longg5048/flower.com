@@ -3,358 +3,358 @@
     {
       "id": 1,
       "image": "./images/flower-01.webp",
-      "title": "Giỏ hoa xuân dịu dàng",
+      "title": "Bó hoa xuân dịu dàng",
       "price": 73.99,
-      "description": "Thi?t k? Flowerflow k?t h?p c?c tana, c?m ch??ng v?i gam h?ng ph?n v? t?m, tuy?n ch?n v? c?m th? c?ng. Nh?ng s?c hoa g?i g?m nh? nh?ng, t??i m?i; m?u g?m b? v?a, kho?ng 25?30 c?nh. Ph? h?p l?m qu? sinh nh?t ho?c th?m h?i. Hoa t??i c? th? thay ??i nh? theo m?a nh?ng v?n gi? tinh th?n thi?t k?."
+      "description": "Thiết kế Flowerflow gồm Cẩm chướng, cúc tana, phối sắc hồng phấn và tím nhạt; bó vừa, khoảng 20–24 cành. Mỗi loài hoa được chọn để gửi gắm sự dịu dàng và khởi đầu tươi mới. Thích hợp tặng dịp sinh nhật, thăm hỏi hoặc chúc mừng. Hoa theo mùa có thể thay đổi nhẹ, vẫn giữ nguyên tông màu và tinh thần thiết kế."
     },
     {
       "id": 2,
       "image": "./images/flower-02.webp",
-      "title": "Bó hoa sắc màu rực rỡ",
+      "title": "Bó hoa xuân dịu dàng",
       "price": 64.99,
-      "description": "Thi?t k? Flowerflow k?t h?p hoa h?ng, c?m ch??ng v? c?c v?i gam ??, tr?ng, v?ng v? xanh, tuy?n ch?n v? c?m th? c?ng. Nh?ng s?c hoa g?i g?m ?m ?p, g?n k?t; m?u g?m b? v?a, kho?ng 24?28 c?nh. Ph? h?p l?m qu? ch?c m?ng ho?c k? ni?m. Hoa t??i c? th? thay ??i nh? theo m?a nh?ng v?n gi? tinh th?n thi?t k?."
+      "description": "Thiết kế Flowerflow gồm Cẩm chướng, cúc tana, phối sắc hồng phấn và tím nhạt; bó vừa, khoảng 20–24 cành. Mỗi loài hoa được chọn để gửi gắm sự dịu dàng và khởi đầu tươi mới. Thích hợp tặng dịp sinh nhật, thăm hỏi hoặc chúc mừng. Hoa theo mùa có thể thay đổi nhẹ, vẫn giữ nguyên tông màu và tinh thần thiết kế."
     },
     {
       "id": 3,
       "image": "./images/flower-03.webp",
-      "title": "Bó oải hương tím mộng mơ",
+      "title": "Bó hoa sắc màu rực rỡ",
       "price": 59.99,
-      "description": "Thi?t k? Flowerflow k?t h?p o?i h??ng v? c?c tana v?i gam t?m lavender v? tr?ng, tuy?n ch?n v? c?m th? c?ng. Nh?ng s?c hoa g?i g?m th? th?i, th?y chung; m?u g?m b? v?a, kho?ng 20?25 c?nh. Ph? h?p l?m qu? sinh nh?t ho?c c?m ?n. Hoa t??i c? th? thay ??i nh? theo m?a nh?ng v?n gi? tinh th?n thi?t k?."
+      "description": "Thiết kế Flowerflow gồm Hoa hồng, cẩm chướng và cúc, phối sắc đỏ, trắng, vàng và xanh; bó lớn, khoảng 24–28 cành. Mỗi loài hoa được chọn để gửi gắm niềm vui và sự gắn kết. Thích hợp tặng dịp sinh nhật, khai trương hoặc chúc mừng. Hoa theo mùa có thể thay đổi nhẹ, vẫn giữ nguyên tông màu và tinh thần thiết kế."
     },
     {
       "id": 4,
       "image": "./images/flower-04.webp",
-      "title": "Hoa ly hồng ánh sao",
+      "title": "Bó hoa sắc màu rực rỡ",
       "price": 69.99,
-      "description": "Thi?t k? Flowerflow k?t h?p hoa ly k?p v?i gam h?ng ph?n, tuy?n ch?n v? c?m th? c?ng. Nh?ng s?c hoa g?i g?m ki?u h?nh v? y?u th??ng; m?u g?m b? l?n, 10?12 c?nh ly. Ph? h?p l?m qu? ch?c m?ng ho?c k? ni?m. Hoa t??i c? th? thay ??i nh? theo m?a nh?ng v?n gi? tinh th?n thi?t k?."
+      "description": "Thiết kế Flowerflow gồm Hoa hồng, cẩm chướng và cúc, phối sắc đỏ, trắng, vàng và xanh; bó lớn, khoảng 24–28 cành. Mỗi loài hoa được chọn để gửi gắm niềm vui và sự gắn kết. Thích hợp tặng dịp sinh nhật, khai trương hoặc chúc mừng. Hoa theo mùa có thể thay đổi nhẹ, vẫn giữ nguyên tông màu và tinh thần thiết kế."
     },
     {
       "id": 5,
       "image": "./images/flower-05.webp",
-      "title": "Bó hoa cầu vồng tươi vui",
+      "title": "Bó oải hương tím mộng mơ",
       "price": 59.99,
-      "description": "Thi?t k? Flowerflow k?t h?p ??ng ti?n, c?c v? c?m ch??ng v?i gam t?m, cam, xanh v? h?ng, tuy?n ch?n v? c?m th? c?ng. Nh?ng s?c hoa g?i g?m l?c quan, vui t??i; m?u g?m b? l?n, kho?ng 30 c?nh. Ph? h?p l?m qu? sinh nh?t ho?c khai tr??ng. Hoa t??i c? th? thay ??i nh? theo m?a nh?ng v?n gi? tinh th?n thi?t k?."
+      "description": "Thiết kế Flowerflow gồm Oải hương và cúc tana, phối sắc tím lavender và trắng; bó vừa, khoảng 18–22 cành. Mỗi loài hoa được chọn để gửi gắm sự bình yên và thủy chung. Thích hợp tặng dịp kỷ niệm, cảm ơn hoặc tặng người thương. Hoa theo mùa có thể thay đổi nhẹ, vẫn giữ nguyên tông màu và tinh thần thiết kế."
     },
     {
       "id": 6,
       "image": "./images/flower-06.webp",
-      "title": "Giỏ hoa vàng lời chúc lành",
+      "title": "Bó oải hương tím mộng mơ",
       "price": 49.99,
-      "description": "Thi?t k? Flowerflow k?t h?p hoa h?ng v?ng v? c?c v?i gam v?ng b? v? kem, tuy?n ch?n v? c?m th? c?ng. Nh?ng s?c hoa g?i g?m ni?m vui, l?i ch?c t?t l?nh; m?u g?m gi? v?a, kho?ng 22?26 c?nh. Ph? h?p l?m qu? ch?c m?ng ho?c t?n gia. Hoa t??i c? th? thay ??i nh? theo m?a nh?ng v?n gi? tinh th?n thi?t k?."
+      "description": "Thiết kế Flowerflow gồm Oải hương và cúc tana, phối sắc tím lavender và trắng; bó vừa, khoảng 18–22 cành. Mỗi loài hoa được chọn để gửi gắm sự bình yên và thủy chung. Thích hợp tặng dịp kỷ niệm, cảm ơn hoặc tặng người thương. Hoa theo mùa có thể thay đổi nhẹ, vẫn giữ nguyên tông màu và tinh thần thiết kế."
     },
     {
       "id": 7,
       "image": "./images/flower-01.webp",
-      "title": "Bó hoa đỏ tím sang trọng",
+      "title": "Hoa ly hồng ánh sao",
       "price": 69.99,
-      "description": "Thi?t k? Flowerflow k?t h?p hoa h?ng, c?t t??ng v? lan v?i gam ??, t?m v? tr?ng, tuy?n ch?n v? c?m th? c?ng. Nh?ng s?c hoa g?i g?m sang tr?ng, n?ng nhi?t; m?u g?m b? l?n, kho?ng 28?32 c?nh. Ph? h?p l?m qu? k? ni?m ho?c ch?c m?ng. Hoa t??i c? th? thay ??i nh? theo m?a nh?ng v?n gi? tinh th?n thi?t k?."
+      "description": "Thiết kế Flowerflow gồm Hoa ly kép, phối sắc hồng phấn; bó lớn, 10–12 cành ly. Mỗi loài hoa được chọn để gửi gắm sự trân trọng và yêu thương. Thích hợp tặng dịp chúc mừng, kỷ niệm hoặc tân gia. Hoa theo mùa có thể thay đổi nhẹ, vẫn giữ nguyên tông màu và tinh thần thiết kế."
     },
     {
       "id": 8,
       "image": "./images/flower-02.webp",
-      "title": "Bó hoa hồng tím yêu thương",
+      "title": "Hoa ly hồng ánh sao",
       "price": 69.99,
-      "description": "Thi?t k? Flowerflow k?t h?p hoa h?ng, c?m ch??ng v? c?c v?i gam ??, h?ng v? t?m, tuy?n ch?n v? c?m th? c?ng. Nh?ng s?c hoa g?i g?m y?u th??ng ?ong ??y; m?u g?m b? l?n, kho?ng 30 c?nh. Ph? h?p l?m qu? t? t?nh ho?c k? ni?m. Hoa t??i c? th? thay ??i nh? theo m?a nh?ng v?n gi? tinh th?n thi?t k?."
+      "description": "Thiết kế Flowerflow gồm Hoa ly kép, phối sắc hồng phấn; bó lớn, 10–12 cành ly. Mỗi loài hoa được chọn để gửi gắm sự trân trọng và yêu thương. Thích hợp tặng dịp chúc mừng, kỷ niệm hoặc tân gia. Hoa theo mùa có thể thay đổi nhẹ, vẫn giữ nguyên tông màu và tinh thần thiết kế."
     },
     {
       "id": 9,
       "image": "./images/flower-03.webp",
-      "title": "Bó hoa hồng phấn dịu dàng",
+      "title": "Bó hoa cầu vồng tươi vui",
       "price": 84.99,
-      "description": "Thi?t k? Flowerflow k?t h?p hoa h?ng v? c?m ch??ng v?i gam h?ng ph?n v? t?m nh?t, tuy?n ch?n v? c?m th? c?ng. Nh?ng s?c hoa g?i g?m d?u d?ng, tr?n qu?; m?u g?m b? v?a, kho?ng 24 c?nh. Ph? h?p l?m qu? sinh nh?t ho?c ng?y c?a m?. Hoa t??i c? th? thay ??i nh? theo m?a nh?ng v?n gi? tinh th?n thi?t k?."
+      "description": "Thiết kế Flowerflow gồm Đồng tiền, cúc và cẩm chướng, phối sắc tím, cam, xanh và hồng; bó lớn, khoảng 26–30 cành. Mỗi loài hoa được chọn để gửi gắm sự lạc quan và năng lượng tích cực. Thích hợp tặng dịp sinh nhật, khai trương hoặc chúc mừng. Hoa theo mùa có thể thay đổi nhẹ, vẫn giữ nguyên tông màu và tinh thần thiết kế."
     },
     {
       "id": 10,
       "image": "./images/flower-04.webp",
-      "title": "Bó hoa hồng tím bay bổng",
+      "title": "Bó hoa cầu vồng tươi vui",
       "price": 59.99,
-      "description": "Thi?t k? Flowerflow k?t h?p hoa h?ng, ??ng ti?n v? c?c tana v?i gam h?ng ??m, xanh v? t?m, tuy?n ch?n v? c?m th? c?ng. Nh?ng s?c hoa g?i g?m t??i vui, gi?u s?c s?ng; m?u g?m b? v?a, kho?ng 25?30 c?nh. Ph? h?p l?m qu? ch?c m?ng ho?c sinh nh?t. Hoa t??i c? th? thay ??i nh? theo m?a nh?ng v?n gi? tinh th?n thi?t k?."
+      "description": "Thiết kế Flowerflow gồm Đồng tiền, cúc và cẩm chướng, phối sắc tím, cam, xanh và hồng; bó lớn, khoảng 26–30 cành. Mỗi loài hoa được chọn để gửi gắm sự lạc quan và năng lượng tích cực. Thích hợp tặng dịp sinh nhật, khai trương hoặc chúc mừng. Hoa theo mùa có thể thay đổi nhẹ, vẫn giữ nguyên tông màu và tinh thần thiết kế."
     },
     {
       "id": 11,
       "image": "./images/flower-05.webp",
-      "title": "Bó đồng tiền nắng mai",
+      "title": "Giỏ hoa vàng lời chúc tốt lành",
       "price": 54.99,
-      "description": "Thi?t k? Flowerflow k?t h?p hoa ??ng ti?n v? c?c tana v?i gam v?ng, cam v? tr?ng, tuy?n ch?n v? c?m th? c?ng. Nh?ng s?c hoa g?i g?m ni?m vui, may m?n; m?u g?m b? v?a, kho?ng 25 c?nh. Ph? h?p l?m qu? sinh nh?t ho?c khai tr??ng. Hoa t??i c? th? thay ??i nh? theo m?a nh?ng v?n gi? tinh th?n thi?t k?."
+      "description": "Thiết kế Flowerflow gồm Hoa hồng vàng và cúc, phối sắc vàng bơ và kem; giỏ vừa, khoảng 20–24 cành. Mỗi loài hoa được chọn để gửi gắm niềm vui và lời chúc may mắn. Thích hợp tặng dịp tân gia, sinh nhật hoặc chúc mừng. Hoa theo mùa có thể thay đổi nhẹ, vẫn giữ nguyên tông màu và tinh thần thiết kế."
     },
     {
       "id": 12,
       "image": "./images/flower-06.webp",
-      "title": "Bó hoa đồng nội nước Pháp",
+      "title": "Giỏ hoa vàng lời chúc tốt lành",
       "price": 69.99,
-      "description": "Thi?t k? Flowerflow k?t h?p c?c tana, ??ng ti?n v? c?m ch??ng v?i gam v?ng, kem v? h?ng, tuy?n ch?n v? c?m th? c?ng. Nh?ng s?c hoa g?i g?m m?c m?c, th?n t?nh; m?u g?m b? v?a, kho?ng 25 c?nh. Ph? h?p l?m qu? th?m h?i ho?c sinh nh?t. Hoa t??i c? th? thay ??i nh? theo m?a nh?ng v?n gi? tinh th?n thi?t k?."
+      "description": "Thiết kế Flowerflow gồm Hoa hồng vàng và cúc, phối sắc vàng bơ và kem; giỏ vừa, khoảng 20–24 cành. Mỗi loài hoa được chọn để gửi gắm niềm vui và lời chúc may mắn. Thích hợp tặng dịp tân gia, sinh nhật hoặc chúc mừng. Hoa theo mùa có thể thay đổi nhẹ, vẫn giữ nguyên tông màu và tinh thần thiết kế."
     },
     {
       "id": 13,
       "image": "./images/flower-01.webp",
-      "title": "Bó hồng bên nhau mãi mãi",
+      "title": "Bó hoa đỏ tím sang trọng",
       "price": 69.99,
-      "description": "Thi?t k? Flowerflow k?t h?p hoa h?ng ?? v? baby tr?ng v?i gam ?? v? tr?ng, tuy?n ch?n v? c?m th? c?ng. Nh?ng s?c hoa g?i g?m t?nh y?u b?n l?u; m?u g?m b? l?n, 30 b?ng h?ng. Ph? h?p l?m qu? k? ni?m ho?c ng?y l? t?nh nh?n. Hoa t??i c? th? thay ??i nh? theo m?a nh?ng v?n gi? tinh th?n thi?t k?."
+      "description": "Thiết kế Flowerflow gồm Hoa hồng, cát tường và lan, phối sắc đỏ, tím và trắng; bó lớn, khoảng 24–28 cành. Mỗi loài hoa được chọn để gửi gắm sự ngưỡng mộ và tình cảm nồng nhiệt. Thích hợp tặng dịp kỷ niệm, chúc mừng hoặc tặng người thương. Hoa theo mùa có thể thay đổi nhẹ, vẫn giữ nguyên tông màu và tinh thần thiết kế."
     },
     {
       "id": 14,
       "image": "./images/flower-02.webp",
-      "title": "Bó hoa xuân tỏa sáng",
+      "title": "Bó hoa đỏ tím sang trọng",
       "price": 49.99,
-      "description": "Thi?t k? Flowerflow k?t h?p tulip, mao l??ng v? c?c v?i gam h?ng, v?ng v? tr?ng, tuy?n ch?n v? c?m th? c?ng. Nh?ng s?c hoa g?i g?m kh?i ??u m?i, hy v?ng; m?u g?m b? v?a, kho?ng 22 c?nh. Ph? h?p l?m qu? sinh nh?t ho?c ch?c m?ng. Hoa t??i c? th? thay ??i nh? theo m?a nh?ng v?n gi? tinh th?n thi?t k?."
+      "description": "Thiết kế Flowerflow gồm Hoa hồng, cát tường và lan, phối sắc đỏ, tím và trắng; bó lớn, khoảng 24–28 cành. Mỗi loài hoa được chọn để gửi gắm sự ngưỡng mộ và tình cảm nồng nhiệt. Thích hợp tặng dịp kỷ niệm, chúc mừng hoặc tặng người thương. Hoa theo mùa có thể thay đổi nhẹ, vẫn giữ nguyên tông màu và tinh thần thiết kế."
     },
     {
       "id": 15,
       "image": "./images/flower-03.webp",
-      "title": "Bó hoa xuân ban mai",
+      "title": "Bó hoa hồng tím yêu thương",
       "price": 69.99,
-      "description": "Thi?t k? Flowerflow k?t h?p tulip v? c?c tana v?i gam tr?ng, v?ng nh?t v? xanh, tuy?n ch?n v? c?m th? c?ng. Nh?ng s?c hoa g?i g?m t??i m?i, an y?n; m?u g?m b? v?a, kho?ng 20 c?nh. Ph? h?p l?m qu? th?m h?i ho?c c?m ?n. Hoa t??i c? th? thay ??i nh? theo m?a nh?ng v?n gi? tinh th?n thi?t k?."
+      "description": "Thiết kế Flowerflow gồm Hoa hồng và cát tường, phối sắc tím và hồng phấn; bó vừa, khoảng 20–24 cành. Mỗi loài hoa được chọn để gửi gắm sự lãng mạn và gắn bó. Thích hợp tặng dịp kỷ niệm, sinh nhật hoặc tặng người thương. Hoa theo mùa có thể thay đổi nhẹ, vẫn giữ nguyên tông màu và tinh thần thiết kế."
     },
     {
       "id": 16,
       "image": "./images/flower-04.webp",
-      "title": "Bó hoa hồng tình thân",
+      "title": "Bó hoa hồng tím yêu thương",
       "price": 74.99,
-      "description": "Thi?t k? Flowerflow k?t h?p hoa h?ng ?? v? lan h? ?i?p v?i gam ?? v? tr?ng, tuy?n ch?n v? c?m th? c?ng. Nh?ng s?c hoa g?i g?m ch?n th?nh, g?n b?; m?u g?m b? l?n, kho?ng 28 c?nh. Ph? h?p l?m qu? k? ni?m ho?c ng?y c?a m?. Hoa t??i c? th? thay ??i nh? theo m?a nh?ng v?n gi? tinh th?n thi?t k?."
+      "description": "Thiết kế Flowerflow gồm Hoa hồng và cát tường, phối sắc tím và hồng phấn; bó vừa, khoảng 20–24 cành. Mỗi loài hoa được chọn để gửi gắm sự lãng mạn và gắn bó. Thích hợp tặng dịp kỷ niệm, sinh nhật hoặc tặng người thương. Hoa theo mùa có thể thay đổi nhẹ, vẫn giữ nguyên tông màu và tinh thần thiết kế."
     },
     {
       "id": 17,
       "image": "./images/flower-05.webp",
-      "title": "Bó hoa phong cách thanh lịch",
+      "title": "Bó hoa hồng phấn dịu dàng",
       "price": 59.99,
-      "description": "Thi?t k? Flowerflow k?t h?p hoa h?ng, lan v? c?t t??ng v?i gam h?ng nude v? t?m, tuy?n ch?n v? c?m th? c?ng. Nh?ng s?c hoa g?i g?m thanh l?ch, tinh t?; m?u g?m b? v?a, kho?ng 25 c?nh. Ph? h?p l?m qu? sinh nh?t ho?c ch?c m?ng. Hoa t??i c? th? thay ??i nh? theo m?a nh?ng v?n gi? tinh th?n thi?t k?."
+      "description": "Thiết kế Flowerflow gồm Hoa hồng và baby trắng, phối sắc hồng phấn và trắng; bó vừa, 18–22 cành hồng. Mỗi loài hoa được chọn để gửi gắm sự nâng niu và chân thành. Thích hợp tặng dịp sinh nhật, cảm ơn hoặc thăm hỏi. Hoa theo mùa có thể thay đổi nhẹ, vẫn giữ nguyên tông màu và tinh thần thiết kế."
     },
     {
       "id": 18,
       "image": "./images/flower-06.webp",
-      "title": "Bó hồng phấn ngọt ngào",
+      "title": "Bó hoa hồng phấn dịu dàng",
       "price": 69.99,
-      "description": "Thi?t k? Flowerflow k?t h?p hoa h?ng garden v? c?m ch??ng v?i gam h?ng ph?n, tuy?n ch?n v? c?m th? c?ng. Nh?ng s?c hoa g?i g?m ng?t ng?o, d?u d?ng; m?u g?m b? v?a, kho?ng 24 c?nh. Ph? h?p l?m qu? sinh nh?t ho?c ng?y c?a m?. Hoa t??i c? th? thay ??i nh? theo m?a nh?ng v?n gi? tinh th?n thi?t k?."
+      "description": "Thiết kế Flowerflow gồm Hoa hồng và baby trắng, phối sắc hồng phấn và trắng; bó vừa, 18–22 cành hồng. Mỗi loài hoa được chọn để gửi gắm sự nâng niu và chân thành. Thích hợp tặng dịp sinh nhật, cảm ơn hoặc thăm hỏi. Hoa theo mùa có thể thay đổi nhẹ, vẫn giữ nguyên tông màu và tinh thần thiết kế."
     },
     {
       "id": 19,
       "image": "./images/flower-01.webp",
-      "title": "Bó hoa tím quyến rũ",
+      "title": "Bó hoa hồng tím bồng bềnh",
       "price": 69.99,
-      "description": "Thi?t k? Flowerflow k?t h?p hoa h?ng t?m v? c?t t??ng v?i gam t?m ??m v? lavender, tuy?n ch?n v? c?m th? c?ng. Nh?ng s?c hoa g?i g?m b? ?n, th?y chung; m?u g?m b? v?a, kho?ng 24 c?nh. Ph? h?p l?m qu? k? ni?m ho?c ch?c m?ng. Hoa t??i c? th? thay ??i nh? theo m?a nh?ng v?n gi? tinh th?n thi?t k?."
+      "description": "Thiết kế Flowerflow gồm Hoa hồng và cẩm chướng, phối sắc tím lavender và trắng; bó vừa, khoảng 20–24 cành. Mỗi loài hoa được chọn để gửi gắm vẻ duyên dáng và sự thủy chung. Thích hợp tặng dịp kỷ niệm, sinh nhật hoặc tặng người thương. Hoa theo mùa có thể thay đổi nhẹ, vẫn giữ nguyên tông màu và tinh thần thiết kế."
     },
     {
       "id": 20,
       "image": "./images/flower-02.webp",
-      "title": "Bó hồng trong mơ",
+      "title": "Bó hoa hồng tím bồng bềnh",
       "price": 64.99,
-      "description": "Thi?t k? Flowerflow k?t h?p hoa h?ng ?? v? h?ng garden v?i gam ?? v? h?ng, tuy?n ch?n v? c?m th? c?ng. Nh?ng s?c hoa g?i g?m l?ng m?n, n?ng n?n; m?u g?m b? l?n, 30 b?ng h?ng. Ph? h?p l?m qu? t? t?nh ho?c ng?y l? t?nh nh?n. Hoa t??i c? th? thay ??i nh? theo m?a nh?ng v?n gi? tinh th?n thi?t k?."
+      "description": "Thiết kế Flowerflow gồm Hoa hồng và cẩm chướng, phối sắc tím lavender và trắng; bó vừa, khoảng 20–24 cành. Mỗi loài hoa được chọn để gửi gắm vẻ duyên dáng và sự thủy chung. Thích hợp tặng dịp kỷ niệm, sinh nhật hoặc tặng người thương. Hoa theo mùa có thể thay đổi nhẹ, vẫn giữ nguyên tông màu và tinh thần thiết kế."
     },
     {
       "id": 21,
       "image": "./images/flower-03.webp",
-      "title": "Bó hoa trắng tinh khôi",
+      "title": "Bó đồng tiền nắng mai",
       "price": 51.99,
-      "description": "Thi?t k? Flowerflow k?t h?p hoa h?ng tr?ng v? ly tr?ng v?i gam tr?ng kem v? xanh l?, tuy?n ch?n v? c?m th? c?ng. Nh?ng s?c hoa g?i g?m thu?n khi?t, tr?n tr?ng; m?u g?m b? v?a, kho?ng 20?24 c?nh. Ph? h?p l?m qu? th?m h?i ho?c l? t?t nghi?p. Hoa t??i c? th? thay ??i nh? theo m?a nh?ng v?n gi? tinh th?n thi?t k?."
+      "description": "Thiết kế Flowerflow gồm Hoa đồng tiền và lá bạc, phối sắc vàng cam và xanh lá; bó vừa, khoảng 20–24 cành. Mỗi loài hoa được chọn để gửi gắm niềm vui và lời chúc thuận lợi. Thích hợp tặng dịp sinh nhật, khai trương hoặc chúc mừng. Hoa theo mùa có thể thay đổi nhẹ, vẫn giữ nguyên tông màu và tinh thần thiết kế."
     },
     {
       "id": 22,
       "image": "./images/flower-04.webp",
-      "title": "Bó hoa sinh nhật rực rỡ",
+      "title": "Bó đồng tiền nắng mai",
       "price": 89.99,
-      "description": "Thi?t k? Flowerflow k?t h?p ??ng ti?n, c?c v? h?ng v?i gam ??, v?ng, t?m v? h?ng, tuy?n ch?n v? c?m th? c?ng. Nh?ng s?c hoa g?i g?m h?n hoan, may m?n; m?u g?m b? l?n, kho?ng 30 c?nh. Ph? h?p l?m qu? sinh nh?t ho?c khai tr??ng. Hoa t??i c? th? thay ??i nh? theo m?a nh?ng v?n gi? tinh th?n thi?t k?."
+      "description": "Thiết kế Flowerflow gồm Hoa đồng tiền và lá bạc, phối sắc vàng cam và xanh lá; bó vừa, khoảng 20–24 cành. Mỗi loài hoa được chọn để gửi gắm niềm vui và lời chúc thuận lợi. Thích hợp tặng dịp sinh nhật, khai trương hoặc chúc mừng. Hoa theo mùa có thể thay đổi nhẹ, vẫn giữ nguyên tông màu và tinh thần thiết kế."
     },
     {
       "id": 23,
       "image": "./images/flower-05.webp",
-      "title": "Giỏ lan hồ điệp phú quý",
+      "title": "Bó hoa đồng nội nước Pháp",
       "price": 59.99,
-      "description": "Thi?t k? Flowerflow k?t h?p lan h? ?i?p v?i gam tr?ng v? t?m, tuy?n ch?n v? c?m th? c?ng. Nh?ng s?c hoa g?i g?m sung t?c, thanh cao; m?u g?m ch?u 3?5 c?nh hoa, cao kho?ng 55 cm. Ph? h?p l?m qu? t?n gia ho?c ch?c m?ng. Hoa t??i c? th? thay ??i nh? theo m?a nh?ng v?n gi? tinh th?n thi?t k?."
+      "description": "Thiết kế Flowerflow gồm Cúc tana, cẩm chướng và hoa sao, phối sắc trắng, vàng nhạt và xanh; bó vừa, khoảng 24–28 cành. Mỗi loài hoa được chọn để gửi gắm sự mộc mạc và bình yên. Thích hợp tặng dịp thăm hỏi, cảm ơn hoặc sinh nhật. Hoa theo mùa có thể thay đổi nhẹ, vẫn giữ nguyên tông màu và tinh thần thiết kế."
     },
     {
       "id": 24,
       "image": "./images/flower-06.webp",
-      "title": "Bó hoa hoàng hôn lãng mạn",
+      "title": "Bó hoa đồng nội nước Pháp",
       "price": 64.99,
-      "description": "Thi?t k? Flowerflow k?t h?p hoa h?ng, ly v? c?t t??ng v?i gam cam ho?ng h?n, h?ng v? t?m, tuy?n ch?n v? c?m th? c?ng. Nh?ng s?c hoa g?i g?m ?m ?p, l?ng m?n; m?u g?m b? l?n, kho?ng 28 c?nh. Ph? h?p l?m qu? k? ni?m ho?c sinh nh?t. Hoa t??i c? th? thay ??i nh? theo m?a nh?ng v?n gi? tinh th?n thi?t k?."
+      "description": "Thiết kế Flowerflow gồm Cúc tana, cẩm chướng và hoa sao, phối sắc trắng, vàng nhạt và xanh; bó vừa, khoảng 24–28 cành. Mỗi loài hoa được chọn để gửi gắm sự mộc mạc và bình yên. Thích hợp tặng dịp thăm hỏi, cảm ơn hoặc sinh nhật. Hoa theo mùa có thể thay đổi nhẹ, vẫn giữ nguyên tông màu và tinh thần thiết kế."
     },
     {
       "id": 25,
       "image": "./images/flower-01.webp",
-      "title": "Bó hoa hồng vườn sớm",
+      "title": "Bó hồng bên nhau mãi mãi",
       "price": 73.99,
-      "description": "Thi?t k? Flowerflow k?t h?p c?c tana, c?m ch??ng v?i gam h?ng ph?n v? t?m, tuy?n ch?n v? c?m th? c?ng. Nh?ng s?c hoa g?i g?m nh? nh?ng, t??i m?i; m?u g?m b? v?a, kho?ng 25?30 c?nh. Ph? h?p l?m qu? sinh nh?t ho?c th?m h?i. Hoa t??i c? th? thay ??i nh? theo m?a nh?ng v?n gi? tinh th?n thi?t k?."
+      "description": "Thiết kế Flowerflow gồm Hoa hồng đỏ, phối sắc đỏ nhung; bó lớn, 24–30 cành hồng. Mỗi loài hoa được chọn để gửi gắm tình yêu bền lâu và đam mê. Thích hợp tặng dịp kỷ niệm ngày cưới hoặc tặng người thương. Hoa theo mùa có thể thay đổi nhẹ, vẫn giữ nguyên tông màu và tinh thần thiết kế."
     },
     {
       "id": 26,
       "image": "./images/flower-02.webp",
-      "title": "Bó hoa cúc vàng an nhiên",
+      "title": "Bó hồng bên nhau mãi mãi",
       "price": 64.99,
-      "description": "Thi?t k? Flowerflow k?t h?p hoa h?ng, c?m ch??ng v? c?c v?i gam ??, tr?ng, v?ng v? xanh, tuy?n ch?n v? c?m th? c?ng. Nh?ng s?c hoa g?i g?m ?m ?p, g?n k?t; m?u g?m b? v?a, kho?ng 24?28 c?nh. Ph? h?p l?m qu? ch?c m?ng ho?c k? ni?m. Hoa t??i c? th? thay ??i nh? theo m?a nh?ng v?n gi? tinh th?n thi?t k?."
+      "description": "Thiết kế Flowerflow gồm Hoa hồng đỏ, phối sắc đỏ nhung; bó lớn, 24–30 cành hồng. Mỗi loài hoa được chọn để gửi gắm tình yêu bền lâu và đam mê. Thích hợp tặng dịp kỷ niệm ngày cưới hoặc tặng người thương. Hoa theo mùa có thể thay đổi nhẹ, vẫn giữ nguyên tông màu và tinh thần thiết kế."
     },
     {
       "id": 27,
       "image": "./images/flower-03.webp",
-      "title": "Bó hoa lan tím thanh tao",
+      "title": "Bó hoa xuân tỏa sáng",
       "price": 59.99,
-      "description": "Thi?t k? Flowerflow k?t h?p o?i h??ng v? c?c tana v?i gam t?m lavender v? tr?ng, tuy?n ch?n v? c?m th? c?ng. Nh?ng s?c hoa g?i g?m th? th?i, th?y chung; m?u g?m b? v?a, kho?ng 20?25 c?nh. Ph? h?p l?m qu? sinh nh?t ho?c c?m ?n. Hoa t??i c? th? thay ??i nh? theo m?a nh?ng v?n gi? tinh th?n thi?t k?."
+      "description": "Thiết kế Flowerflow gồm Hoa hồng, cúc và tulip, phối sắc vàng, cam và hồng; bó lớn, khoảng 24–28 cành. Mỗi loài hoa được chọn để gửi gắm sức sống và niềm hy vọng. Thích hợp tặng dịp sinh nhật, khai trương hoặc chúc mừng. Hoa theo mùa có thể thay đổi nhẹ, vẫn giữ nguyên tông màu và tinh thần thiết kế."
     },
     {
       "id": 28,
       "image": "./images/flower-04.webp",
-      "title": "Bó tulip hồng ngày mới",
+      "title": "Bó hoa xuân tỏa sáng",
       "price": 69.99,
-      "description": "Thi?t k? Flowerflow k?t h?p hoa ly k?p v?i gam h?ng ph?n, tuy?n ch?n v? c?m th? c?ng. Nh?ng s?c hoa g?i g?m ki?u h?nh v? y?u th??ng; m?u g?m b? l?n, 10?12 c?nh ly. Ph? h?p l?m qu? ch?c m?ng ho?c k? ni?m. Hoa t??i c? th? thay ??i nh? theo m?a nh?ng v?n gi? tinh th?n thi?t k?."
+      "description": "Thiết kế Flowerflow gồm Hoa hồng, cúc và tulip, phối sắc vàng, cam và hồng; bó lớn, khoảng 24–28 cành. Mỗi loài hoa được chọn để gửi gắm sức sống và niềm hy vọng. Thích hợp tặng dịp sinh nhật, khai trương hoặc chúc mừng. Hoa theo mùa có thể thay đổi nhẹ, vẫn giữ nguyên tông màu và tinh thần thiết kế."
     },
     {
       "id": 29,
       "image": "./images/flower-05.webp",
-      "title": "Bó hoa cam nắng ấm",
+      "title": "Bó hoa xuân ban mai",
       "price": 59.99,
-      "description": "Thi?t k? Flowerflow k?t h?p ??ng ti?n, c?c v? c?m ch??ng v?i gam t?m, cam, xanh v? h?ng, tuy?n ch?n v? c?m th? c?ng. Nh?ng s?c hoa g?i g?m l?c quan, vui t??i; m?u g?m b? l?n, kho?ng 30 c?nh. Ph? h?p l?m qu? sinh nh?t ho?c khai tr??ng. Hoa t??i c? th? thay ??i nh? theo m?a nh?ng v?n gi? tinh th?n thi?t k?."
+      "description": "Thiết kế Flowerflow gồm Tulip, cẩm chướng và cúc, phối sắc hồng đào, trắng và vàng; bó vừa, khoảng 20–24 cành. Mỗi loài hoa được chọn để gửi gắm khởi đầu an lành và niềm vui. Thích hợp tặng dịp sinh nhật, thăm hỏi hoặc chúc mừng. Hoa theo mùa có thể thay đổi nhẹ, vẫn giữ nguyên tông màu và tinh thần thiết kế."
     },
     {
       "id": 30,
       "image": "./images/flower-06.webp",
-      "title": "Bó hoa cát tường như ý",
+      "title": "Bó hoa xuân ban mai",
       "price": 49.99,
-      "description": "Thi?t k? Flowerflow k?t h?p hoa h?ng v?ng v? c?c v?i gam v?ng b? v? kem, tuy?n ch?n v? c?m th? c?ng. Nh?ng s?c hoa g?i g?m ni?m vui, l?i ch?c t?t l?nh; m?u g?m gi? v?a, kho?ng 22?26 c?nh. Ph? h?p l?m qu? ch?c m?ng ho?c t?n gia. Hoa t??i c? th? thay ??i nh? theo m?a nh?ng v?n gi? tinh th?n thi?t k?."
+      "description": "Thiết kế Flowerflow gồm Tulip, cẩm chướng và cúc, phối sắc hồng đào, trắng và vàng; bó vừa, khoảng 20–24 cành. Mỗi loài hoa được chọn để gửi gắm khởi đầu an lành và niềm vui. Thích hợp tặng dịp sinh nhật, thăm hỏi hoặc chúc mừng. Hoa theo mùa có thể thay đổi nhẹ, vẫn giữ nguyên tông màu và tinh thần thiết kế."
     },
     {
       "id": 31,
       "image": "./images/flower-01.webp",
-      "title": "Giỏ hoa đồng tiền may mắn",
+      "title": "Bó hoa hồng tình thân",
       "price": 69.99,
-      "description": "Thi?t k? Flowerflow k?t h?p hoa h?ng, c?t t??ng v? lan v?i gam ??, t?m v? tr?ng, tuy?n ch?n v? c?m th? c?ng. Nh?ng s?c hoa g?i g?m sang tr?ng, n?ng nhi?t; m?u g?m b? l?n, kho?ng 28?32 c?nh. Ph? h?p l?m qu? k? ni?m ho?c ch?c m?ng. Hoa t??i c? th? thay ??i nh? theo m?a nh?ng v?n gi? tinh th?n thi?t k?."
+      "description": "Thiết kế Flowerflow gồm Hoa hồng kem và cẩm chướng, phối sắc kem và hồng nhạt; bó vừa, khoảng 20–24 cành. Mỗi loài hoa được chọn để gửi gắm lòng biết ơn và sự gắn kết. Thích hợp tặng dịp Ngày của Mẹ, sinh nhật hoặc cảm ơn. Hoa theo mùa có thể thay đổi nhẹ, vẫn giữ nguyên tông màu và tinh thần thiết kế."
     },
     {
       "id": 32,
       "image": "./images/flower-02.webp",
-      "title": "Bó hồng kem dịu nhẹ",
+      "title": "Bó hoa hồng tình thân",
       "price": 69.99,
-      "description": "Thi?t k? Flowerflow k?t h?p hoa h?ng, c?m ch??ng v? c?c v?i gam ??, h?ng v? t?m, tuy?n ch?n v? c?m th? c?ng. Nh?ng s?c hoa g?i g?m y?u th??ng ?ong ??y; m?u g?m b? l?n, kho?ng 30 c?nh. Ph? h?p l?m qu? t? t?nh ho?c k? ni?m. Hoa t??i c? th? thay ??i nh? theo m?a nh?ng v?n gi? tinh th?n thi?t k?."
+      "description": "Thiết kế Flowerflow gồm Hoa hồng kem và cẩm chướng, phối sắc kem và hồng nhạt; bó vừa, khoảng 20–24 cành. Mỗi loài hoa được chọn để gửi gắm lòng biết ơn và sự gắn kết. Thích hợp tặng dịp Ngày của Mẹ, sinh nhật hoặc cảm ơn. Hoa theo mùa có thể thay đổi nhẹ, vẫn giữ nguyên tông màu và tinh thần thiết kế."
     },
     {
       "id": 33,
       "image": "./images/flower-03.webp",
-      "title": "Bó hoa ly trắng trang nhã",
+      "title": "Bó hoa phong cách thanh lịch",
       "price": 84.99,
-      "description": "Thi?t k? Flowerflow k?t h?p hoa h?ng v? c?m ch??ng v?i gam h?ng ph?n v? t?m nh?t, tuy?n ch?n v? c?m th? c?ng. Nh?ng s?c hoa g?i g?m d?u d?ng, tr?n qu?; m?u g?m b? v?a, kho?ng 24 c?nh. Ph? h?p l?m qu? sinh nh?t ho?c ng?y c?a m?. Hoa t??i c? th? thay ??i nh? theo m?a nh?ng v?n gi? tinh th?n thi?t k?."
+      "description": "Thiết kế Flowerflow gồm Hoa hồng, lan và baby, phối sắc trắng, xanh lá và kem; bó lớn, khoảng 22–26 cành. Mỗi loài hoa được chọn để gửi gắm sự tinh tế và trân trọng. Thích hợp tặng dịp chúc mừng, tân gia hoặc kỷ niệm. Hoa theo mùa có thể thay đổi nhẹ, vẫn giữ nguyên tông màu và tinh thần thiết kế."
     },
     {
       "id": 34,
       "image": "./images/flower-04.webp",
-      "title": "Bó hoa mùa hè tươi vui",
+      "title": "Bó hoa phong cách thanh lịch",
       "price": 59.99,
-      "description": "Thi?t k? Flowerflow k?t h?p hoa h?ng, ??ng ti?n v? c?c tana v?i gam h?ng ??m, xanh v? t?m, tuy?n ch?n v? c?m th? c?ng. Nh?ng s?c hoa g?i g?m t??i vui, gi?u s?c s?ng; m?u g?m b? v?a, kho?ng 25?30 c?nh. Ph? h?p l?m qu? ch?c m?ng ho?c sinh nh?t. Hoa t??i c? th? thay ??i nh? theo m?a nh?ng v?n gi? tinh th?n thi?t k?."
+      "description": "Thiết kế Flowerflow gồm Hoa hồng, lan và baby, phối sắc trắng, xanh lá và kem; bó lớn, khoảng 22–26 cành. Mỗi loài hoa được chọn để gửi gắm sự tinh tế và trân trọng. Thích hợp tặng dịp chúc mừng, tân gia hoặc kỷ niệm. Hoa theo mùa có thể thay đổi nhẹ, vẫn giữ nguyên tông màu và tinh thần thiết kế."
     },
     {
       "id": 35,
       "image": "./images/flower-05.webp",
-      "title": "Bó hoa hồng đỏ chân thành",
+      "title": "Bó hồng phấn ngọt ngào",
       "price": 54.99,
-      "description": "Thi?t k? Flowerflow k?t h?p hoa ??ng ti?n v? c?c tana v?i gam v?ng, cam v? tr?ng, tuy?n ch?n v? c?m th? c?ng. Nh?ng s?c hoa g?i g?m ni?m vui, may m?n; m?u g?m b? v?a, kho?ng 25 c?nh. Ph? h?p l?m qu? sinh nh?t ho?c khai tr??ng. Hoa t??i c? th? thay ??i nh? theo m?a nh?ng v?n gi? tinh th?n thi?t k?."
+      "description": "Thiết kế Flowerflow gồm Hoa hồng và cát tường, phối sắc hồng phấn và trắng; bó vừa, 18–22 cành hồng. Mỗi loài hoa được chọn để gửi gắm sự trìu mến và dịu dàng. Thích hợp tặng dịp sinh nhật, kỷ niệm hoặc tặng người thương. Hoa theo mùa có thể thay đổi nhẹ, vẫn giữ nguyên tông màu và tinh thần thiết kế."
     },
     {
       "id": 36,
       "image": "./images/flower-06.webp",
-      "title": "Bó hoa pastel mộng mơ",
+      "title": "Bó hồng phấn ngọt ngào",
       "price": 69.99,
-      "description": "Thi?t k? Flowerflow k?t h?p c?c tana, ??ng ti?n v? c?m ch??ng v?i gam v?ng, kem v? h?ng, tuy?n ch?n v? c?m th? c?ng. Nh?ng s?c hoa g?i g?m m?c m?c, th?n t?nh; m?u g?m b? v?a, kho?ng 25 c?nh. Ph? h?p l?m qu? th?m h?i ho?c sinh nh?t. Hoa t??i c? th? thay ??i nh? theo m?a nh?ng v?n gi? tinh th?n thi?t k?."
+      "description": "Thiết kế Flowerflow gồm Hoa hồng và cát tường, phối sắc hồng phấn và trắng; bó vừa, 18–22 cành hồng. Mỗi loài hoa được chọn để gửi gắm sự trìu mến và dịu dàng. Thích hợp tặng dịp sinh nhật, kỷ niệm hoặc tặng người thương. Hoa theo mùa có thể thay đổi nhẹ, vẫn giữ nguyên tông màu và tinh thần thiết kế."
     },
     {
       "id": 37,
       "image": "./images/flower-01.webp",
-      "title": "Chậu lan hồ điệp thanh lịch",
+      "title": "Bó hoa tím quyến rũ",
       "price": 69.99,
-      "description": "Thi?t k? Flowerflow k?t h?p hoa h?ng ?? v? baby tr?ng v?i gam ?? v? tr?ng, tuy?n ch?n v? c?m th? c?ng. Nh?ng s?c hoa g?i g?m t?nh y?u b?n l?u; m?u g?m b? l?n, 30 b?ng h?ng. Ph? h?p l?m qu? k? ni?m ho?c ng?y l? t?nh nh?n. Hoa t??i c? th? thay ??i nh? theo m?a nh?ng v?n gi? tinh th?n thi?t k?."
+      "description": "Thiết kế Flowerflow gồm Hoa hồng tím và lan, phối sắc tím đậm và trắng; bó lớn, khoảng 22–26 cành. Mỗi loài hoa được chọn để gửi gắm sự ngưỡng mộ và vẻ duyên dáng. Thích hợp tặng dịp kỷ niệm, chúc mừng hoặc sinh nhật. Hoa theo mùa có thể thay đổi nhẹ, vẫn giữ nguyên tông màu và tinh thần thiết kế."
     },
     {
       "id": 38,
       "image": "./images/flower-02.webp",
-      "title": "Bó hoa chúc mừng rực rỡ",
+      "title": "Bó hoa tím quyến rũ",
       "price": 49.99,
-      "description": "Thi?t k? Flowerflow k?t h?p tulip, mao l??ng v? c?c v?i gam h?ng, v?ng v? tr?ng, tuy?n ch?n v? c?m th? c?ng. Nh?ng s?c hoa g?i g?m kh?i ??u m?i, hy v?ng; m?u g?m b? v?a, kho?ng 22 c?nh. Ph? h?p l?m qu? sinh nh?t ho?c ch?c m?ng. Hoa t??i c? th? thay ??i nh? theo m?a nh?ng v?n gi? tinh th?n thi?t k?."
+      "description": "Thiết kế Flowerflow gồm Hoa hồng tím và lan, phối sắc tím đậm và trắng; bó lớn, khoảng 22–26 cành. Mỗi loài hoa được chọn để gửi gắm sự ngưỡng mộ và vẻ duyên dáng. Thích hợp tặng dịp kỷ niệm, chúc mừng hoặc sinh nhật. Hoa theo mùa có thể thay đổi nhẹ, vẫn giữ nguyên tông màu và tinh thần thiết kế."
     },
     {
       "id": 39,
       "image": "./images/flower-03.webp",
-      "title": "Bó hoa cảm ơn chân thành",
+      "title": "Bó hồng trong mơ",
       "price": 69.99,
-      "description": "Thi?t k? Flowerflow k?t h?p tulip v? c?c tana v?i gam tr?ng, v?ng nh?t v? xanh, tuy?n ch?n v? c?m th? c?ng. Nh?ng s?c hoa g?i g?m t??i m?i, an y?n; m?u g?m b? v?a, kho?ng 20 c?nh. Ph? h?p l?m qu? th?m h?i ho?c c?m ?n. Hoa t??i c? th? thay ??i nh? theo m?a nh?ng v?n gi? tinh th?n thi?t k?."
+      "description": "Thiết kế Flowerflow gồm Hoa hồng, cẩm chướng và baby, phối sắc hồng đào và trắng; bó vừa, khoảng 20–24 cành. Mỗi loài hoa được chọn để gửi gắm niềm vui lãng mạn và sự quan tâm. Thích hợp tặng dịp sinh nhật, kỷ niệm hoặc tặng người thương. Hoa theo mùa có thể thay đổi nhẹ, vẫn giữ nguyên tông màu và tinh thần thiết kế."
     },
     {
       "id": 40,
       "image": "./images/flower-04.webp",
-      "title": "Bó hoa cúc tana tinh khôi",
+      "title": "Bó hồng trong mơ",
       "price": 74.99,
-      "description": "Thi?t k? Flowerflow k?t h?p hoa h?ng ?? v? lan h? ?i?p v?i gam ?? v? tr?ng, tuy?n ch?n v? c?m th? c?ng. Nh?ng s?c hoa g?i g?m ch?n th?nh, g?n b?; m?u g?m b? l?n, kho?ng 28 c?nh. Ph? h?p l?m qu? k? ni?m ho?c ng?y c?a m?. Hoa t??i c? th? thay ??i nh? theo m?a nh?ng v?n gi? tinh th?n thi?t k?."
+      "description": "Thiết kế Flowerflow gồm Hoa hồng, cẩm chướng và baby, phối sắc hồng đào và trắng; bó vừa, khoảng 20–24 cành. Mỗi loài hoa được chọn để gửi gắm niềm vui lãng mạn và sự quan tâm. Thích hợp tặng dịp sinh nhật, kỷ niệm hoặc tặng người thương. Hoa theo mùa có thể thay đổi nhẹ, vẫn giữ nguyên tông màu và tinh thần thiết kế."
     },
     {
       "id": 41,
       "image": "./images/flower-05.webp",
-      "title": "Bó hoa hồng vàng rạng rỡ",
+      "title": "Bó hoa trắng tinh khôi",
       "price": 59.99,
-      "description": "Thi?t k? Flowerflow k?t h?p hoa h?ng, lan v? c?t t??ng v?i gam h?ng nude v? t?m, tuy?n ch?n v? c?m th? c?ng. Nh?ng s?c hoa g?i g?m thanh l?ch, tinh t?; m?u g?m b? v?a, kho?ng 25 c?nh. Ph? h?p l?m qu? sinh nh?t ho?c ch?c m?ng. Hoa t??i c? th? thay ??i nh? theo m?a nh?ng v?n gi? tinh th?n thi?t k?."
+      "description": "Thiết kế Flowerflow gồm Hoa hồng trắng và lan, phối sắc trắng và xanh lá; bó vừa, khoảng 18–22 cành. Mỗi loài hoa được chọn để gửi gắm sự chân thành và khởi đầu mới. Thích hợp tặng dịp chúc mừng, cảm ơn hoặc tân gia. Hoa theo mùa có thể thay đổi nhẹ, vẫn giữ nguyên tông màu và tinh thần thiết kế."
     },
     {
       "id": 42,
       "image": "./images/flower-06.webp",
-      "title": "Bó hoa tím thủy chung",
+      "title": "Bó hoa trắng tinh khôi",
       "price": 69.99,
-      "description": "Thi?t k? Flowerflow k?t h?p hoa h?ng garden v? c?m ch??ng v?i gam h?ng ph?n, tuy?n ch?n v? c?m th? c?ng. Nh?ng s?c hoa g?i g?m ng?t ng?o, d?u d?ng; m?u g?m b? v?a, kho?ng 24 c?nh. Ph? h?p l?m qu? sinh nh?t ho?c ng?y c?a m?. Hoa t??i c? th? thay ??i nh? theo m?a nh?ng v?n gi? tinh th?n thi?t k?."
+      "description": "Thiết kế Flowerflow gồm Hoa hồng trắng và lan, phối sắc trắng và xanh lá; bó vừa, khoảng 18–22 cành. Mỗi loài hoa được chọn để gửi gắm sự chân thành và khởi đầu mới. Thích hợp tặng dịp chúc mừng, cảm ơn hoặc tân gia. Hoa theo mùa có thể thay đổi nhẹ, vẫn giữ nguyên tông màu và tinh thần thiết kế."
     },
     {
       "id": 43,
       "image": "./images/flower-01.webp",
-      "title": "Bó hoa tân gia bình an",
+      "title": "Bó hoa sinh nhật rực rỡ",
       "price": 69.99,
-      "description": "Thi?t k? Flowerflow k?t h?p hoa h?ng t?m v? c?t t??ng v?i gam t?m ??m v? lavender, tuy?n ch?n v? c?m th? c?ng. Nh?ng s?c hoa g?i g?m b? ?n, th?y chung; m?u g?m b? v?a, kho?ng 24 c?nh. Ph? h?p l?m qu? k? ni?m ho?c ch?c m?ng. Hoa t??i c? th? thay ??i nh? theo m?a nh?ng v?n gi? tinh th?n thi?t k?."
+      "description": "Thiết kế Flowerflow gồm Hoa hồng, đồng tiền và cúc, phối sắc cam, vàng và hồng; bó lớn, khoảng 26–30 cành. Mỗi loài hoa được chọn để gửi gắm lời chúc tuổi mới vui tươi. Thích hợp tặng dịp sinh nhật hoặc chúc mừng. Hoa theo mùa có thể thay đổi nhẹ, vẫn giữ nguyên tông màu và tinh thần thiết kế."
     },
     {
       "id": 44,
       "image": "./images/flower-02.webp",
-      "title": "Bó hoa kỷ niệm ngọt ngào",
+      "title": "Bó hoa sinh nhật rực rỡ",
       "price": 64.99,
-      "description": "Thi?t k? Flowerflow k?t h?p hoa h?ng ?? v? h?ng garden v?i gam ?? v? h?ng, tuy?n ch?n v? c?m th? c?ng. Nh?ng s?c hoa g?i g?m l?ng m?n, n?ng n?n; m?u g?m b? l?n, 30 b?ng h?ng. Ph? h?p l?m qu? t? t?nh ho?c ng?y l? t?nh nh?n. Hoa t??i c? th? thay ??i nh? theo m?a nh?ng v?n gi? tinh th?n thi?t k?."
+      "description": "Thiết kế Flowerflow gồm Hoa hồng, đồng tiền và cúc, phối sắc cam, vàng và hồng; bó lớn, khoảng 26–30 cành. Mỗi loài hoa được chọn để gửi gắm lời chúc tuổi mới vui tươi. Thích hợp tặng dịp sinh nhật hoặc chúc mừng. Hoa theo mùa có thể thay đổi nhẹ, vẫn giữ nguyên tông màu và tinh thần thiết kế."
     },
     {
       "id": 45,
       "image": "./images/flower-03.webp",
-      "title": "Bó hoa sắc xuân an vui",
+      "title": "Giỏ lan hồ điệp phú quý",
       "price": 51.99,
-      "description": "Thi?t k? Flowerflow k?t h?p hoa h?ng tr?ng v? ly tr?ng v?i gam tr?ng kem v? xanh l?, tuy?n ch?n v? c?m th? c?ng. Nh?ng s?c hoa g?i g?m thu?n khi?t, tr?n tr?ng; m?u g?m b? v?a, kho?ng 20?24 c?nh. Ph? h?p l?m qu? th?m h?i ho?c l? t?t nghi?p. Hoa t??i c? th? thay ??i nh? theo m?a nh?ng v?n gi? tinh th?n thi?t k?."
+      "description": "Thiết kế Flowerflow gồm Lan hồ điệp và lá xanh, phối sắc trắng và tím; giỏ lớn, 3–5 cành lan. Mỗi loài hoa được chọn để gửi gắm sự sung túc và lời chúc thành công. Thích hợp tặng dịp khai trương, tân gia hoặc chúc mừng. Hoa theo mùa có thể thay đổi nhẹ, vẫn giữ nguyên tông màu và tinh thần thiết kế."
     },
     {
       "id": 46,
       "image": "./images/flower-04.webp",
-      "title": "Giỏ hoa tươi lời chúc tốt lành",
+      "title": "Giỏ lan hồ điệp phú quý",
       "price": 89.99,
-      "description": "Thi?t k? Flowerflow k?t h?p ??ng ti?n, c?c v? h?ng v?i gam ??, v?ng, t?m v? h?ng, tuy?n ch?n v? c?m th? c?ng. Nh?ng s?c hoa g?i g?m h?n hoan, may m?n; m?u g?m b? l?n, kho?ng 30 c?nh. Ph? h?p l?m qu? sinh nh?t ho?c khai tr??ng. Hoa t??i c? th? thay ??i nh? theo m?a nh?ng v?n gi? tinh th?n thi?t k?."
+      "description": "Thiết kế Flowerflow gồm Lan hồ điệp và lá xanh, phối sắc trắng và tím; giỏ lớn, 3–5 cành lan. Mỗi loài hoa được chọn để gửi gắm sự sung túc và lời chúc thành công. Thích hợp tặng dịp khai trương, tân gia hoặc chúc mừng. Hoa theo mùa có thể thay đổi nhẹ, vẫn giữ nguyên tông màu và tinh thần thiết kế."
     },
     {
       "id": 47,
       "image": "./images/flower-05.webp",
-      "title": "Bó hoa hồng phấn yêu thương",
+      "title": "Bó hoa hoàng hôn lãng mạn",
       "price": 59.99,
-      "description": "Thi?t k? Flowerflow k?t h?p lan h? ?i?p v?i gam tr?ng v? t?m, tuy?n ch?n v? c?m th? c?ng. Nh?ng s?c hoa g?i g?m sung t?c, thanh cao; m?u g?m ch?u 3?5 c?nh hoa, cao kho?ng 55 cm. Ph? h?p l?m qu? t?n gia ho?c ch?c m?ng. Hoa t??i c? th? thay ??i nh? theo m?a nh?ng v?n gi? tinh th?n thi?t k?."
+      "description": "Thiết kế Flowerflow gồm Hoa hồng, cúc và cẩm chướng, phối sắc cam đào, đỏ và vàng; bó lớn, khoảng 24–28 cành. Mỗi loài hoa được chọn để gửi gắm sự ấm áp và tình cảm nồng nàn. Thích hợp tặng dịp kỷ niệm, sinh nhật hoặc tặng người thương. Hoa theo mùa có thể thay đổi nhẹ, vẫn giữ nguyên tông màu và tinh thần thiết kế."
     },
     {
       "id": 48,
       "image": "./images/flower-06.webp",
-      "title": "Bó hoa nhiệt đới nổi bật",
+      "title": "Bó hoa hoàng hôn lãng mạn",
       "price": 64.99,
-      "description": "Thi?t k? Flowerflow k?t h?p hoa h?ng, ly v? c?t t??ng v?i gam cam ho?ng h?n, h?ng v? t?m, tuy?n ch?n v? c?m th? c?ng. Nh?ng s?c hoa g?i g?m ?m ?p, l?ng m?n; m?u g?m b? l?n, kho?ng 28 c?nh. Ph? h?p l?m qu? k? ni?m ho?c sinh nh?t. Hoa t??i c? th? thay ??i nh? theo m?a nh?ng v?n gi? tinh th?n thi?t k?."
+      "description": "Thiết kế Flowerflow gồm Hoa hồng, cúc và cẩm chướng, phối sắc cam đào, đỏ và vàng; bó lớn, khoảng 24–28 cành. Mỗi loài hoa được chọn để gửi gắm sự ấm áp và tình cảm nồng nàn. Thích hợp tặng dịp kỷ niệm, sinh nhật hoặc tặng người thương. Hoa theo mùa có thể thay đổi nhẹ, vẫn giữ nguyên tông màu và tinh thần thiết kế."
     },
     {
       "id": 57,
       "image": "./images/flower-01.webp",
-      "title": "Bó hoa tri ân dịu dàng",
+      "title": "Bó hoa xuân dịu dàng",
       "price": 59.99,
       "category": "Giao hoa trong ngày",
       "categoryKey": "delivery",
       "sameDayDelivery": true,
-      "description": "Thi?t k? Flowerflow k?t h?p c?c tana, c?m ch??ng v?i gam h?ng ph?n v? t?m, tuy?n ch?n v? c?m th? c?ng. Nh?ng s?c hoa g?i g?m nh? nh?ng, t??i m?i; m?u g?m b? v?a, kho?ng 25?30 c?nh. Ph? h?p l?m qu? sinh nh?t ho?c th?m h?i. Hoa t??i c? th? thay ??i nh? theo m?a nh?ng v?n gi? tinh th?n thi?t k?."
+      "description": "Thiết kế Flowerflow gồm Cẩm chướng, cúc tana, phối sắc hồng phấn và tím nhạt; bó vừa, khoảng 20–24 cành. Mỗi loài hoa được chọn để gửi gắm sự dịu dàng và khởi đầu tươi mới. Thích hợp tặng dịp sinh nhật, thăm hỏi hoặc chúc mừng. Hoa theo mùa có thể thay đổi nhẹ, vẫn giữ nguyên tông màu và tinh thần thiết kế."
     },
     {
       "id": 58,
       "image": "./images/flower-02.webp",
-      "title": "Bó hoa lan trắng tinh tế",
+      "title": "Bó hoa xuân dịu dàng",
       "price": 54.99,
       "category": "Giao hoa trong ngày",
       "categoryKey": "delivery",
       "sameDayDelivery": true,
-      "description": "Thi?t k? Flowerflow k?t h?p hoa h?ng, c?m ch??ng v? c?c v?i gam ??, tr?ng, v?ng v? xanh, tuy?n ch?n v? c?m th? c?ng. Nh?ng s?c hoa g?i g?m ?m ?p, g?n k?t; m?u g?m b? v?a, kho?ng 24?28 c?nh. Ph? h?p l?m qu? ch?c m?ng ho?c k? ni?m. Hoa t??i c? th? thay ??i nh? theo m?a nh?ng v?n gi? tinh th?n thi?t k?."
+      "description": "Thiết kế Flowerflow gồm Cẩm chướng, cúc tana, phối sắc hồng phấn và tím nhạt; bó vừa, khoảng 20–24 cành. Mỗi loài hoa được chọn để gửi gắm sự dịu dàng và khởi đầu tươi mới. Thích hợp tặng dịp sinh nhật, thăm hỏi hoặc chúc mừng. Hoa theo mùa có thể thay đổi nhẹ, vẫn giữ nguyên tông màu và tinh thần thiết kế."
     }
   ]
 }

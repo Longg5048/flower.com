@@ -19,10 +19,10 @@ flowchart LR
     Store <--> Firestore[(Cloud Firestore<br/>products)]
     Store <--> Cache[(localStorage)]
     Pages --> Shopping["shopping-store.js<br/>(cart, wish)"] <--> Cache
-    Checkout["checkout.html"] -->|Tạo đơn| Orders[(Cloud Firestore<br/>orders)]
+    Checkout["checkout.html"] -->|Mã sản phẩm, số lượng| OrderAPI["/api/orders"] -->|Tính giá, kiểm kho, tạo đơn| Orders[(Cloud Firestore<br/>orders)]
     Admin["admin.js"] <-->|Đọc/cập nhật đơn| Orders
     Tracking["tracking.js"] -->|Đơn tài khoản| Orders
-    Tracking -->|Mã đơn + số điện thoại| OrderAPI["/api/orders"] --> Orders
+    Tracking -->|Mã đơn + số điện thoại| OrderAPI --> Orders
     Checkout --> VietQR[VietQR]
     Admin["admin.js"] -->|Cập nhật sản phẩm| Store
     Admin <-->|Danh mục, ưu đãi, tin nhắn| Cache
@@ -64,9 +64,10 @@ flowchart LR
 | Đánh giá trên trang sản phẩm | Firestore `reviews` | ✅ |
 | Tài khoản Firebase, vai trò | Firebase Authentication (custom claims) | ✅ |
 | Giỏ hàng, yêu thích | `localStorage.cart`, `localStorage.wish` | ❌ |
-| Đơn hàng mới | Firestore `orders` | ✅ |
+| Đơn hàng mới | `/api/orders` xác minh rồi ghi Firestore `orders` | ✅ |
 | Đánh giá trong trang quản trị, tin nhắn | `localStorage.flowerReviews`, `localStorage.flowerMessages` | ❌ |
-| Danh mục, ưu đãi | `localStorage.flowerCategories`, `localStorage.flowerPromotions` | ❌ |
+| Danh mục | `localStorage.flowerCategories` | ❌ |
+| Ưu đãi | Firestore `metadata/activePromotions` (bản cache ở `localStorage`) | ✅ |
 | Phiên đăng nhập | `localStorage.loggedUser` | ❌ |
 
 ### Đồng bộ catalog
@@ -89,7 +90,7 @@ flowchart LR
 
 Admin có thể chuyển đơn sang bất kỳ trạng thái nào. Các tên trạng thái cũ (ví dụ "Đã vận chuyển", "Giao hàng thất bại") được tự động chuyển sang tên mới tương ứng.
 
-Đơn mới được ghi vào Firestore với thời gian do máy chủ cấp. Khách đã đăng nhập chỉ đọc được đơn có UID của mình; khách chưa đăng nhập tra cứu qua `/api/orders` bằng mã đơn và số điện thoại. Chỉ tài khoản có claim `admin: true` được xem danh sách, cập nhật hoặc xóa đơn. Dữ liệu đơn cũ trong `localStorage.flowerOrders` không tự động chuyển lên Firestore.
+Đơn mới được gửi tới `/api/orders`. Backend chỉ nhận mã sản phẩm, số lượng và thông tin giao hàng; tự đọc giá, tồn kho, ưu đãi từ Firestore, tính lại tổng tiền và dành tồn kho trong cùng một transaction trước khi ghi đơn. Hủy hoặc xóa đơn sẽ hoàn tồn kho bằng transaction. Khách đã đăng nhập chỉ đọc được đơn có UID của mình; khách chưa đăng nhập tra cứu qua API bằng mã đơn và số điện thoại. Chỉ tài khoản có claim `admin: true` được xem danh sách, cập nhật hoặc xóa đơn. Dữ liệu đơn cũ trong `localStorage.flowerOrders` không tự động chuyển lên Firestore.
 
 Đơn QR luôn ở trạng thái chờ xác minh. Dự án chưa tích hợp API/webhook ngân hàng, vì vậy không có luồng nào tự đánh dấu đơn QR đã thanh toán hoặc tính vào doanh thu.
 
@@ -99,11 +100,11 @@ Quy tắc nằm trong `firestore.rules` (khai báo trong `firebase.json`). Tóm 
 
 - `products`: ai cũng đọc được; chỉ tài khoản có claim `admin: true` được tạo, sửa, xóa.
 - `reviews`: ai cũng đọc được; người dùng đã đăng nhập được tạo đánh giá đúng schema (`productIds`, `productName`, `customerName`, `rating` 1–5, `comment` tối đa 1000 ký tự, `createdAt` là thời điểm server); chỉ admin được sửa hoặc xóa.
-- `metadata`: chỉ admin.
-- `orders`: khách có thể tạo đơn theo schema giới hạn; khách đã đăng nhập chỉ đọc đơn của UID mình; chỉ admin được đọc toàn bộ, cập nhật hoặc xóa.
+- `metadata`: chỉ admin, ngoại trừ đọc tài liệu `activePromotions` để hiển thị ưu đãi công khai.
+- `orders`: không cho client tạo trực tiếp; API backend tạo đơn sau khi tính giá và xác minh tồn kho. Khách đã đăng nhập chỉ đọc đơn của UID mình; chỉ admin được đọc toàn bộ, cập nhật hoặc xóa.
 - Mọi đường dẫn khác bị từ chối.
 
-Triển khai: `firebase deploy --only firestore:rules`. API tra cứu đơn khách cũng cần `FIREBASE_SERVICE_ACCOUNT_JSON` và `FIREBASE_PROJECT_ID` trong Vercel; tài khoản dịch vụ cần quyền đọc Firestore (Cloud Datastore User). Đánh giá và đơn cũ chỉ lưu trong `localStorage` không tự chia sẻ giữa các thiết bị.
+Triển khai: `firebase deploy --only firestore:rules`. API tạo/tra cứu đơn cần `FIREBASE_SERVICE_ACCOUNT_JSON` và `FIREBASE_PROJECT_ID` trong Vercel; tài khoản dịch vụ cần quyền đọc/ghi Firestore (Cloud Datastore User). Đánh giá và đơn cũ chỉ lưu trong `localStorage` không tự chia sẻ giữa các thiết bị.
 
 ## Xác thực
 

@@ -4,6 +4,7 @@ const VND_FORMATTER = new Intl.NumberFormat("vi-VN", {
   currency: "VND",
   maximumFractionDigits: 0
 });
+let trustedPromotions = [];
 
 function formatVnd(amountInUsd) {
   return VND_FORMATTER.format(Number(amountInUsd) * USD_TO_VND);
@@ -22,10 +23,7 @@ function promotionAppliesToAllProducts(promotion) {
 }
 
 function getAvailableCartPromotions(cart) {
-  const promotions = JSON.parse(localStorage.getItem("flowerPromotions") || "[]");
-  if (!Array.isArray(promotions)) return [];
-
-  return promotions.filter((promotion) => {
+  return trustedPromotions.filter((promotion) => {
     const percent = Number(promotion.discountPercent);
     const appliesToAllProducts = promotionAppliesToAllProducts(promotion);
     return promotion.active
@@ -36,6 +34,10 @@ function getAvailableCartPromotions(cart) {
       && (appliesToAllProducts
         || promotion.productIds.some((id) => cart.some((product) => String(product.id) === String(id))));
   });
+}
+
+function setTrustedPromotions(promotions) {
+  trustedPromotions = Array.isArray(promotions) ? promotions : [];
 }
 
 function calculateCartTotals(cart, promotionId = localStorage.getItem("flowerSelectedPromotion")) {

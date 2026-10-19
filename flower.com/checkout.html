@@ -124,7 +124,8 @@
     </form>
   </main>
   <script src="./store-footer.js?v=2"></script>
-  <script src="./currency.js?v=8"></script>
+  <script src="./currency.js?v=9"></script>
+  <script src="./order-store.js?v=2"></script>
   <script src="./product-names.js"></script>
   <script>
   const CartContainer = document.getElementById("product-container");
@@ -133,6 +134,8 @@
   const promotionSelect = document.getElementById("promotion-select");
   const promotionMessage = document.getElementById("promotion-message");
   let Cart = JSON.parse(localStorage.getItem("cart") || "[]");
+  let serverQuote = null;
+  let quoteRequestId = 0;
   const paymentQrPanel = document.getElementById("payment-qr-panel");
   const paymentQrImage = document.getElementById("payment-qr-image");
   const paymentQrAmount = document.getElementById("payment-qr-amount");
@@ -142,13 +145,18 @@
     const isQrPayment = checkoutForm.querySelector('input[name="paymentMethod"]:checked')?.value === "qr";
     paymentQrPanel.hidden = !isQrPayment;
     if (!isQrPayment) return;
-    const total = Math.round(calculateCartTotals(Cart, promotionSelect.value).total);
+    if (!serverQuote) {
+      paymentQrImage.removeAttribute("src");
+      paymentQrAmount.textContent = "Đang xác minh giá và tồn kho từ cửa hàng...";
+      return;
+    }
+    const total = serverQuote.totals.total;
     const imageUrl = new URL(`https://img.vietqr.io/image/VCB-1063118243-compact2.png`);
-    imageUrl.searchParams.set("amount", String(toVndAmount(total)));
+    imageUrl.searchParams.set("amount", String(total));
     imageUrl.searchParams.set("addInfo", paymentReference);
     imageUrl.searchParams.set("accountName", "DO BA THAI");
     paymentQrImage.src = imageUrl.toString();
-    paymentQrAmount.textContent = `Số tiền: ${formatVnd(total)} · Nội dung: ${paymentReference}`;
+    paymentQrAmount.textContent = `Số tiền: ${formatVnd(usdFromVnd(total))} · Nội dung: ${paymentReference}`;
   }
 
   checkoutForm.querySelectorAll('input[name="paymentMethod"]').forEach((input) => {
@@ -193,8 +201,7 @@
     } else {
       localStorage.removeItem("flowerSelectedPromotion");
     }
-    renderCartSummary(Cart);
-    updatePaymentQr();
+    void refreshServerQuote();
   });
 
   function saveCart() {
@@ -297,9 +304,76 @@
     updatePaymentQr();
     const cartTotal = document.getElementById("cartTotal");
     if (cartTotal) cartTotal.textContent = Cart.length;
+    void refreshServerQuote();
   }
 
-  DisplayProduct();
+  async function refreshServerQuote() {
+    const requestId = ++quoteRequestId;
+    serverQuote = null;
+    updatePaymentQr();
+    const submitButton = checkoutForm.querySelector(".checkout-submit");
+    submitButton.disabled = true;
+    if (!Cart.length) {
+      renderCartSummary(Cart);
+      checkoutMessage.textContent = "Giỏ hàng đang trống.";
+      return;
+    }
+
+    try {
+      const quote = await window.FlowerOrderStore.quote(
+        Cart.map((item) => ({ id: item.id, quantity: Math.max(1, Number(item.quantity) || 1) })),
+        promotionSelect.value
+      );
+      if (requestId !== quoteRequestId) return;
+      serverQuote = quote;
+      quote.items.forEach((quotedItem) => {
+        const cartItem = Cart.find((item) => String(item.id) === String(quotedItem.id));
+        if (cartItem) {
+          cartItem.price = usdFromVnd(quotedItem.price);
+          cartItem.title = quotedItem.title;
+          cartItem.image = quotedItem.image;
+        }
+      });
+      const totals = quote.totals;
+      document.getElementById("originalprice").textContent = formatVnd(usdFromVnd(totals.subtotal));
+      document.getElementById("savings").textContent = formatVnd(usdFromVnd(totals.savings));
+      document.getElementById("deliveryCharge").textContent = "Miễn phí";
+      document.getElementById("total").textContent = formatVnd(usdFromVnd(totals.total));
+      Cart.forEach((item, index) => {
+        const card = CartContainer.children[index];
+        if (!card) return;
+        const productName = card.querySelector("h3");
+        const productImage = card.querySelector("img");
+        if (productName) productName.textContent = getVietnameseProductName(item.title);
+        if (productImage) {
+          productImage.src = item.image || "";
+          productImage.alt = getVietnameseProductName(item.title);
+        }
+        card.querySelector(".checkout-unit-price").textContent = formatVnd(item.price);
+        card.querySelector(".checkout-item-total").textContent = formatVnd(item.price * Math.max(1, Number(item.quantity) || 1));
+      });
+      checkoutMessage.textContent = "Giá, ưu đãi và tồn kho đã được xác minh từ cửa hàng.";
+      submitButton.disabled = false;
+      updatePaymentQr();
+    } catch (error) {
+      if (requestId !== quoteRequestId) return;
+      checkoutMessage.textContent = error.message || "Không thể xác minh giá và tồn kho. Vui lòng thử lại.";
+      renderCartSummary(Cart);
+      updatePaymentQr();
+    }
+  }
+
+  async function initializeCheckout() {
+    try {
+      const promotions = await window.FlowerOrderStore.getPromotions();
+      setTrustedPromotions(promotions);
+    } catch (error) {
+      console.error("Không thể tải ưu đãi từ Firestore:", error);
+      setTrustedPromotions([]);
+    }
+    renderPromotionOptions();
+    DisplayProduct();
+  }
 
   checkoutForm.addEventListener("submit", (event) => {
     event.preventDefault();
@@ -311,6 +385,10 @@
       checkoutMessage.textContent = "Giảm số lượng sản phẩm vượt tồn kho trước khi đặt hàng.";
       return;
     }
+    if (!serverQuote) {
+      checkoutMessage.textContent = "Chờ xác minh giá và tồn kho từ cửa hàng trước khi đặt hàng.";
+      return;
+    }
 
     const formData = new FormData(event.currentTarget);
     const checkout = {
@@ -320,6 +398,7 @@
       paymentMethod: formData.get("paymentMethod"),
       paymentReference,
       promotionId: promotionSelect.value,
+      quotedTotals: serverQuote.totals,
       orderNote: String(formData.get("orderNote") || "").trim()
     };
 
@@ -334,11 +413,12 @@
   });
 
   window.addEventListener("storage", (event) => {
-    if (event.key === "flowerPromotions" || event.key === "cart") {
+    if (event.key === "cart") {
       Cart = JSON.parse(localStorage.getItem("cart") || "[]");
       DisplayProduct();
     }
   });
+  void initializeCheckout();
 </script>
 <script src="./contact-tools.js?v=1"></script>
 </body>

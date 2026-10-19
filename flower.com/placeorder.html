@@ -23,15 +23,17 @@
   </main>
 
   <script src="./store-footer.js?v=2"></script>
-  <script src="./currency.js?v=8"></script>
+  <script src="./currency.js?v=9"></script>
   <script src="./product-names.js"></script>
-  <script src="./order-store.js"></script>
+  <script src="./order-store.js?v=2"></script>
   <script>
     let CartContainer = document.getElementById("product-container");
     let Cart = JSON.parse(localStorage.getItem("cart")) || [];
     const checkoutData = JSON.parse(localStorage.getItem("flowerCheckout") || "null");
     const paymentButton = document.querySelector(".placeorder > button");
     const paymentNote = document.getElementById("payment-confirmation-note");
+    let serverQuote = null;
+    paymentButton.disabled = true;
     if (checkoutData?.paymentMethod === "qr") {
       paymentButton.textContent = "Gửi đơn hàng chờ xác minh";
       paymentNote.textContent = `Quét mã Vietcombank để chuyển khoản · STK 1063118243 · DO BA THAI. Nội dung: ${checkoutData.paymentReference || "mã đơn của bạn"}. Gửi đơn không xác nhận đã nhận tiền; cửa hàng cần đối chiếu giao dịch.`;
@@ -48,54 +50,31 @@
         window.location.assign("./checkout.html");
         return;
       }
+      if (!serverQuote) {
+        alert("Chưa xác minh được giá và tồn kho. Hãy thử tải lại trang.");
+        return;
+      }
 
-      const loggedUser = JSON.parse(localStorage.getItem("loggedUser") || "null");
       const { customerName, phone, address } = checkoutData;
-
-      const createdAt = new Date().toISOString();
-      const totals = calculateCartTotals(Cart, checkoutData.promotionId);
       const order = {
         customerName,
         phone,
         address,
-        email: loggedUser?.email || "",
-        createdAt,
-        status: "Chờ xác nhận",
-        currentLocation: "Đơn hàng đã được gửi đến cửa hàng",
-        estimatedDelivery: "",
-        trackingHistory: [{
-          status: "Chờ xác nhận",
-          location: "Đơn hàng đã được gửi đến cửa hàng",
-          estimatedDelivery: "",
-          updatedAt: createdAt
-        }],
-        subtotal: toVndAmount(totals.subtotal),
-        savings: toVndAmount(totals.savings),
-        tax: 0,
-        total: toVndAmount(totals.total),
+        orderNote: String(checkoutData.orderNote || "").trim(),
         paymentMethod: checkoutData.paymentMethod,
-        paymentStatus: checkoutData.paymentMethod === "qr" ? "Chờ xác minh thanh toán" : "Thanh toán khi nhận hàng",
         paymentReference: checkoutData.paymentReference || "",
-        paidAt: "",
-        paymentVerified: false,
         promotionId: checkoutData.promotionId || "",
-        items: Cart.map((item) => ({
-          id: item.id,
-          title: item.title,
-          image: item.image,
-          quantity: Math.max(1, Number(item.quantity) || 1),
-          price: toVndAmount(Number(item.price || 0))
-        }))
+        items: Cart.map((item) => ({ id: item.id, quantity: Math.max(1, Number(item.quantity) || 1) }))
       };
 
       let orderId;
       paymentButton.disabled = true;
       try {
-        orderId = await window.FlowerOrderStore.create(order);
+        orderId = await window.FlowerOrderStore.create(order, serverQuote.totals);
       } catch (error) {
         console.error("Không thể lưu đơn hàng tập trung:", error);
         paymentButton.disabled = false;
-        alert("Chưa thể lưu đơn hàng lên hệ thống. Hãy kiểm tra kết nối rồi thử lại.");
+        alert(error.message || "Chưa thể xác nhận giá và tồn kho. Hãy quay lại trang thanh toán rồi thử lại.");
         return;
       }
 
@@ -124,6 +103,45 @@
       window.location.href = `./tracking.html?id=${encodeURIComponent(orderId)}`;
     }
 
+    async function verifyOrderBeforeConfirmation() {
+      if (!Cart.length) {
+        paymentNote.textContent = "Giỏ hàng đang trống.";
+        return;
+      }
+      try {
+        serverQuote = await window.FlowerOrderStore.quote(
+          Cart.map((item) => ({ id: item.id, quantity: Math.max(1, Number(item.quantity) || 1) })),
+          checkoutData?.promotionId || ""
+        );
+        serverQuote.items.forEach((quotedItem) => {
+          const cartItem = Cart.find((item) => String(item.id) === String(quotedItem.id));
+          if (!cartItem) return;
+          cartItem.title = quotedItem.title;
+          cartItem.image = quotedItem.image;
+          cartItem.price = usdFromVnd(quotedItem.price);
+        });
+        DisplayProduct();
+        const previousQuote = checkoutData?.quotedTotals;
+        const amountChanged = previousQuote && ["subtotal", "savings", "tax", "total"].some(
+          (key) => Number(previousQuote[key]) !== Number(serverQuote.totals[key])
+        );
+        if (amountChanged || (!previousQuote && checkoutData?.paymentMethod === "qr")) {
+          paymentNote.textContent = "Giá hoặc tồn kho đã thay đổi từ lúc tạo mã QR. Hãy quay lại trang thanh toán để kiểm tra số tiền mới trước khi xác nhận.";
+          paymentButton.disabled = true;
+          return;
+        }
+        const amountText = formatVnd(usdFromVnd(serverQuote.totals.total));
+        paymentNote.textContent = checkoutData?.paymentMethod === "qr"
+          ? `Số tiền đã xác minh: ${amountText} · STK 1063118243 · DO BA THAI · Nội dung: ${checkoutData.paymentReference || "mã đơn của bạn"}. Cửa hàng sẽ đối chiếu giao dịch trước khi xác nhận thanh toán.`
+          : `Giá và tồn kho đã xác minh từ cửa hàng · Tổng tiền: ${amountText}`;
+        paymentButton.disabled = false;
+      } catch (error) {
+        console.error("Không xác minh được giá và tồn kho:", error);
+        paymentNote.textContent = error.message || "Không thể xác minh giá và tồn kho. Vui lòng quay lại thanh toán.";
+        paymentButton.disabled = true;
+      }
+    }
+
     document.querySelector(".placeorder > button").addEventListener("click", saveOrderToAdmin);
 
     function DisplayProduct() {
@@ -150,6 +168,7 @@
     }
 
     DisplayProduct();
+    void verifyOrderBeforeConfirmation();
   </script>
 <script src="./contact-tools.js?v=1"></script>
 </body>

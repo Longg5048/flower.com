@@ -174,7 +174,8 @@ function getOffers() {
    return Array.isArray(offers) ? offers : [];
 }
 
-function saveOffers(offers) {
+async function saveOffers(offers) {
+   await window.FlowerOrderStore.savePromotions(offers);
    localStorage.setItem(STORAGE_KEYS.offers, JSON.stringify(offers));
 }
 
@@ -547,7 +548,7 @@ function renderOffersTab() {
    `;
 }
 
-function addOffer(event) {
+async function addOffer(event) {
    event.preventDefault();
    const form = event.target;
    if (!(form instanceof HTMLFormElement)) {
@@ -584,23 +585,41 @@ function addOffer(event) {
        active: true,
        createdAt: new Date().toISOString()
    });
-   saveOffers(offers);
+   try {
+       await saveOffers(offers);
+   } catch (error) {
+       console.error("Không thể lưu ưu đãi dùng chung:", error);
+       alert("Chưa thể lưu ưu đãi lên hệ thống. Hãy thử lại sau.");
+       return;
+   }
    renderOffersTab();
 }
 
-function updateOffer(offerId, action) {
+async function updateOffer(offerId, action) {
    const offers = getOffers();
    const offer = offers.find((item) => String(item.id) === String(offerId));
    if (!offer) return;
 
    if (action === "delete") {
        if (!window.confirm(`Xóa ưu đãi “${offer.name}”?`)) return;
-       saveOffers(offers.filter((item) => String(item.id) !== String(offerId)));
+       try {
+           await saveOffers(offers.filter((item) => String(item.id) !== String(offerId)));
+       } catch (error) {
+           console.error("Không thể xóa ưu đãi dùng chung:", error);
+           alert("Chưa thể cập nhật ưu đãi trên hệ thống. Hãy thử lại sau.");
+           return;
+       }
    } else {
-       saveOffers(offers.map((item) => String(item.id) === String(offerId)
-           ? { ...item, active: !item.active }
-           : item
-       ));
+       try {
+           await saveOffers(offers.map((item) => String(item.id) === String(offerId)
+               ? { ...item, active: !item.active }
+               : item
+           ));
+       } catch (error) {
+           console.error("Không thể cập nhật ưu đãi dùng chung:", error);
+           alert("Chưa thể cập nhật ưu đãi trên hệ thống. Hãy thử lại sau.");
+           return;
+       }
    }
    renderOffersTab();
 }
@@ -1586,6 +1605,12 @@ async function initializeAdmin() {
        }));
 
        await ensureStorage();
+       try {
+           const promotions = await window.FlowerOrderStore.initializePromotions(getOffers());
+           localStorage.setItem(STORAGE_KEYS.offers, JSON.stringify(promotions));
+       } catch (error) {
+           console.error("Không thể đồng bộ ưu đãi dùng chung:", error);
+       }
        try {
            stopOrderSubscription = await window.FlowerOrderStore.subscribeAdmin((orders) => {
                ordersCache = orders;

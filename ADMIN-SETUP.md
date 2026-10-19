@@ -12,7 +12,7 @@ For local testing, run Vercel CLI from `flower.com` with `vercel dev` after link
 
 1. In Firebase Console, enable the sign-in providers required by the shop and create the admin account in **Authentication → Users**.
 2. Add the Vercel production hostname under **Authentication → Settings → Authorized domains**.
-3. In Google Cloud Console for the same project, create a service account with the **Firebase Authentication Admin** role. Create a JSON key and store it only as a Vercel environment variable:
+3. In Google Cloud Console for the same project, create a service account with the **Firebase Authentication Admin** and **Cloud Datastore User** roles. The first role supports account administration; the second lets the order lookup API read Firestore. Create a JSON key and store it only as a Vercel environment variable:
 
    - Open Vercel → project `flower-com` → **Settings → Environment Variables**.
    - Add `FIREBASE_SERVICE_ACCOUNT_JSON` with the entire contents of the service-account JSON file. Select **Production** (and Preview too if preview deployments should have access).

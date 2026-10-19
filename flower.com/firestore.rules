@@ -41,6 +41,50 @@ service cloud.firestore {
       allow update, delete: if isAdmin();
     }
 
+    function validNewOrder() {
+      let data = request.resource.data;
+      return data.keys().hasOnly([
+          'uid', 'email', 'customerName', 'phone', 'address', 'createdAt',
+          'status', 'currentLocation', 'estimatedDelivery', 'trackingHistory',
+          'subtotal', 'savings', 'tax', 'total', 'paymentMethod', 'paymentStatus',
+          'paymentReference', 'paidAt', 'paymentVerified', 'promotionId', 'items'
+        ])
+        && data.keys().hasAll([
+          'uid', 'email', 'customerName', 'phone', 'address', 'createdAt',
+          'status', 'currentLocation', 'estimatedDelivery', 'trackingHistory',
+          'subtotal', 'savings', 'tax', 'total', 'paymentMethod', 'paymentStatus',
+          'paymentReference', 'paidAt', 'paymentVerified', 'promotionId', 'items'
+        ])
+        && data.uid == (request.auth == null ? '' : request.auth.uid)
+        && data.email is string && data.email.size() <= 254
+        && data.customerName is string && data.customerName.size() > 0 && data.customerName.size() <= 100
+        && data.phone is string && data.phone.size() >= 8 && data.phone.size() <= 20
+        && data.address is string && data.address.size() > 0 && data.address.size() <= 500
+        && data.createdAt == request.time
+        && data.status == 'Chờ xác nhận'
+        && data.currentLocation is string && data.currentLocation.size() <= 200
+        && data.estimatedDelivery == ''
+        && data.trackingHistory is list && data.trackingHistory.size() == 1
+        && data.subtotal is number && data.subtotal >= 0 && data.subtotal <= 1000000000
+        && data.savings is number && data.savings >= 0 && data.savings <= data.subtotal
+        && data.tax is number && data.tax == 0
+        && data.total is number && data.total >= 0 && data.total <= data.subtotal
+        && data.paymentMethod in ['qr', 'cod']
+        && data.paymentStatus == (data.paymentMethod == 'qr' ? 'Chờ xác minh thanh toán' : 'Thanh toán khi nhận hàng')
+        && data.paymentReference is string && data.paymentReference.size() <= 100
+        && data.paidAt == ''
+        && data.paymentVerified == false
+        && data.promotionId is string && data.promotionId.size() <= 100
+        && data.items is list && data.items.size() > 0 && data.items.size() <= 50;
+    }
+
+    match /orders/{orderId} {
+      allow create: if validNewOrder();
+      allow get, list: if isAdmin()
+        || (request.auth != null && resource.data.uid == request.auth.uid);
+      allow update, delete: if isAdmin();
+    }
+
     match /{document=**} {
       allow read, write: if false;
     }

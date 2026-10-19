@@ -15,6 +15,9 @@ let currentUser;
 let currentUserRole = "admin";
 let editingProductId = null;
 let productSearchTerm = "";
+let ordersCache = [];
+let orderStoreError = null;
+let stopOrderSubscription = null;
 let revenueDateFilter = "month";
 const initialRevenueDate = new Date();
 let revenueMonth = `${initialRevenueDate.getFullYear()}-${String(initialRevenueDate.getMonth() + 1).padStart(2, "0")}`;
@@ -22,7 +25,6 @@ let revenueDateStart = "";
 let revenueDateEnd = "";
 
 const STORAGE_KEYS = {
-   orders: "flowerOrders",
    reviews: "flowerReviews",
    messages: "flowerMessages",
    categories: "flowerCategories",
@@ -82,52 +84,6 @@ function getSelectedRevenueOrders(orders) {
    });
 }
 
-function getDemoOrders() {
-   const now = Date.now();
-   return [
-       {
-          id: 1001,
-          customerName: "Nguyễn Thị Lan",
-          phone: "0908123456",
-          address: "147 Lê Lợi, Quận 1, TP.HCM",
-          email: "lan.nguyen@gmail.com",
-          createdAt: new Date(now - 86400000).toISOString(),
-          status: "Đang giao",
-          total: 739900 + 649900,
-          items: [
-              { id: 1, title: "Vibrant Spring Basket", quantity: 1, price: 739900 },
-              { id: 2, title: "Floral Jewels Arrangement", quantity: 1, price: 649900 }
-          ]
-       },
-       {
-          id: 1002,
-          customerName: "Phạm Minh Quân",
-          phone: "0912345678",
-          address: "88 Nguyễn Huệ, Quận 3, TP.HCM",
-          email: "quan.pham@gmail.com",
-          createdAt: new Date(now - 172800000).toISOString(),
-          status: "Chờ xác nhận",
-          total: 599900,
-          items: [
-              { id: 3, title: "Lovely Lavender Bouquet", quantity: 1, price: 599900 }
-          ]
-       },
-       {
-          id: 1003,
-          customerName: "Trần Bảo Anh",
-          phone: "0987654321",
-          address: "55 Hùng Vương, Hà Nội",
-          email: "baoanh.tran@gmail.com",
-          createdAt: new Date(now - 259200000).toISOString(),
-          status: "Đã giao",
-          total: 699900,
-          items: [
-              { id: 4, title: "Rising Star", quantity: 1, price: 699900 }
-          ]
-       }
-   ];
-}
-
 function getDemoReviews() {
    const now = Date.now();
    return [
@@ -181,13 +137,9 @@ function getDemoMessages() {
 async function ensureStorage() {
    await FlowerInventory.initialize();
 
-   const existingOrders = JSON.parse(localStorage.getItem(STORAGE_KEYS.orders) || "[]");
    const existingReviews = JSON.parse(localStorage.getItem(STORAGE_KEYS.reviews) || "[]");
    const existingMessages = JSON.parse(localStorage.getItem(STORAGE_KEYS.messages) || "[]");
 
-   if (!localStorage.getItem(STORAGE_KEYS.orders) || !existingOrders.length) {
-       localStorage.setItem(STORAGE_KEYS.orders, JSON.stringify(getDemoOrders()));
-   }
    if (!localStorage.getItem(STORAGE_KEYS.reviews) || !existingReviews.length) {
        localStorage.setItem(STORAGE_KEYS.reviews, JSON.stringify(getDemoReviews()));
    }
@@ -227,7 +179,7 @@ function saveOffers(offers) {
 }
 
 function getOrders() {
-   return JSON.parse(localStorage.getItem(STORAGE_KEYS.orders) || "[]");
+   return [...ordersCache];
 }
 
 function getReviews() {
@@ -239,6 +191,10 @@ function getMessages() {
 }
 
 function renderDashboard() {
+   if (orderStoreError) {
+       main.innerHTML = `<section class="panel"><h2>Đơn hàng</h2><p class="empty-state">Không thể tải đơn hàng dùng chung. Kiểm tra cấu hình Firestore và quyền truy cập rồi tải lại trang.</p></section>`;
+       return;
+   }
    const products = getProducts();
    const orders = getOrders();
    const reviews = getReviews();
@@ -286,6 +242,10 @@ function renderDashboard() {
 }
 
 function renderRevenueTab() {
+   if (orderStoreError) {
+       main.innerHTML = `<section class="panel"><h2>Doanh thu</h2><p class="empty-state">Không thể tải số liệu từ Firestore. Kiểm tra cấu hình và kết nối rồi tải lại trang.</p></section>`;
+       return;
+   }
    const products = getProducts();
    const orders = getOrders();
    const revenueOrders = getSelectedRevenueOrders(orders);
@@ -868,6 +828,10 @@ function toDateInput(value) {
 }
 
 function renderOrdersTab() {
+   if (orderStoreError) {
+       main.innerHTML = `<section class="panel"><h2>Quản lý đơn hàng</h2><p class="empty-state">Không thể tải đơn hàng dùng chung. Kiểm tra cấu hình Firestore và quyền truy cập rồi tải lại trang.</p></section>`;
+       return;
+   }
    const statusPriority = {
        "Chờ xác nhận": 0,
        "Đang giao": 1,
@@ -891,6 +855,13 @@ function renderOrdersTab() {
            ${renderCompletedSection(completedOrders, renderCompletedOrderSummary, "đơn hàng")}
        </section>
    `;
+}
+
+function refreshOrdersView() {
+   const heading = main.querySelector(".panel h2")?.textContent;
+   if (heading === "Quản lý đơn hàng") renderOrdersTab();
+   else if (heading === "Doanh thu & kho hàng") renderRevenueTab();
+   else if (main.querySelector(".dashboard") || !heading) renderDashboard();
 }
 
 function renderReviewCard(review, showCompletionAction = true) {
@@ -1108,7 +1079,7 @@ async function deleteProduct(id) {
    renderProductTab();
 }
 
-function updateOrderStatus(orderId, status, location, estimatedDelivery) {
+async function updateOrderStatus(orderId, status, location, estimatedDelivery) {
     if (!ORDER_STATUSES.includes(status)) {
         alert("Trạng thái đơn hàng không hợp lệ.");
         return;
@@ -1118,40 +1089,37 @@ function updateOrderStatus(orderId, status, location, estimatedDelivery) {
         return;
     }
 
-    const orders = getOrders();
+   const order = getOrders().find((item) => String(item.id) === String(orderId));
+   if (!order) {
+       alert("Không tìm thấy đơn hàng trên hệ thống dùng chung.");
+       return;
+   }
    const updatedAt = new Date().toISOString();
-   const nextOrders = orders.map((order) => {
-       if (String(order.id) !== String(orderId)) return order;
-       const markCodAsPaid = status === "Đã giao"
-           && order.paymentMethod === "cod"
-           && !isOrderPaid(order);
+   const markCodAsPaid = status === "Đã giao"
+       && order.paymentMethod === "cod"
+       && !isOrderPaid(order);
+   const trackingHistory = Array.isArray(order.trackingHistory) && order.trackingHistory.length
+       ? order.trackingHistory
+       : [{
+           status: normalizeOrderStatus(order.status),
+           location: order.currentLocation || "Đơn hàng đã được tạo",
+           estimatedDelivery: order.estimatedDelivery || "",
+           updatedAt: order.createdAt || updatedAt
+       }];
 
-       const trackingHistory = Array.isArray(order.trackingHistory) && order.trackingHistory.length
-           ? order.trackingHistory
-           : [{
-               status: normalizeOrderStatus(order.status),
-               location: order.currentLocation || "Đơn hàng đã được tạo",
-               estimatedDelivery: order.estimatedDelivery || "",
-               updatedAt: order.createdAt || updatedAt
-           }];
-       const hasChanges = order.status !== status
-           || (order.currentLocation || "") !== location
-           || (order.estimatedDelivery || "") !== estimatedDelivery
-           || markCodAsPaid;
-       if (!hasChanges) return order;
-
-       return {
-           ...order,
+   try {
+       await window.FlowerOrderStore.update(orderId, {
            status,
            ...(markCodAsPaid ? { paymentStatus: "Đã thanh toán", paidAt: updatedAt } : {}),
            currentLocation: location,
            estimatedDelivery,
            trackingUpdatedAt: updatedAt,
            trackingHistory: [...trackingHistory, { status, location, estimatedDelivery, updatedAt }]
-       };
-   });
-   localStorage.setItem(STORAGE_KEYS.orders, JSON.stringify(nextOrders));
-   renderOrdersTab();
+       });
+   } catch (error) {
+       console.error("Không thể cập nhật đơn hàng trên Firestore:", error);
+       alert("Chưa thể cập nhật đơn hàng dùng chung. Hãy thử lại sau.");
+   }
 }
 
 function updateReviewReply(reviewId, reply) {
@@ -1178,9 +1146,9 @@ function updateMessageReply(messageId, reply) {
    renderMessagesTab();
 }
 
-function deleteAdminRecord(type, id) {
+async function deleteAdminRecord(type, id) {
    const records = {
-       orders: { key: STORAGE_KEYS.orders, label: "đơn hàng", render: renderOrdersTab },
+       orders: { label: "đơn hàng", render: renderOrdersTab },
        reviews: { key: STORAGE_KEYS.reviews, label: "đánh giá", render: renderReviewsTab },
        messages: { key: STORAGE_KEYS.messages, label: "phản hồi", render: renderMessagesTab }
    };
@@ -1191,6 +1159,16 @@ function deleteAdminRecord(type, id) {
    }
 
    if (!window.confirm(`Bạn có chắc muốn xóa ${record.label} này không?`)) return;
+
+   if (type === "orders") {
+       try {
+           await window.FlowerOrderStore.remove(id);
+       } catch (error) {
+           console.error("Không thể xóa đơn hàng trên Firestore:", error);
+           alert("Chưa thể xóa đơn hàng dùng chung. Hãy thử lại sau.");
+       }
+       return;
+   }
 
    const savedRecords = JSON.parse(localStorage.getItem(record.key) || "[]");
    const remainingRecords = savedRecords.filter((item) => String(item.id) !== String(id));
@@ -1203,15 +1181,27 @@ function deleteAdminRecord(type, id) {
    record.render();
 }
 
-function setRecordCompletion(type, id, completed) {
+async function setRecordCompletion(type, id, completed) {
    const records = {
-       orders: { key: STORAGE_KEYS.orders, label: "đơn hàng", render: renderOrdersTab },
+       orders: { label: "đơn hàng", render: renderOrdersTab },
        reviews: { key: STORAGE_KEYS.reviews, label: "đánh giá", render: renderReviewsTab },
        messages: { key: STORAGE_KEYS.messages, label: "phản hồi", render: renderMessagesTab }
    };
    const record = records[type];
    if (!record) {
        console.error("Không thể cập nhật mục hoàn thành không hợp lệ:", type);
+       return;
+   }
+
+   if (type === "orders") {
+       try {
+           await window.FlowerOrderStore.update(id, {
+               completedAt: completed ? new Date().toISOString() : null
+           });
+       } catch (error) {
+           console.error("Không thể cập nhật đơn hàng trên Firestore:", error);
+           alert("Chưa thể cập nhật đơn hàng dùng chung. Hãy thử lại sau.");
+       }
        return;
    }
 
@@ -1595,8 +1585,22 @@ async function initializeAdmin() {
            role: currentUserRole
        }));
 
+       await ensureStorage();
+       try {
+           stopOrderSubscription = await window.FlowerOrderStore.subscribeAdmin((orders) => {
+               ordersCache = orders;
+               orderStoreError = null;
+               refreshOrdersView();
+           }, (error) => {
+               console.error("Không thể đồng bộ đơn hàng từ Firestore:", error);
+               orderStoreError = error;
+               refreshOrdersView();
+           });
+       } catch (error) {
+           console.error("Không thể kết nối kho đơn hàng Firestore:", error);
+           orderStoreError = error;
+       }
        bindAdminEvents({ auth, signOut: authSdk.signOut });
-    await ensureStorage();
        renderDashboard();
    } catch (error) {
        console.error("Không thể xác thực trang quản trị:", error);
@@ -1609,18 +1613,13 @@ window.addEventListener("storage", (event) => {
    if (event.key === "flowerInventory" && activeHeading?.textContent === "Quản lý kho hoa") {
        renderProductTab();
    }
-   if (event.key === STORAGE_KEYS.orders) {
-       if (activeHeading?.textContent === "Doanh thu & kho hàng") {
-           renderRevenueTab();
-       } else if (activeHeading?.textContent === "Quản lý đơn hàng") {
-           renderOrdersTab();
-       } else if (main.querySelector(".dashboard")) {
-           renderDashboard();
-       }
-   }
    if (event.key === STORAGE_KEYS.reviews && activeHeading?.textContent === "Đánh giá khách hàng") {
        renderReviewsTab();
    }
+});
+
+window.addEventListener("pagehide", () => {
+   if (stopOrderSubscription) stopOrderSubscription();
 });
 
 window.addEventListener("flowerinventorychange", () => {
@@ -1641,12 +1640,7 @@ initializeAdmin();
         const dashboard = main.querySelector(".summary");
         if (!dashboard || dashboard.querySelector("[data-dashboard-tracking]")) return;
 
-        let orders = [];
-        try {
-            orders = JSON.parse(localStorage.getItem("flowerOrders") || "[]");
-        } catch {
-            orders = [];
-        }
+        const orders = getOrders();
 
         const activeOrders = orders.filter((order) =>
             !["Đã giao", "Đã hủy"].includes(normalizeOrderStatus(order.status))

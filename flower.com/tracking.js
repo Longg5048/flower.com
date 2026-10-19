@@ -30,6 +30,9 @@ const ORDER_GROUPS = {
 let selectedRating = 0;
 let currentOrder = null;
 let selectedGroup = "active";
+let accountOrdersCache = [];
+let accountOrdersError = "";
+let stopAccountOrderSubscription = null;
 
 function makeElement(tagName, className, text) {
     const element = document.createElement(tagName);
@@ -224,13 +227,11 @@ function getLoggedAccount() {
 
 function belongsToAccount(order, account) {
     const uid = String(account.uid || "");
-    if (uid && String(order.uid || "") === uid) return true;
-    const email = String(account.email || "").trim().toLowerCase();
-    return Boolean(email) && String(order.email || "").trim().toLowerCase() === email;
+    return Boolean(uid) && String(order.uid || "") === uid;
 }
 
 function getAccountOrders(account) {
-    return readStoredList("flowerOrders", "danh sách đơn hàng")
+    return accountOrdersCache
         .filter((order) => belongsToAccount(order, account))
         .sort((first, second) => new Date(second.createdAt || 0) - new Date(first.createdAt || 0));
 }
@@ -270,7 +271,7 @@ function createOrderCard(order) {
         products.append(image);
     });
     const quantity = items.reduce((sum, item) => sum + Math.max(1, Number(item.quantity) || 1), 0);
-    const firstTitle = items[0]?.title || "Sản phẩm";
+    const firstTitle = getVietnameseProductName(items[0]?.title || "Sản phẩm");
     const summary = items.length > 1 ? `${firstTitle} và ${items.length - 1} sản phẩm khác` : firstTitle;
     products.append(makeElement("span", "my-order-summary", `${summary} · ${quantity} món`));
 
@@ -302,13 +303,15 @@ function renderMyOrders() {
 
     trackingIntro.textContent = "Các đơn hàng đặt bằng tài khoản của bạn được hiển thị bên dưới. Chọn một đơn để xem lịch trình giao hoa.";
 
-    let orders;
-    try {
-        orders = getAccountOrders(account);
-    } catch (error) {
-        myOrdersList.replaceChildren(makeElement("p", "my-orders-empty", error.message));
+    if (!account.uid) {
+        myOrdersList.replaceChildren(makeElement("p", "my-orders-empty", "Đăng nhập bằng tài khoản Firebase để đồng bộ đơn hàng giữa các thiết bị."));
         return [];
     }
+    if (accountOrdersError) {
+        myOrdersList.replaceChildren(makeElement("p", "my-orders-empty", accountOrdersError));
+        return [];
+    }
+    const orders = getAccountOrders(account);
 
     const grouped = { active: [], done: [], cancelled: [] };
     orders.forEach((order) => grouped[getOrderGroup(order)].push(order));
@@ -328,29 +331,25 @@ function renderMyOrders() {
     return orders;
 }
 
-function searchOrder() {
+async function searchOrder() {
     const orderId = orderIdInput.value.trim().replace(/^#/, "");
     const phone = phoneInput.value.replace(/\D/g, "");
-    let orders;
+    if (!orderId || phone.length < 8) {
+        message.textContent = "Nhập mã đơn hàng và số điện thoại đã dùng khi đặt hàng.";
+        return;
+    }
 
+    let order = accountOrdersCache.find((item) => String(item.id) === orderId
+        && String(item.phone || "").replace(/\D/g, "") === phone);
     try {
-        orders = readStoredList("flowerOrders", "danh sách đơn hàng");
+        if (!order) order = await window.FlowerOrderStore.getPublicOrder(orderId, phone);
     } catch (error) {
         currentOrder = null;
         results.hidden = true;
         reviewPanel.hidden = true;
-        message.textContent = error.message;
-        return;
-    }
-
-    const order = orders.find((item) => String(item.id) === orderId
-        && String(item.phone || "").replace(/\D/g, "") === phone);
-
-    if (!order) {
-        currentOrder = null;
-        results.hidden = true;
-        reviewPanel.hidden = true;
-        message.textContent = "Không tìm thấy đơn hàng. Hãy kiểm tra lại mã đơn và số điện thoại đặt hàng.";
+        message.textContent = error.code === "order-not-found"
+            ? "Không tìm thấy đơn hàng. Hãy kiểm tra lại mã đơn và số điện thoại đặt hàng."
+            : "Chưa thể tra cứu đơn hàng dùng chung. Hãy thử lại sau.";
         return;
     }
 
@@ -427,7 +426,7 @@ reviewForm.addEventListener("submit", async (event) => {
 
 searchForm.addEventListener("submit", (event) => {
     event.preventDefault();
-    searchOrder();
+    void searchOrder();
 });
 
 myOrdersTabs.forEach((tab) => {
@@ -445,22 +444,47 @@ lookupToggle.addEventListener("click", () => {
 });
 
 const orderFromUrl = new URLSearchParams(window.location.search).get("id");
-const accountOrders = renderMyOrders();
-const accountOrderFromUrl = orderFromUrl && accountOrders.find((order) => String(order.id) === orderFromUrl);
-if (accountOrderFromUrl) {
-    selectOrderGroup(getOrderGroup(accountOrderFromUrl));
-    renderMyOrders();
-    renderOrder(accountOrderFromUrl);
-} else if (orderFromUrl) {
-    orderIdInput.value = orderFromUrl;
+if (orderFromUrl) orderIdInput.value = orderFromUrl;
+renderMyOrders();
+
+async function startAccountOrderSync() {
+    const account = getLoggedAccount();
+    if (!account?.uid) return;
+    accountOrdersError = "";
+    try {
+        stopAccountOrderSubscription = await window.FlowerOrderStore.subscribeAccount(account.uid, (orders) => {
+            accountOrdersCache = orders;
+            accountOrdersError = "";
+            const accountOrderFromUrl = orderFromUrl && orders.find((order) => String(order.id) === orderFromUrl);
+            if (accountOrderFromUrl) {
+                selectOrderGroup(getOrderGroup(accountOrderFromUrl));
+                renderOrder(accountOrderFromUrl);
+            }
+            renderMyOrders();
+        }, (error) => {
+            console.error("Không thể đồng bộ đơn hàng của tài khoản:", error);
+            accountOrdersError = "Không thể tải đơn hàng từ hệ thống dùng chung. Kiểm tra kết nối rồi thử lại.";
+            renderMyOrders();
+        });
+    } catch (error) {
+        console.error("Không thể đăng ký đồng bộ đơn hàng:", error);
+        accountOrdersError = "Không thể tải đơn hàng từ hệ thống dùng chung. Kiểm tra kết nối rồi thử lại.";
+        renderMyOrders();
+    }
 }
 
+void startAccountOrderSync();
+
 window.addEventListener("storage", (event) => {
-    if (event.key === "flowerOrders" || event.key === "loggedUser" || event.key === null) {
-        const orders = renderMyOrders();
-        const updatedOrder = currentOrder && orders.find((order) => String(order.id) === String(currentOrder.id));
-        if (updatedOrder) renderOrder(updatedOrder);
+    if (event.key === "loggedUser" || event.key === null) {
+        if (stopAccountOrderSubscription) stopAccountOrderSubscription();
+        accountOrdersCache = [];
+        renderMyOrders();
+        void startAccountOrderSync();
     }
-    if (event.key === "flowerOrders" && orderIdInput.value && phoneInput.value) searchOrder();
     if (event.key === "flowerReviews" && currentOrder) renderReviewPanel(currentOrder);
+});
+
+window.addEventListener("pagehide", () => {
+    if (stopAccountOrderSubscription) stopAccountOrderSubscription();
 });

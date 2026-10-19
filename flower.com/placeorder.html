@@ -25,6 +25,7 @@
   <script src="./store-footer.js?v=2"></script>
   <script src="./currency.js?v=8"></script>
   <script src="./product-names.js"></script>
+  <script src="./order-store.js"></script>
   <script>
     let CartContainer = document.getElementById("product-container");
     let Cart = JSON.parse(localStorage.getItem("cart")) || [];
@@ -36,7 +37,7 @@
       paymentNote.textContent = `Quét mã Vietcombank để chuyển khoản · STK 1063118243 · DO BA THAI. Nội dung: ${checkoutData.paymentReference || "mã đơn của bạn"}. Gửi đơn không xác nhận đã nhận tiền; cửa hàng cần đối chiếu giao dịch.`;
     }
 
-    function saveOrderToAdmin() {
+    async function saveOrderToAdmin() {
       if (!Cart.length) {
         alert("Giỏ hàng đang trống.");
         return;
@@ -51,16 +52,13 @@
       const loggedUser = JSON.parse(localStorage.getItem("loggedUser") || "null");
       const { customerName, phone, address } = checkoutData;
 
-      const orderId = Date.now();
       const createdAt = new Date().toISOString();
       const totals = calculateCartTotals(Cart, checkoutData.promotionId);
       const order = {
-        id: orderId,
         customerName,
         phone,
         address,
         email: loggedUser?.email || "",
-        uid: loggedUser?.uid || "",
         createdAt,
         status: "Chờ xác nhận",
         currentLocation: "Đơn hàng đã được gửi đến cửa hàng",
@@ -90,9 +88,16 @@
         }))
       };
 
-      const orders = JSON.parse(localStorage.getItem("flowerOrders") || "[]");
-      orders.push(order);
-      localStorage.setItem("flowerOrders", JSON.stringify(orders));
+      let orderId;
+      paymentButton.disabled = true;
+      try {
+        orderId = await window.FlowerOrderStore.create(order);
+      } catch (error) {
+        console.error("Không thể lưu đơn hàng tập trung:", error);
+        paymentButton.disabled = false;
+        alert("Chưa thể lưu đơn hàng lên hệ thống. Hãy kiểm tra kết nối rồi thử lại.");
+        return;
+      }
 
       const customerMessage = String(checkoutData.orderNote || "").trim();
       if (customerMessage) {

@@ -7,9 +7,9 @@ Tài liệu này mô tả kiến trúc, luồng dữ liệu và các module chí
 FlowerFlow là ứng dụng frontend tĩnh (HTML, CSS, JavaScript thuần, không có bước build) kết hợp với:
 
 - **Firebase Authentication** để đăng nhập khách hàng và quản trị viên.
-- **Cloud Firestore** để lưu catalog sản phẩm và đánh giá của khách hàng.
+- **Cloud Firestore** để lưu catalog, đánh giá và đơn hàng dùng chung giữa các thiết bị.
 - **Vercel Functions** (`api/`) để chạy các thao tác cần Firebase Admin SDK.
-- **`localStorage`** để cache catalog và lưu dữ liệu phía trình duyệt (giỏ hàng, đơn hàng...).
+- **`localStorage`** để cache catalog và lưu dữ liệu tạm trên trình duyệt (giỏ hàng, ưu đãi, tin nhắn...).
 
 ```mermaid
 flowchart LR
@@ -19,10 +19,13 @@ flowchart LR
     Store <--> Firestore[(Cloud Firestore<br/>products)]
     Store <--> Cache[(localStorage)]
     Pages --> Shopping["shopping-store.js<br/>(cart, wish)"] <--> Cache
-    Checkout["checkout.html"] -->|Tạo đơn: Chờ xác nhận| Cache
+    Checkout["checkout.html"] -->|Tạo đơn| Orders[(Cloud Firestore<br/>orders)]
+    Admin["admin.js"] <-->|Đọc/cập nhật đơn| Orders
+    Tracking["tracking.js"] -->|Đơn tài khoản| Orders
+    Tracking -->|Mã đơn + số điện thoại| OrderAPI["/api/orders"] --> Orders
     Checkout --> VietQR[VietQR]
     Admin["admin.js"] -->|Cập nhật sản phẩm| Store
-    Admin <-->|Đơn hàng, ưu đãi, doanh thu| Cache
+    Admin <-->|Danh mục, ưu đãi, tin nhắn| Cache
     Admin -->|ID token| AdminAPI["/api/admin/users"]
     Owner["owner.js"] -->|ID token| OwnerAPI["/api/owner/users"]
     AdminAPI --> FirebaseAdmin[Firebase Admin SDK]
@@ -48,7 +51,7 @@ flowchart LR
 | Liên hệ | `contact-tools.js/.css` | Thanh liên hệ Facebook và Zalo (ẩn trên trang quản trị) |
 | Quản trị | `admin.html`, `admin.js`, `admin.css` | Sản phẩm, danh mục, ưu đãi, đơn hàng, doanh thu, đánh giá, tin nhắn, người dùng |
 | Owner | `owner.html`, `owner.js` | Cấp hoặc gỡ quyền admin |
-| API | `api/admin/users.js`, `api/owner/users.js`, `lib/firebase-admin.js` | Xác minh ID token (kèm kiểm tra thu hồi), kiểm tra custom claims, gọi Firebase Admin SDK |
+| API | `api/admin/users.js`, `api/owner/users.js`, `api/orders.js`, `lib/firebase-admin.js` | Xác minh quyền quản trị và tra cứu đơn khách bằng mã đơn cùng số điện thoại |
 
 ## Dữ liệu
 
@@ -61,7 +64,7 @@ flowchart LR
 | Đánh giá trên trang sản phẩm | Firestore `reviews` | ✅ |
 | Tài khoản Firebase, vai trò | Firebase Authentication (custom claims) | ✅ |
 | Giỏ hàng, yêu thích | `localStorage.cart`, `localStorage.wish` | ❌ |
-| Đơn hàng | `localStorage.flowerOrders` | ❌ |
+| Đơn hàng mới | Firestore `orders` | ✅ |
 | Đánh giá trong trang quản trị, tin nhắn | `localStorage.flowerReviews`, `localStorage.flowerMessages` | ❌ |
 | Danh mục, ưu đãi | `localStorage.flowerCategories`, `localStorage.flowerPromotions` | ❌ |
 | Phiên đăng nhập | `localStorage.loggedUser` | ❌ |
@@ -86,6 +89,10 @@ flowchart LR
 
 Admin có thể chuyển đơn sang bất kỳ trạng thái nào. Các tên trạng thái cũ (ví dụ "Đã vận chuyển", "Giao hàng thất bại") được tự động chuyển sang tên mới tương ứng.
 
+Đơn mới được ghi vào Firestore với thời gian do máy chủ cấp. Khách đã đăng nhập chỉ đọc được đơn có UID của mình; khách chưa đăng nhập tra cứu qua `/api/orders` bằng mã đơn và số điện thoại. Chỉ tài khoản có claim `admin: true` được xem danh sách, cập nhật hoặc xóa đơn. Dữ liệu đơn cũ trong `localStorage.flowerOrders` không tự động chuyển lên Firestore.
+
+Đơn QR luôn ở trạng thái chờ xác minh. Dự án chưa tích hợp API/webhook ngân hàng, vì vậy không có luồng nào tự đánh dấu đơn QR đã thanh toán hoặc tính vào doanh thu.
+
 ## Bảo mật Firestore
 
 Quy tắc nằm trong `firestore.rules` (khai báo trong `firebase.json`). Tóm tắt:
@@ -93,9 +100,10 @@ Quy tắc nằm trong `firestore.rules` (khai báo trong `firebase.json`). Tóm 
 - `products`: ai cũng đọc được; chỉ tài khoản có claim `admin: true` được tạo, sửa, xóa.
 - `reviews`: ai cũng đọc được; người dùng đã đăng nhập được tạo đánh giá đúng schema (`productIds`, `productName`, `customerName`, `rating` 1–5, `comment` tối đa 1000 ký tự, `createdAt` là thời điểm server); chỉ admin được sửa hoặc xóa.
 - `metadata`: chỉ admin.
+- `orders`: khách có thể tạo đơn theo schema giới hạn; khách đã đăng nhập chỉ đọc đơn của UID mình; chỉ admin được đọc toàn bộ, cập nhật hoặc xóa.
 - Mọi đường dẫn khác bị từ chối.
 
-Triển khai: `firebase deploy --only firestore:rules`. Đánh giá cũ chỉ lưu trong `localStorage` sẽ không được chia sẻ giữa người xem.
+Triển khai: `firebase deploy --only firestore:rules`. API tra cứu đơn khách cũng cần `FIREBASE_SERVICE_ACCOUNT_JSON` và `FIREBASE_PROJECT_ID` trong Vercel; tài khoản dịch vụ cần quyền đọc Firestore (Cloud Datastore User). Đánh giá và đơn cũ chỉ lưu trong `localStorage` không tự chia sẻ giữa các thiết bị.
 
 ## Xác thực
 

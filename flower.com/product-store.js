@@ -78,6 +78,19 @@
 
     function readProducts() {
         try {
+            if (typeof window !== "undefined" && window.FlowerSafeStorage?.readJson) {
+                return deduplicateProducts(window.FlowerSafeStorage.readJson(PRODUCT_KEY, {
+                    fallback: [],
+                    validate: (value) => Array.isArray(value)
+                        && value.every((product) => product
+                            && typeof product === "object"
+                            && !Array.isArray(product)
+                            && (product.id !== undefined || product._id !== undefined)
+                            && typeof product.title === "string"
+                            && Number.isFinite(Number(product.price))),
+                    throwOnError: true
+                }));
+            }
             return deduplicateProducts(JSON.parse(storage()?.getItem(PRODUCT_KEY) || "[]"));
         } catch (error) {
             console.warn("Không đọc được kho sản phẩm:", error);
@@ -151,6 +164,14 @@
 
     function readCategories() {
         try {
+            if (typeof window !== "undefined" && window.FlowerSafeStorage?.readJson) {
+                return normalizeCategories(window.FlowerSafeStorage.readJson(CATEGORY_KEY, {
+                    fallback: [],
+                    validate: (value) => Array.isArray(value)
+                        && value.every((category) => typeof category === "string"),
+                    throwOnError: true
+                }));
+            }
             const categories = JSON.parse(storage()?.getItem(CATEGORY_KEY) || "[]");
             return normalizeCategories(categories);
         } catch (error) {

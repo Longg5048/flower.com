@@ -2,6 +2,7 @@
 <html lang="vi">
 <head>
   <meta charset="UTF-8">
+    <script src="./safe-storage.js"></script>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Xác nhận đơn hàng</title>
   <link rel="stylesheet" href="./store-header.css?v=1">
@@ -28,8 +29,15 @@
   <script src="./order-store.js?v=5"></script>
   <script>
     let CartContainer = document.getElementById("product-container");
-    let Cart = JSON.parse(localStorage.getItem("cart")) || [];
-    const checkoutData = JSON.parse(localStorage.getItem("flowerCheckout") || "null");
+    let Cart = FlowerSafeStorage.readJson("cart", {
+      fallback: [],
+      validate: (value) => Array.isArray(value)
+        && value.every((item) => item && typeof item === "object" && !Array.isArray(item) && item.id !== undefined)
+    });
+    const checkoutData = FlowerSafeStorage.readJson("flowerCheckout", {
+      fallback: null,
+      validate: (value) => value !== null && typeof value === "object" && !Array.isArray(value)
+    });
     const paymentButton = document.querySelector(".placeorder > button");
     const paymentNote = document.getElementById("payment-confirmation-note");
     let serverQuote = null;

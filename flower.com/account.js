@@ -2,7 +2,10 @@ import { firebaseConfig } from "./firebase-config.js";
 
 function getStoredAccount() {
     try {
-        const account = JSON.parse(localStorage.getItem("loggedUser") || "null");
+        const account = window.FlowerSafeStorage.readJson("loggedUser", {
+            fallback: null,
+            validate: (value) => value !== null && typeof value === "object" && !Array.isArray(value)
+        });
         return account && typeof account === "object" ? account : null;
     } catch (error) {
         console.error("Không thể đọc phiên tài khoản:", error);

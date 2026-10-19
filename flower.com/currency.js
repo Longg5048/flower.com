@@ -82,7 +82,12 @@ function renderCartSummary(cart) {
 window.addEventListener("storage", (event) => {
   if (event.key !== "flowerPromotions") return;
   try {
-    renderCartSummary(JSON.parse(localStorage.getItem("cart") || "[]"));
+    const cart = window.FlowerSafeStorage.readJson("cart", {
+      fallback: [],
+      validate: (value) => Array.isArray(value)
+        && value.every((item) => item && typeof item === "object" && !Array.isArray(item) && item.id !== undefined)
+    });
+    renderCartSummary(cart);
   } catch (error) {
     console.error("Không thể cập nhật tổng tiền sau khi ưu đãi thay đổi:", error);
   }

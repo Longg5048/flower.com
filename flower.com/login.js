@@ -23,8 +23,17 @@ function showFormMessage(target, message, isError = true) {
 
 function getSavedAccounts() {
     try {
-        const savedAccounts = JSON.parse(localStorage.getItem(accountStorageKey) || "[]");
-        return Array.isArray(savedAccounts) ? savedAccounts : [];
+        let readFailed = false;
+        const savedAccounts = window.FlowerSafeStorage.readJson(accountStorageKey, {
+            fallback: [],
+            validate: (value) => Array.isArray(value)
+                && value.every((account) => account && typeof account === "object" && !Array.isArray(account)),
+            onError: () => {
+                readFailed = true;
+                showMessage("Không thể đọc danh sách tài khoản đã lưu trên trình duyệt.");
+            }
+        });
+        return readFailed ? null : savedAccounts;
     } catch (error) {
         console.error("Không thể đọc danh sách tài khoản đã lưu:", error);
         showMessage("Không thể đọc danh sách tài khoản đã lưu trên trình duyệt.");

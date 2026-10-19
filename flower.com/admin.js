@@ -96,12 +96,11 @@ async function ensureStorage() {
 }
 
 function readLegacyCategories() {
-   try {
-       const categories = JSON.parse(localStorage.getItem(STORAGE_KEYS.categories) || "[]");
-       return Array.isArray(categories) ? categories : [];
-   } catch {
-       return [];
-   }
+   return window.FlowerSafeStorage.readJson(STORAGE_KEYS.categories, {
+       fallback: [],
+       validate: (value) => Array.isArray(value) && value.every((category) => typeof category === "string"),
+       throwOnError: true
+   });
 }
 
 function cacheCategories(categories) {
@@ -149,8 +148,11 @@ function saveCategories(categories) {
 }
 
 function getOffers() {
-   const offers = JSON.parse(localStorage.getItem(STORAGE_KEYS.offers) || "[]");
-   return Array.isArray(offers) ? offers : [];
+   return window.FlowerSafeStorage.readJson(STORAGE_KEYS.offers, {
+       fallback: [],
+       validate: (value) => Array.isArray(value)
+           && value.every((offer) => offer && typeof offer === "object" && !Array.isArray(offer))
+   });
 }
 
 async function saveOffers(offers) {
@@ -1628,7 +1630,10 @@ async function initializeAdmin() {
        }
 
        currentUserRole = token.claims.role === "owner" ? "owner" : "admin";
-       const storedAccount = JSON.parse(localStorage.getItem("loggedUser") || "{}");
+       const storedAccount = window.FlowerSafeStorage.readJson("loggedUser", {
+           fallback: {},
+           validate: (value) => value !== null && typeof value === "object" && !Array.isArray(value)
+       });
        localStorage.setItem("loggedUser", JSON.stringify({
            ...storedAccount,
            uid: currentUser.uid,
@@ -1670,11 +1675,20 @@ async function initializeAdmin() {
            }, (error) => console.error("Không thể đồng bộ phân loại từ Firestore:", error));
        } catch (error) {
            console.error("Không thể tải phân loại từ Firestore:", error);
-           cacheCategories(readLegacyCategories());
+           try {
+               categoriesCache = readLegacyCategories();
+           } catch (storageError) {
+               console.error("Không đọc được cache danh mục; giữ nguyên dữ liệu gốc:", storageError);
+           }
        }
        try {
            const messageMigrationKey = "flowerMessagesMigratedV1";
-           const legacyMessages = JSON.parse(localStorage.getItem("flowerMessages") || "[]");
+           const legacyMessages = window.FlowerSafeStorage.readJson("flowerMessages", {
+               fallback: [],
+               validate: (value) => Array.isArray(value)
+                   && value.every((message) => message && typeof message === "object" && !Array.isArray(message)),
+               throwOnError: true
+           });
            await window.FlowerMessageStore.migrateLegacyMessages(legacyMessages);
            localStorage.removeItem("flowerMessages");
            localStorage.setItem(messageMigrationKey, "true");
@@ -1684,7 +1698,12 @@ async function initializeAdmin() {
        try {
            const reviewMigrationKey = "flowerReviewsAdminMigratedV1";
            if (localStorage.getItem(reviewMigrationKey) !== "true") {
-               const legacyReviews = JSON.parse(localStorage.getItem("flowerReviews") || "[]");
+               const legacyReviews = window.FlowerSafeStorage.readJson("flowerReviews", {
+                   fallback: [],
+                   validate: (value) => Array.isArray(value)
+                       && value.every((review) => review && typeof review === "object" && !Array.isArray(review)),
+                   throwOnError: true
+               });
                await window.FlowerReviewStore.migrateLegacyAdminReviews(legacyReviews);
                localStorage.setItem(reviewMigrationKey, "true");
            }

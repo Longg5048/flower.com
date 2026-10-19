@@ -17,7 +17,17 @@ function showMessage(text, isError = true) {
 
 function getSavedAccounts() {
     try {
-        const accounts = JSON.parse(localStorage.getItem(accountStorageKey) || "[]");
+        let readFailed = false;
+        const accounts = window.FlowerSafeStorage.readJson(accountStorageKey, {
+            fallback: [],
+            validate: (value) => Array.isArray(value)
+                && value.every((account) => account && typeof account === "object" && !Array.isArray(account)),
+            onError: () => {
+                readFailed = true;
+                showMessage("Không thể đọc danh sách tài khoản đã lưu trên trình duyệt.");
+            }
+        });
+        if (readFailed) return null;
         if (!Array.isArray(accounts)) {
             throw new TypeError("Danh sách tài khoản không hợp lệ.");
         }

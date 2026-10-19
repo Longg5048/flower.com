@@ -1,8 +1,8 @@
 (function initializeShoppingStore(root, factory) {
-  const api = factory();
+  const api = factory(root);
   if (typeof module !== "undefined" && module.exports) module.exports = api;
   if (root) root.FlowerShoppingStore = api.createShoppingStore(() => root.localStorage);
-})(typeof globalThis !== "undefined" ? globalThis : this, function createShoppingStoreModule() {
+})(typeof globalThis !== "undefined" ? globalThis : this, function createShoppingStoreModule(root) {
   class ShoppingStoreError extends Error {
     constructor(message, code, cause) {
       super(message);
@@ -24,6 +24,25 @@
     }
 
     function readList(key) {
+      if (typeof root.FlowerSafeStorage?.readJson === "function") {
+        try {
+          return root.FlowerSafeStorage.readJson(key, {
+            fallback: [],
+            validate: (items) => Array.isArray(items) && items.every((item) => item
+              && typeof item === "object"
+              && !Array.isArray(item)
+              && item.id !== undefined
+              && item.id !== null
+              && String(item.id) !== ""
+              && (key !== "cart" || item.quantity === undefined
+                || (Number.isInteger(Number(item.quantity)) && Number(item.quantity) >= 1))),
+            throwOnError: true
+          });
+        } catch (error) {
+          throw new ShoppingStoreError("Dữ liệu mua sắm không đọc được. Dữ liệu gốc vẫn được giữ nguyên.", error.code || "storage-invalid-data", error);
+        }
+      }
+
       let value;
       try {
         value = storage().getItem(key);

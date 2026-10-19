@@ -85,7 +85,10 @@
 
 function getCurrentAccount() {
     try {
-        const account = JSON.parse(localStorage.getItem("loggedUser") || "null");
+        const account = FlowerSafeStorage.readJson("loggedUser", {
+            fallback: null,
+            validate: (value) => value !== null && typeof value === "object" && !Array.isArray(value)
+        });
         return account && typeof account === "object" ? account : null;
     } catch (error) {
         console.error("Không thể đọc phiên tài khoản:", error);
@@ -95,8 +98,10 @@ function getCurrentAccount() {
 
 function updateShoppingHeaderCounts() {
     try {
-        const cart = JSON.parse(localStorage.getItem("cart") || "[]");
-        const wishlist = JSON.parse(localStorage.getItem("wish") || "[]");
+        const isItemList = (value) => Array.isArray(value)
+            && value.every((item) => item && typeof item === "object" && !Array.isArray(item) && item.id !== undefined);
+        const cart = FlowerSafeStorage.readJson("cart", { fallback: [], validate: isItemList });
+        const wishlist = FlowerSafeStorage.readJson("wish", { fallback: [], validate: isItemList });
         if (!Array.isArray(cart) || !Array.isArray(wishlist)) {
             throw new Error("Dữ liệu giỏ hàng hoặc yêu thích không hợp lệ.");
         }

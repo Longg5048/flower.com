@@ -2,6 +2,7 @@
 <html lang="vi">
   <head>
     <meta charset="UTF-8" />
+    <script src="./safe-storage.js"></script>
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Giỏ hàng</title>
     <link rel="stylesheet" href="./store-header.css?v=1" />
@@ -50,7 +51,11 @@
     <script src="./product-names.js"></script>
     <script>
       let CartContainer = document.getElementById("product-container");
-      let Cart = JSON.parse(localStorage.getItem("cart")) || [];
+      let Cart = FlowerSafeStorage.readJson("cart", {
+        fallback: [],
+        validate: (value) => Array.isArray(value)
+          && value.every((item) => item && typeof item === "object" && !Array.isArray(item) && item.id !== undefined)
+      });
 
       function DisplayProduct() {
         const cartTotal = document.getElementById("cartTotal");

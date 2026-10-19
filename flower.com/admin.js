@@ -277,15 +277,15 @@ function renderRevenueTab() {
                <div class="revenue-month-picker" id="revenue-month-picker" ${revenueDateFilter !== "month" ? "hidden" : ""}>
                    <button class="secondary-btn" type="button" data-month-shift="-1" aria-label="Xem tháng trước">‹ Tháng trước</button>
                    <label for="revenue-month">Tháng báo cáo</label>
-                   <input id="revenue-month" type="month" value="${revenueMonth}">
+                   <input id="revenue-month" type="month" value="${escapeHtml(revenueMonth)}">
                    <button class="secondary-btn" type="button" data-month-shift="1" aria-label="Xem tháng sau">Tháng sau ›</button>
                    <button class="secondary-btn" type="button" id="revenue-current-month">Tháng hiện tại</button>
                </div>
                <div class="revenue-custom-dates" id="revenue-custom-dates" ${revenueDateFilter !== "custom" ? "hidden" : ""}>
                    <label for="revenue-date-start">Từ ngày</label>
-                   <input id="revenue-date-start" name="start" type="date" value="${revenueDateStart}">
+                   <input id="revenue-date-start" name="start" type="date" value="${escapeHtml(revenueDateStart)}">
                    <label for="revenue-date-end">Đến ngày</label>
-                   <input id="revenue-date-end" name="end" type="date" value="${revenueDateEnd}">
+                   <input id="revenue-date-end" name="end" type="date" value="${escapeHtml(revenueDateEnd)}">
                    <button class="primary-btn" type="submit">Áp dụng</button>
                </div>
            </form>
@@ -409,7 +409,7 @@ function renderProductTab() {
                    <tbody>
                        ${filteredProducts.map((item) => `
                            <tr>
-                               <td><img src="${escapeHtml(item.image)}" alt="${escapeHtml(getVietnameseProductName(item.title))}"></td>
+                               <td><img src="${escapeHtml(getSafeImageUrl(item.image) || "./images/flowerflow-logo.png")}" alt="${escapeHtml(getVietnameseProductName(item.title))}"></td>
                                <td>
                                    <div><strong>${escapeHtml(getVietnameseProductName(item.title))}</strong></div>
                                    <small>${escapeHtml(getVietnameseProductDescription(item.description || ""))}</small>
@@ -687,9 +687,9 @@ async function saveAdminProducts(products) {
 
 function renderCompletionAction(type, record) {
    if (record.completedAt) {
-       return `<button class="restore-record" data-record-type="${type}" data-record-id="${record.id}" type="button">Khôi phục</button>`;
+       return `<button class="restore-record" data-record-type="${escapeHtml(type)}" data-record-id="${escapeHtml(record.id)}" type="button">Khôi phục</button>`;
    }
-   return `<button class="complete-record" data-record-type="${type}" data-record-id="${record.id}" type="button">Hoàn thành</button>`;
+   return `<button class="complete-record" data-record-type="${escapeHtml(type)}" data-record-id="${escapeHtml(record.id)}" type="button">Hoàn thành</button>`;
 }
 
 function renderCompletedSection(records, renderCard, label) {
@@ -723,9 +723,9 @@ function renderOrderSummary(order) {
                <span><b>Thời gian đặt:</b> ${new Date(order.createdAt).toLocaleString("vi-VN")}</span>
            </div>
            <div class="record-summary-actions">
-               <button class="secondary-btn show-record-details" data-record-type="orders" data-record-id="${order.id}" type="button" aria-expanded="false">Xem chi tiết</button>
+               <button class="secondary-btn show-record-details" data-record-type="orders" data-record-id="${escapeHtml(order.id)}" type="button" aria-expanded="false">Xem chi tiết</button>
            </div>
-           <div class="record-details" data-record-details="orders:${order.id}" hidden>
+           <div class="record-details" data-record-details="orders:${escapeHtml(order.id)}" hidden>
                ${renderOrderCard(order)}
            </div>
        </article>
@@ -775,7 +775,7 @@ function renderOrderCard(order, showCompletionAction = true) {
            <div class="order-product-list">
                ${items.map((item) => {
                    const product = getProductById(item.id) || {};
-                   const image = item.image || product.image || "./images/flowerflow-logo.png";
+                   const image = getSafeImageUrl(item.image || product.image) || "./images/flowerflow-logo.png";
                    return `
                        <div class="product-card">
                            <img src="${escapeHtml(image)}" alt="${escapeHtml(getVietnameseProductName(item.title))}">
@@ -795,11 +795,11 @@ function renderOrderCard(order, showCompletionAction = true) {
                    <div class="tracking-admin-fields">
                        <label>
                            Vị trí hiện tại
-                           <input class="tracking-location" data-order-id="${order.id}" value="${escapeHtml(order.currentLocation || "")}" placeholder="Ví dụ: Đang giao tại Quận 1">
+                           <input class="tracking-location" data-order-id="${escapeHtml(order.id)}" value="${escapeHtml(order.currentLocation || "")}" placeholder="Ví dụ: Đang giao tại Quận 1">
                        </label>
                        <label>
                            Dự kiến giao đến
-                           <input class="tracking-eta" data-order-id="${order.id}" type="date" value="${escapeHtml(toDateInput(order.estimatedDelivery))}">
+                           <input class="tracking-eta" data-order-id="${escapeHtml(order.id)}" type="date" value="${escapeHtml(toDateInput(order.estimatedDelivery))}">
                        </label>
                    </div>
                </div>
@@ -812,7 +812,7 @@ function renderOrderCard(order, showCompletionAction = true) {
                <div class="reply-box compact-box">
                    <label class="field-label">Cập nhật trạng thái</label>
                    <div class="status-row">
-                       <select class="status-select" data-order-id="${order.id}">
+                       <select class="status-select" data-order-id="${escapeHtml(order.id)}">
                            ${ORDER_STATUSES.map((status) => `
                                <option value="${status}" ${status === normalizeOrderStatus(order.status) ? "selected" : ""}>${status}</option>
                            `).join("")}
@@ -837,6 +837,17 @@ function escapeHtml(value) {
          '"': "&quot;",
          "'": "&#39;"
     })[character]);
+}
+
+function getSafeImageUrl(value) {
+   const imageUrl = String(value || "").trim();
+   if (!imageUrl) return null;
+   try {
+       const parsedUrl = new URL(imageUrl, window.location.href);
+       return ["http:", "https:"].includes(parsedUrl.protocol) ? parsedUrl.href : null;
+   } catch {
+       return null;
+   }
 }
 
 function toDateInput(value) {
@@ -920,8 +931,8 @@ function renderReviewCard(review, showCompletionAction = true) {
 
            <div class="reply-box">
                <label class="field-label">Phản hồi của bạn</label>
-               <textarea class="reply-input" data-review-id="${review.id}" placeholder="Nhập phản hồi cho khách hàng...">${escapeHtml(review.reply || "")}</textarea>
-               <button class="send-reply" data-review-id="${review.id}">Gửi phản hồi</button>
+               <textarea class="reply-input" data-review-id="${escapeHtml(review.id)}" placeholder="Nhập phản hồi cho khách hàng...">${escapeHtml(review.reply || "")}</textarea>
+               <button class="send-reply" data-review-id="${escapeHtml(review.id)}">Gửi phản hồi</button>
            </div>
        </div>
    `;
@@ -945,9 +956,9 @@ function renderReviewSummary(review) {
                <span><b>Thời gian:</b> ${new Date(review.createdAt).toLocaleString("vi-VN")}</span>
            </div>
            <div class="record-summary-actions">
-               <button class="secondary-btn show-record-details" data-record-type="reviews" data-record-id="${review.id}" type="button" aria-expanded="false">Xem chi tiết</button>
+               <button class="secondary-btn show-record-details" data-record-type="reviews" data-record-id="${escapeHtml(review.id)}" type="button" aria-expanded="false">Xem chi tiết</button>
            </div>
-           <div class="record-details" data-record-details="reviews:${review.id}" hidden>
+           <div class="record-details" data-record-details="reviews:${escapeHtml(review.id)}" hidden>
                ${renderReviewCard(review)}
            </div>
        </article>
@@ -1002,8 +1013,8 @@ function renderMessageCard(message, showCompletionAction = true) {
 
            <div class="reply-box">
                <label class="field-label">Trả lời khách</label>
-               <textarea class="reply-input" data-message-id="${message.id}" placeholder="Nhập câu trả lời cho khách hàng...">${escapeHtml(message.reply || "")}</textarea>
-               <button class="send-reply" data-message-id="${message.id}">Trả lời</button>
+               <textarea class="reply-input" data-message-id="${escapeHtml(message.id)}" placeholder="Nhập câu trả lời cho khách hàng...">${escapeHtml(message.reply || "")}</textarea>
+               <button class="send-reply" data-message-id="${escapeHtml(message.id)}">Trả lời</button>
            </div>
        </div>
    `;
@@ -1026,9 +1037,9 @@ function renderMessageSummary(message) {
                <span><b>Thời gian:</b> ${new Date(message.createdAt).toLocaleString("vi-VN")}</span>
            </div>
            <div class="record-summary-actions">
-               <button class="secondary-btn show-record-details" data-record-type="messages" data-record-id="${message.id}" type="button" aria-expanded="false">Xem chi tiết</button>
+               <button class="secondary-btn show-record-details" data-record-type="messages" data-record-id="${escapeHtml(message.id)}" type="button" aria-expanded="false">Xem chi tiết</button>
            </div>
-           <div class="record-details" data-record-details="messages:${message.id}" hidden>
+           <div class="record-details" data-record-details="messages:${escapeHtml(message.id)}" hidden>
                ${renderMessageCard(message)}
            </div>
        </article>
@@ -1066,18 +1077,19 @@ async function addNewProduct(event) {
    event.preventDefault();
    const title = document.getElementById("product-title").value.trim();
    const image = document.getElementById("product-image").value.trim();
+   const safeImageUrl = getSafeImageUrl(image);
     const priceInVnd = Number(document.getElementById("product-price").value);
    const quantity = Number(document.getElementById("product-quantity").value);
    const description = document.getElementById("product-description").value.trim();
    const category = document.getElementById("product-category").value;
 
-    if (!title || !image || !description || !Number.isFinite(priceInVnd) || priceInVnd < 1 || !Number.isFinite(quantity) || quantity < 0) {
+    if (!title || !safeImageUrl || !description || !Number.isFinite(priceInVnd) || priceInVnd < 1 || !Number.isFinite(quantity) || quantity < 0) {
        alert("Vui lòng nhập đầy đủ thông tin.");
        return;
    }
 
    const products = getProducts();
-    const productData = { title, image, price: usdFromVnd(priceInVnd), quantity, description, category };
+    const productData = { title, image: safeImageUrl, price: usdFromVnd(priceInVnd), quantity, description, category };
    const isEditing = editingProductId !== null;
    const nextProducts = isEditing
        ? products.map((item) => String(item.id) === String(editingProductId) ? { ...item, ...productData } : item)
@@ -1540,7 +1552,7 @@ main.addEventListener("click", (event) => {
    const saveQty = event.target.closest(".save-qty");
    if (saveQty) {
        const id = saveQty.dataset.id;
-       const input = document.querySelector(`.qty-input[data-id="${id}"]`);
+       const input = [...main.querySelectorAll(".qty-input")].find((element) => element.dataset.id === id);
        if (input) {
            saveProductQuantity(id, input.value);
        }
@@ -1555,9 +1567,9 @@ main.addEventListener("click", (event) => {
    const statusSave = event.target.closest(".status-save");
    if (statusSave) {
        const orderId = statusSave.dataset.orderId;
-       const select = document.querySelector(`.status-select[data-order-id="${orderId}"]`);
-       const location = document.querySelector(`.tracking-location[data-order-id="${orderId}"]`);
-       const estimatedDelivery = document.querySelector(`.tracking-eta[data-order-id="${orderId}"]`);
+       const select = [...main.querySelectorAll(".status-select")].find((element) => element.dataset.orderId === orderId);
+       const location = [...main.querySelectorAll(".tracking-location")].find((element) => element.dataset.orderId === orderId);
+       const estimatedDelivery = [...main.querySelectorAll(".tracking-eta")].find((element) => element.dataset.orderId === orderId);
        if (select && location && estimatedDelivery) {
            updateOrderStatus(orderId, select.value, location.value.trim(), estimatedDelivery.value);
        }
@@ -1569,12 +1581,14 @@ main.addEventListener("click", (event) => {
        const messageId = replyButton.dataset.messageId;
 
        if (reviewId) {
-           const input = document.querySelector(`.reply-input[data-review-id="${reviewId}"]`);
+           const input = [...main.querySelectorAll(".reply-input[data-review-id]")]
+               .find((element) => element.dataset.reviewId === reviewId);
            if (input) updateReviewReply(reviewId, input.value.trim());
        }
 
        if (messageId) {
-           const input = document.querySelector(`.reply-input[data-message-id="${messageId}"]`);
+           const input = [...main.querySelectorAll(".reply-input[data-message-id]")]
+               .find((element) => element.dataset.messageId === messageId);
            if (input) updateMessageReply(messageId, input.value.trim());
        }
    }

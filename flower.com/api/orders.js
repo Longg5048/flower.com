@@ -493,7 +493,7 @@ module.exports = async function handler(req, res) {
     }
     if (req.method !== "GET") {
         res.setHeader("Allow", "GET, POST");
-        return sendError(res, 405, "method-not-allowed", "Use GET or POST for this endpoint.");
+        return sendError(res, 405, "method-not-allowed", "API đơn hàng chỉ chấp nhận phương thức GET hoặc POST.");
     }
 
     if (req.query?.action === "expire") {
@@ -517,5 +517,5 @@ module.exports = async function handler(req, res) {
         }
     }
 
-    return sendError(res, 405, "method-not-allowed", "Order lookup requires POST.");
+    return sendError(res, 405, "method-not-allowed", "Tra cứu đơn hàng cần dùng phương thức POST.");
 };

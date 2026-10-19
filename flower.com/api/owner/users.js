@@ -10,7 +10,7 @@ module.exports = async function handler(req, res) {
 
     if (req.method !== "POST") {
         res.setHeader("Allow", "POST");
-        return sendError(res, 405, "method-not-allowed", "Use POST for this endpoint.");
+        return sendError(res, 405, "method-not-allowed", "API này chỉ chấp nhận phương thức POST.");
     }
 
     let adminAuth;
@@ -22,7 +22,7 @@ module.exports = async function handler(req, res) {
             res,
             503,
             "admin-api-not-configured",
-            "The Firebase Admin API is not configured."
+            "API quản trị Firebase chưa được cấu hình."
         );
     }
 
@@ -30,14 +30,14 @@ module.exports = async function handler(req, res) {
     if (!decodedToken) return;
 
     if (decodedToken.role !== "owner") {
-        return sendError(res, 403, "permission-denied", "Owner access is required.");
+        return sendError(res, 403, "permission-denied", "Chỉ chủ cửa hàng mới được quản lý quyền tài khoản.");
     }
 
     const body = req.body || {};
     if (body.action === "list") {
         if (body.pageToken !== undefined && body.pageToken !== null &&
             (typeof body.pageToken !== "string" || body.pageToken.length > 2048)) {
-            return sendError(res, 400, "invalid-argument", "Invalid pagination token.");
+            return sendError(res, 400, "invalid-argument", "Mã phân trang không hợp lệ.");
         }
 
         try {
@@ -54,24 +54,24 @@ module.exports = async function handler(req, res) {
             });
         } catch (error) {
             console.error("Owner user listing failed:", error.code || error.message);
-            return sendError(res, 500, "user-list-failed", "Could not load Firebase users.");
+            return sendError(res, 500, "user-list-failed", "Chưa thể tải danh sách tài khoản Firebase.");
         }
     }
 
     if (body.action !== "grant-admin" && body.action !== "remove-admin") {
-        return sendError(res, 400, "invalid-argument", "Unsupported owner action.");
+        return sendError(res, 400, "invalid-argument", "Thao tác quản lý chủ cửa hàng không được hỗ trợ.");
     }
     if (typeof body.uid !== "string" || !body.uid.trim() || body.uid.length > 128) {
-        return sendError(res, 400, "invalid-argument", "A valid user UID is required.");
+        return sendError(res, 400, "invalid-argument", "Cần mã UID tài khoản hợp lệ.");
     }
     if (body.uid === decodedToken.uid) {
-        return sendError(res, 400, "invalid-argument", "Owners cannot change their own role.");
+        return sendError(res, 400, "invalid-argument", "Chủ cửa hàng không thể tự thay đổi quyền của mình.");
     }
 
     try {
         const user = await adminAuth.getUser(body.uid);
         if (getRole(user) === "owner") {
-            return sendError(res, 403, "permission-denied", "Owner accounts cannot be changed here.");
+            return sendError(res, 403, "permission-denied", "Không thể thay đổi quyền của tài khoản chủ cửa hàng tại đây.");
         }
 
         const claims = { ...user.customClaims };
@@ -80,7 +80,7 @@ module.exports = async function handler(req, res) {
             claims.role = "admin";
         } else {
             if (getRole(user) !== "admin") {
-                return sendError(res, 400, "invalid-argument", "This account is not an admin.");
+                return sendError(res, 400, "invalid-argument", "Tài khoản này hiện không có quyền quản trị viên.");
             }
             delete claims.admin;
             delete claims.role;
@@ -95,7 +95,7 @@ module.exports = async function handler(req, res) {
                 res,
                 500,
                 "role-updated-session-revoke-failed",
-                "The role changed, but existing sessions could not be revoked. Revoke them in Firebase Console."
+                "Đã đổi quyền nhưng chưa thể thu hồi phiên đăng nhập cũ. Hãy thu hồi phiên này trong Firebase Console."
             );
         }
         console.info("Owner changed account role:", {
@@ -111,8 +111,8 @@ module.exports = async function handler(req, res) {
     } catch (error) {
         console.error("Owner role update failed:", error.code || error.message);
         if (error.code === "auth/user-not-found") {
-            return sendError(res, 404, "user-not-found", "Firebase user was not found.");
+            return sendError(res, 404, "user-not-found", "Không tìm thấy tài khoản Firebase.");
         }
-        return sendError(res, 500, "role-update-failed", "Could not update the account role.");
+        return sendError(res, 500, "role-update-failed", "Chưa thể cập nhật quyền tài khoản.");
     }
 };

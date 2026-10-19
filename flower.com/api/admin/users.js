@@ -5,7 +5,7 @@ module.exports = async function handler(req, res) {
 
     if (req.method !== "POST") {
         res.setHeader("Allow", "POST");
-        return sendError(res, 405, "method-not-allowed", "Use POST for this endpoint.");
+        return sendError(res, 405, "method-not-allowed", "API này chỉ chấp nhận phương thức POST.");
     }
 
     let adminAuth;
@@ -17,7 +17,7 @@ module.exports = async function handler(req, res) {
             res,
             503,
             "admin-api-not-configured",
-            "The Firebase Admin API is not configured."
+            "API quản trị Firebase chưa được cấu hình."
         );
     }
 
@@ -25,13 +25,13 @@ module.exports = async function handler(req, res) {
     if (!decodedToken) return;
 
     if (decodedToken.admin !== true) {
-        return sendError(res, 403, "permission-denied", "Administrator access is required.");
+        return sendError(res, 403, "permission-denied", "Bạn cần quyền quản trị viên để xem danh sách tài khoản.");
     }
 
     const pageToken = req.body && req.body.pageToken;
     if (pageToken !== undefined && pageToken !== null &&
         (typeof pageToken !== "string" || pageToken.length > 2048)) {
-        return sendError(res, 400, "invalid-argument", "Invalid pagination token.");
+        return sendError(res, 400, "invalid-argument", "Mã phân trang không hợp lệ.");
     }
 
     try {
@@ -55,6 +55,6 @@ module.exports = async function handler(req, res) {
         });
     } catch (error) {
         console.error("Firebase user listing failed:", error.code || error.message);
-        return sendError(res, 500, "user-list-failed", "Could not load Firebase users.");
+        return sendError(res, 500, "user-list-failed", "Chưa thể tải danh sách tài khoản Firebase.");
     }
 };

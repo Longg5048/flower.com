@@ -110,6 +110,7 @@ Quy tắc nằm trong `firestore.rules` (khai báo trong `firebase.json`). Tóm 
 - `reviews`: ai cũng đọc được; người dùng đã đăng nhập được tạo đánh giá đúng schema (`productIds`, `productName`, `customerName`, `rating` 1–5, `comment` tối đa 1000 ký tự, `createdAt` là thời điểm server); chỉ admin được sửa hoặc xóa.
 - `metadata`: chỉ admin, ngoại trừ đọc tài liệu `activePromotions` để hiển thị ưu đãi công khai.
 - `orders`: không cho client tạo trực tiếp; API backend tạo đơn sau khi tính giá và xác minh tồn kho. Khách đã đăng nhập chỉ đọc đơn của UID mình; chỉ admin được đọc toàn bộ, cập nhật hoặc xóa.
+- Các collection khác, bao gồm `orderRequests` và `orderLookupLimits`, bị từ chối bởi quy tắc mặc định; chỉ backend dùng Firebase Admin SDK mới truy cập được.
 - Mọi đường dẫn khác bị từ chối.
 
 Triển khai: `firebase deploy --only firestore:rules,firestore:indexes`. Lệnh này cũng khai báo TTL 24 giờ cho các bản ghi giới hạn tra cứu; Firestore có thể xóa bản ghi trễ tối đa khoảng một ngày sau hạn. API tạo/tra cứu đơn cần `FIREBASE_SERVICE_ACCOUNT_JSON` và `FIREBASE_PROJECT_ID` trong Vercel; tài khoản dịch vụ cần quyền đọc/ghi Firestore (Cloud Datastore User). Cấu hình `CRON_SECRET` trong Vercel để bảo vệ lượt dọn đơn theo lịch. Đánh giá và đơn cũ chỉ lưu trong `localStorage` không tự chia sẻ giữa các thiết bị.
@@ -117,8 +118,17 @@ Triển khai: `firebase deploy --only firestore:rules,firestore:indexes`. Lệnh
 ## Xác thực
 
 - **Email/Password và Google** dùng Firebase Authentication. Tài khoản Google luôn được tạo với vai trò khách hàng.
-- **Chế độ demo:** nếu Firebase chưa bật provider Email/Password, tài khoản được lưu trong `localStorage` của trình duyệt. Mật khẩu ở chế độ này **không được mã hóa**; chỉ dùng để thử nghiệm.
+- Không có chế độ đăng nhập cục bộ. Khi Firebase Authentication chưa cấu hình hoặc không hoạt động, đăng ký/đăng nhập/khôi phục mật khẩu sẽ dừng và báo lỗi; mật khẩu không được lưu trong trình duyệt.
 - **Quản trị:** trang `admin.html` kiểm tra claim `admin: true` trên ID token; API phía server kiểm tra lại claim này độc lập với giao diện.
+
+## Rà soát quyền truy cập
+
+- `/api/admin/users`: chỉ POST, xác minh Firebase ID token và yêu cầu claim `admin: true`.
+- `/api/owner/users`: chỉ POST, xác minh Firebase ID token và yêu cầu claim `role: "owner"`; chủ cửa hàng không thể tự đổi quyền, và tài khoản chủ cửa hàng khác không bị thay đổi qua API này.
+- `/api/orders`: báo giá và tra cứu là chức năng công khai có kiểm tra dữ liệu; tạo đơn cho phép khách chưa đăng nhập theo luồng mua hàng, nhưng server tự tính giá/kiểm tra kho và dùng transaction. Nếu có token thì token được xác minh. Dọn đơn hết hạn yêu cầu `CRON_SECRET` hoặc token admin hợp lệ.
+- Các endpoint quản trị không dựa vào việc ẩn nút trên giao diện; quyền được kiểm tra ở server hoặc Firestore Security Rules.
+- Repo hiện có cấu hình Firestore Rules nhưng không tìm thấy đường dẫn dùng MockAPI, Realtime Database hoặc Firebase Storage. Quy tắc đã kiểm tra trong mã nguồn; trạng thái triển khai thực tế, Authorized domains và giới hạn API key cần xác minh trong Firebase Console.
+- Firebase Web API key được nhúng phía client để khởi tạo SDK; đây không phải khóa dịch vụ bí mật. Cần giới hạn API key theo website/API phù hợp và chỉ cấp quyền dữ liệu qua Firebase Rules.
 
 ## Ghi chú phát triển
 

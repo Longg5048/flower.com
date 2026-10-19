@@ -44,7 +44,7 @@ async function verifyRequest(req, res, adminAuth) {
     const authorization = req.headers.authorization || "";
     const match = authorization.match(/^Bearer\s+(.+)$/i);
     if (!match) {
-        sendError(res, 401, "unauthenticated", "A Firebase ID token is required.");
+        sendError(res, 401, "unauthenticated", "Cần mã xác thực Firebase để thực hiện thao tác này.");
         return null;
     }
 
@@ -52,7 +52,7 @@ async function verifyRequest(req, res, adminAuth) {
         return await adminAuth.verifyIdToken(match[1], true);
     } catch (error) {
         console.error("Firebase ID token verification failed:", error.code || error.message);
-        sendError(res, 401, "unauthenticated", "The Firebase ID token is invalid, expired, or revoked.");
+        sendError(res, 401, "unauthenticated", "Mã xác thực Firebase không hợp lệ, đã hết hạn hoặc đã bị thu hồi.");
         return null;
     }
 }

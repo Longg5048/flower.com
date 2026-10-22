@@ -74,6 +74,7 @@
         paymentMethod: checkoutData.paymentMethod,
         paymentReference: checkoutData.paymentReference || "",
         promotionId: checkoutData.promotionId || "",
+        idempotencyKey: checkoutData.idempotencyKey,
         items: Cart.map((item) => ({ id: item.id, quantity: Math.max(1, Number(item.quantity) || 1) }))
       };
 

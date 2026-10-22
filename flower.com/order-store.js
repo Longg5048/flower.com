@@ -122,6 +122,31 @@
     return getPromotions();
   }
 
+  // Applies change(items) to the latest promotions inside a transaction, so two admins
+  // editing at the same time never overwrite each other's promotions.
+  async function updatePromotions(change) {
+    const { auth, db, firestoreSdk } = await getFirebase();
+    await auth.authStateReady();
+    if (!auth.currentUser || (await auth.currentUser.getIdTokenResult()).claims.admin !== true) {
+      throw new Error("Chỉ quản trị viên mới được thay đổi ưu đãi.");
+    }
+    const reference = firestoreSdk.doc(db, "metadata", "activePromotions");
+    return firestoreSdk.runTransaction(db, async (transaction) => {
+      const snapshot = await transaction.get(reference);
+      const current = snapshot.exists() && Array.isArray(snapshot.data().items) ? snapshot.data().items : [];
+      const items = change(current.map((item) => ({ ...item })));
+      transaction.set(reference, { items, updatedAt: firestoreSdk.serverTimestamp() });
+      return items;
+    });
+  }
+
+  async function subscribePromotions(onPromotions, onError = () => {}) {
+    const { db, firestoreSdk } = await getFirebase();
+    return firestoreSdk.onSnapshot(firestoreSdk.doc(db, "metadata", "activePromotions"), (snapshot) => {
+      onPromotions(snapshot.exists() && Array.isArray(snapshot.data().items) ? snapshot.data().items : []);
+    }, onError);
+  }
+
   // Admin-defined categories, kept even when no product uses them yet.
   async function getCategories() {
     const { db, firestoreSdk } = await getFirebase();
@@ -218,7 +243,17 @@
     return result.released || 0;
   }
 
-  async function update(id, changes) {
+  // Where an order's items are: "reserved" (taken from stock, not yet delivered),
+  // "sold" (delivered) or "released" (back in stock). Older orders only have inventoryReserved.
+  function inventoryStateOf(order) {
+    if (["reserved", "sold", "released"].includes(order.inventoryState)) return order.inventoryState;
+    if (order.inventoryReserved === true) return "reserved";
+    return order.status === "Đã giao" ? "sold" : "released";
+  }
+
+  // options.restockSold: when cancelling an order that was already delivered, put its items
+  // back in stock (the goods came back). Otherwise a delivered order stays counted as sold.
+  async function update(id, changes, options = {}) {
     const { db, firestoreSdk } = await getFirebase();
     const orderRef = firestoreSdk.doc(db, "orders", String(id));
     if (!Object.prototype.hasOwnProperty.call(changes || {}, "status")) {
@@ -230,19 +265,32 @@
       const orderSnapshot = await transaction.get(orderRef);
       if (!orderSnapshot.exists()) throw new Error("Không tìm thấy đơn hàng.");
       const order = orderSnapshot.data();
-      const wasCancelled = order.status === "Đã hủy";
+      const state = inventoryStateOf(order);
       const willBeCancelled = changes.status === "Đã hủy";
       const willBeDelivered = changes.status === "Đã giao";
-      const shouldRestore = !wasCancelled && willBeCancelled && order.inventoryReserved === true;
-      const shouldReserve = wasCancelled && !willBeCancelled && order.inventoryReserved === false;
+
+      let stockChange = 0;
+      let nextState = state;
+      if (willBeCancelled) {
+        if (state === "reserved" || (state === "sold" && options.restockSold === true)) {
+          stockChange = 1;
+          nextState = "released";
+        }
+      } else if (state === "released") {
+        stockChange = -1;
+        nextState = willBeDelivered ? "sold" : "reserved";
+      } else {
+        nextState = willBeDelivered ? "sold" : "reserved";
+      }
+
       const items = aggregateOrderItems(order.items);
-      const productRefs = shouldRestore || shouldReserve
+      const productRefs = stockChange
         ? items.map((item) => firestoreSdk.doc(db, "products", String(item.id)))
         : [];
       const productSnapshots = [];
       for (const productRef of productRefs) productSnapshots.push(await transaction.get(productRef));
 
-      if (shouldReserve && productSnapshots.some((snapshot, index) => (
+      if (stockChange < 0 && productSnapshots.some((snapshot, index) => (
         !snapshot.exists()
         || !Number.isInteger(Number(snapshot.data().quantity))
         || Number(snapshot.data().quantity) < Number(items[index].quantity)
@@ -253,21 +301,45 @@
         if (!snapshot.exists()) return;
         const quantity = Number(snapshot.data().quantity) || 0;
         const orderQuantity = Math.max(1, Number(items[index].quantity) || 1);
-        transaction.update(snapshot.ref, { quantity: quantity + (shouldRestore ? orderQuantity : -orderQuantity) });
+        transaction.update(snapshot.ref, { quantity: quantity + stockChange * orderQuantity });
       });
 
+      // The hold timer only applies while the order waits for confirmation.
+      const waitsForConfirmation = changes.status === "Chờ xác nhận";
+      const reserveAgain = state === "released" && nextState === "reserved" && waitsForConfirmation;
       transaction.update(orderRef, {
         ...changes,
-        ...((shouldRestore || shouldReserve || (willBeDelivered && order.inventoryReserved === true))
-          ? { inventoryReserved: shouldReserve && !willBeDelivered }
-          : {}),
-        ...(shouldReserve ? {
+        inventoryState: nextState,
+        inventoryReserved: nextState === "reserved",
+        ...(reserveAgain ? {
           reservationExpiresAt: firestoreSdk.Timestamp.fromDate(new Date(Date.now() + (
             order.paymentMethod === "qr" ? 30 * 60 * 1000 : 24 * 60 * 60 * 1000
           ))),
           reservationExpiredAt: firestoreSdk.deleteField()
         } : {}),
-        ...(willBeDelivered ? { reservationExpiresAt: firestoreSdk.deleteField() } : {})
+        ...(!waitsForConfirmation ? { reservationExpiresAt: firestoreSdk.deleteField() } : {})
+      });
+    });
+  }
+
+  // Marks a QR transfer as received. Runs in a transaction so it cannot land on an order
+  // that the reservation cleanup has just cancelled and restocked.
+  async function verifyPayment(id) {
+    const { db, firestoreSdk } = await getFirebase();
+    const orderRef = firestoreSdk.doc(db, "orders", String(id));
+    await firestoreSdk.runTransaction(db, async (transaction) => {
+      const snapshot = await transaction.get(orderRef);
+      if (!snapshot.exists()) throw new Error("Không tìm thấy đơn hàng.");
+      const order = snapshot.data();
+      if (order.status === "Đã hủy" || inventoryStateOf(order) === "released") {
+        const error = new Error("Đơn này đã bị hủy (có thể do hết hạn giữ hàng) nên không xác nhận thanh toán được. Hãy khôi phục đơn trước nếu khách đã chuyển tiền.");
+        error.code = "order-cancelled";
+        throw error;
+      }
+      transaction.update(orderRef, {
+        paymentVerified: true,
+        paymentStatus: "Đã thanh toán",
+        paidAt: new Date().toISOString()
       });
     });
   }
@@ -301,6 +373,8 @@
     getPromotions,
     savePromotions,
     initializePromotions,
+    updatePromotions,
+    subscribePromotions,
     getCategories,
     saveCategories,
     subscribeAdmin,
@@ -308,6 +382,7 @@
     getPublicOrder,
     expireReservations,
     update,
+    verifyPayment,
     remove
   };
 })(typeof window !== "undefined" ? window : globalThis);

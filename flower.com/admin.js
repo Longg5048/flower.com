@@ -18,6 +18,7 @@ let productSearchTerm = "";
 let ordersCache = [];
 let orderStoreError = null;
 let stopOrderSubscription = null;
+let stopPromotionSubscription = null;
 let reviewsCache = [];
 let stopReviewSubscription = null;
 let categoriesCache = [];
@@ -155,9 +156,13 @@ function getOffers() {
    });
 }
 
-async function saveOffers(offers) {
-   await window.FlowerOrderStore.savePromotions(offers);
+function cacheOffers(offers) {
    window.FlowerSafeStorage.writeJson(STORAGE_KEYS.offers, offers);
+}
+
+// change(latestOffers) runs against the newest server copy, not this browser's cache.
+async function updateOffers(change) {
+   cacheOffers(await window.FlowerOrderStore.updatePromotions(change));
 }
 
 function getOrders() {
@@ -434,14 +439,14 @@ function renderProductTab() {
                <h2>${editingProduct ? "Chỉnh sửa sản phẩm" : "Thêm hoa mới"}</h2>
                <form id="add-product-form" class="product-form">
                    <input type="text" id="product-title" placeholder="Tên hoa" value="${escapeHtml(getVietnameseProductName(editingProduct?.title || ""))}" required maxlength="120">
-                   <input type="url" id="product-image" placeholder="Link hình ảnh" value="${escapeHtml(editingProduct?.image || "")}" required>
+                   <input type="text" id="product-image" placeholder="Link hình ảnh (vd ./images/flower-01.webp hoặc https://...)" value="${escapeHtml(editingProduct?.image || "")}" required>
                    <label class="field-label" for="product-category">Phân loại sản phẩm</label>
                    <select id="product-category">
                        <option value="">Chưa phân loại</option>
                        ${categories.map((category) => `<option value="${escapeHtml(category)}" ${editingProduct?.category === category ? "selected" : ""}>${escapeHtml(category)}</option>`).join("")}
                    </select>
                    <input type="number" id="product-price" placeholder="Giá (VND)" value="${editingProduct ? toVndAmount(editingProduct.price) : ""}" min="1" step="1" required>
-                   <input type="number" id="product-quantity" placeholder="Số lượng" value="${editingProduct ? Number(editingProduct.quantity) || 0 : ""}" min="0" step="1" required>
+                   <input type="number" id="product-quantity" placeholder="Số lượng" value="${editingProduct ? Number(editingProduct.quantity) || 0 : ""}" data-shown-value="${editingProduct ? Number(editingProduct.quantity) || 0 : ""}" min="0" step="1" required>
                    <textarea id="product-description" placeholder="Mô tả sản phẩm" required maxlength="1000">${escapeHtml(getVietnameseProductDescription(editingProduct?.description || ""))}</textarea>
                    <div class="product-form-actions">
                        <button type="submit" class="submit-btn">${editingProduct ? "Lưu thay đổi" : "Thêm sản phẩm"}</button>
@@ -566,10 +571,9 @@ async function addOffer(event) {
        return;
    }
 
-   const offers = getOffers();
    const allProductIds = new Set(getProducts().map((product) => String(product.id)));
    const selectedProductIds = new Set(productIds);
-   offers.push({
+   const newOffer = {
        id: (window.crypto && typeof window.crypto.randomUUID === "function")
            ? window.crypto.randomUUID()
            : String(Date.now()),
@@ -581,9 +585,9 @@ async function addOffer(event) {
            && [...allProductIds].every((id) => selectedProductIds.has(id)),
        active: true,
        createdAt: new Date().toISOString()
-   });
+   };
    try {
-       await saveOffers(offers);
+       await updateOffers((offers) => [...offers, newOffer]);
    } catch (error) {
        console.error("Không thể lưu ưu đãi dùng chung:", error);
        alert("Chưa thể lưu ưu đãi lên hệ thống. Hãy thử lại sau.");
@@ -600,7 +604,7 @@ async function updateOffer(offerId, action) {
    if (action === "delete") {
        if (!window.confirm(`Xóa ưu đãi “${offer.name}”?`)) return;
        try {
-           await saveOffers(offers.filter((item) => String(item.id) !== String(offerId)));
+           await updateOffers((latest) => latest.filter((item) => String(item.id) !== String(offerId)));
        } catch (error) {
            console.error("Không thể xóa ưu đãi dùng chung:", error);
            alert("Chưa thể cập nhật ưu đãi trên hệ thống. Hãy thử lại sau.");
@@ -608,8 +612,9 @@ async function updateOffer(offerId, action) {
        }
    } else {
        try {
-           await saveOffers(offers.map((item) => String(item.id) === String(offerId)
-               ? { ...item, active: !item.active }
+           const active = !offer.active;
+           await updateOffers((latest) => latest.map((item) => String(item.id) === String(offerId)
+               ? { ...item, active }
                : item
            ));
        } catch (error) {
@@ -850,6 +855,17 @@ function getSafeImageUrl(value) {
    }
 }
 
+// Value to store for a product image: same-site images stay relative ("./images/..."),
+// so they keep working on every domain; other sites keep their full https URL.
+function getStoredImageUrl(value) {
+   const safeImageUrl = getSafeImageUrl(value);
+   if (!safeImageUrl) return null;
+   const parsedUrl = new URL(safeImageUrl);
+   return parsedUrl.origin === window.location.origin
+       ? `.${parsedUrl.pathname}${parsedUrl.search}`
+       : safeImageUrl;
+}
+
 function toDateInput(value) {
     if (!value) return "";
     const date = new Date(value);
@@ -1077,7 +1093,7 @@ async function addNewProduct(event) {
    event.preventDefault();
    const title = document.getElementById("product-title").value.trim();
    const image = document.getElementById("product-image").value.trim();
-   const safeImageUrl = getSafeImageUrl(image);
+   const safeImageUrl = getStoredImageUrl(image);
     const priceInVnd = Number(document.getElementById("product-price").value);
    const quantity = Number(document.getElementById("product-quantity").value);
    const description = document.getElementById("product-description").value.trim();
@@ -1091,6 +1107,10 @@ async function addNewProduct(event) {
    const products = getProducts();
     const productData = { title, image: safeImageUrl, price: usdFromVnd(priceInVnd), quantity, description, category };
    const isEditing = editingProductId !== null;
+   // Keep the live stock if the admin did not touch the quantity: orders may have changed it
+   // since the form was opened.
+   const quantityInput = document.getElementById("product-quantity");
+   if (isEditing && quantityInput.value === quantityInput.dataset.shownValue) delete productData.quantity;
    const nextProducts = isEditing
        ? products.map((item) => String(item.id) === String(editingProductId) ? { ...item, ...productData } : item)
        : [...products, { id: Date.now(), ...productData }];
@@ -1126,6 +1146,10 @@ async function updateOrderStatus(orderId, status, location, estimatedDelivery) {
        alert("Không tìm thấy đơn hàng trên hệ thống dùng chung.");
        return;
    }
+   // A delivered order being cancelled: only put the flowers back in stock if they came back.
+   const wasDelivered = normalizeOrderStatus(order.status) === "Đã giao";
+   const restockSold = status === "Đã hủy" && wasDelivered
+       && window.confirm("Đơn này đã giao. Hoa có được trả lại cửa hàng không?\n\nOK: cộng lại số lượng vào kho.\nCancel: chỉ hủy đơn, không đổi tồn kho.");
    const updatedAt = new Date().toISOString();
    const markCodAsPaid = status === "Đã giao"
        && order.paymentMethod === "cod"
@@ -1147,7 +1171,7 @@ async function updateOrderStatus(orderId, status, location, estimatedDelivery) {
            estimatedDelivery,
            trackingUpdatedAt: updatedAt,
            trackingHistory: [...trackingHistory, { status, location, estimatedDelivery, updatedAt }]
-       });
+       }, { restockSold });
    } catch (error) {
        console.error("Không thể cập nhật đơn hàng trên Firestore:", error);
        alert("Chưa thể cập nhật đơn hàng dùng chung. Hãy thử lại sau.");
@@ -1164,14 +1188,10 @@ async function verifyOrderPayment(orderId) {
    );
    if (!confirmed) return;
    try {
-       await window.FlowerOrderStore.update(orderId, {
-           paymentVerified: true,
-           paymentStatus: "Đã thanh toán",
-           paidAt: new Date().toISOString()
-       });
+       await window.FlowerOrderStore.verifyPayment(orderId);
    } catch (error) {
        console.error("Không thể xác nhận thanh toán trên Firestore:", error);
-       alert("Chưa thể xác nhận thanh toán. Hãy thử lại sau.");
+       alert(error.code === "order-cancelled" ? error.message : "Chưa thể xác nhận thanh toán. Hãy thử lại sau.");
    }
 }
 
@@ -1668,7 +1688,15 @@ async function initializeAdmin() {
        }
        try {
            const promotions = await window.FlowerOrderStore.initializePromotions(getOffers());
-           window.FlowerSafeStorage.writeJson(STORAGE_KEYS.offers, promotions);
+           cacheOffers(promotions);
+           stopPromotionSubscription = await window.FlowerOrderStore.subscribePromotions((latest) => {
+               cacheOffers(latest);
+               // Refresh the open offers tab, unless the admin is part-way through the add form.
+               const form = main.querySelector("#add-offer-form");
+               const typing = form && (form.querySelector("#offer-name")?.value || form.querySelector("#offer-percent")?.value
+                   || form.querySelector('input[name="productIds"]:checked'));
+               if (form && !typing) renderOffersTab();
+           }, (error) => console.error("Không thể đồng bộ ưu đãi từ Firestore:", error));
        } catch (error) {
            console.error("Không thể đồng bộ ưu đãi dùng chung:", error);
        }
@@ -1757,6 +1785,7 @@ window.addEventListener("storage", (event) => {
 
 window.addEventListener("pagehide", () => {
    if (stopOrderSubscription) stopOrderSubscription();
+   if (stopPromotionSubscription) stopPromotionSubscription();
    if (stopReviewSubscription) stopReviewSubscription();
    if (stopCategorySubscription) stopCategorySubscription();
    if (stopMessageSubscription) stopMessageSubscription();

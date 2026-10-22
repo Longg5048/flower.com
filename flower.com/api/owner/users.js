@@ -1,4 +1,5 @@
-const { getAdminAuth, sendError, verifyRequest } = require("../../lib/firebase-admin");
+const { getAdminAuth, getAdminFirestore, sendError, verifyRequest } = require("../../lib/firebase-admin");
+const { syncAdminRole, syncAdminRoles } = require("../../lib/admin-roles");
 
 function getRole(user) {
     if (user.customClaims && user.customClaims.role === "owner") return "owner";
@@ -42,6 +43,14 @@ module.exports = async function handler(req, res) {
 
         try {
             const result = await adminAuth.listUsers(100, body.pageToken || undefined);
+            // Backfill adminRoles for admins created before it existed (see lib/admin-roles.js).
+            if (result.users.length) {
+                try {
+                    await syncAdminRoles(getAdminFirestore(), result.users);
+                } catch (error) {
+                    console.error("adminRoles backfill failed:", error.code || error.message);
+                }
+            }
             return res.status(200).json({
                 users: result.users.map((user) => ({
                     uid: user.uid,
@@ -87,6 +96,8 @@ module.exports = async function handler(req, res) {
         }
 
         await adminAuth.setCustomUserClaims(user.uid, claims);
+        // Removing the adminRoles document cuts Firestore access immediately.
+        await syncAdminRole(getAdminFirestore(), user, body.action === "grant-admin");
         try {
             await adminAuth.revokeRefreshTokens(user.uid);
         } catch (error) {

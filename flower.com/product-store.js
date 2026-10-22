@@ -250,25 +250,35 @@
         };
     }
 
-    // Writes only the products that changed and deletes only the ones listed in removedIds,
-    // so saving one product never touches (or wipes) the rest of the catalog.
-    async function writeRemoteProducts(products, removedIds = []) {
+    // Writes only the fields the admin actually changed (compared with the copy they were
+    // looking at), so saving one product never overwrites stock that orders changed meanwhile.
+    async function writeRemoteProducts(products, previousProducts) {
         const firebase = await getFirebaseApi();
         if (!firebase) return false;
         try {
             const { db, firestoreSdk } = firebase;
-            const snapshot = await firestoreSdk.getDocs(firestoreSdk.collection(db, "products"));
-            const remoteById = new Map(snapshot.docs.map((doc) => [doc.id, normalizeProduct({ ...doc.data(), id: doc.id })]));
+            const previousById = new Map(previousProducts.map((product) => [String(product.id), normalizeProduct(product)]));
+            const keptIds = new Set();
             const batch = firestoreSdk.writeBatch(db);
             let writes = 0;
             products.map(normalizeProduct).forEach((product) => {
-                const remote = remoteById.get(String(product.id));
-                if (remote && JSON.stringify(remote) === JSON.stringify(product)) return;
-                batch.set(firestoreSdk.doc(db, "products", String(product.id)), product);
+                const id = String(product.id);
+                keptIds.add(id);
+                const reference = firestoreSdk.doc(db, "products", id);
+                const previous = previousById.get(id);
+                if (!previous) {
+                    batch.set(reference, product);
+                    writes += 1;
+                    return;
+                }
+                const changedFields = Object.fromEntries(Object.entries(product)
+                    .filter(([key, value]) => key !== "id" && JSON.stringify(value) !== JSON.stringify(previous[key])));
+                if (!Object.keys(changedFields).length) return;
+                batch.update(reference, changedFields);
                 writes += 1;
             });
-            removedIds.map(String).forEach((id) => {
-                if (!remoteById.has(id)) return;
+            previousById.forEach((_product, id) => {
+                if (keptIds.has(id)) return;
                 batch.delete(firestoreSdk.doc(db, "products", id));
                 writes += 1;
             });
@@ -314,7 +324,8 @@
         }
     }
 
-    function subscribeToProducts(catalog) {
+    // Firestore is the source of truth: the cache mirrors it exactly, including deletions.
+    function subscribeToProducts() {
         if (unsubscribeProducts) return;
         getFirebaseApi().then((firebase) => {
             if (!firebase || unsubscribeProducts) return;
@@ -322,9 +333,7 @@
             unsubscribeProducts = firestoreSdk.onSnapshot(
                 firestoreSdk.collection(db, "products"),
                 (snapshot) => {
-                    if (snapshot.empty) return;
-                    const remoteProducts = snapshot.docs.map((doc) => ({ ...doc.data(), id: doc.id }));
-                    cacheProducts(mergeCatalogProducts(remoteProducts, catalog));
+                    cacheProducts(snapshot.docs.map((doc) => ({ ...doc.data(), id: doc.id })));
                 },
                 (error) => console.warn("Không nhận được cập nhật sản phẩm:", error)
             );
@@ -333,19 +342,19 @@
 
     async function saveProducts(products) {
         const normalized = deduplicateProducts(products);
-        const keptIds = new Set(normalized.map((product) => String(product.id)));
-        const removedIds = readProducts().map((product) => String(product.id)).filter((id) => !keptIds.has(id));
-        const saved = await writeRemoteProducts(normalized, removedIds);
+        const saved = await writeRemoteProducts(normalized, readProducts());
         if (!saved) {
             throw new Error("Could not synchronize the product catalog with Firestore.");
         }
         return cacheProducts(normalized);
     }
 
-    async function synchronizeProducts(localProducts, catalog) {
+    // Loads products from Firestore. flower.json is only used once, by an admin, to seed an
+    // empty catalog; after that, products an admin deleted stay deleted.
+    async function synchronizeProducts(catalog) {
         const firebase = await getFirebaseApi();
         const remoteProducts = firebase ? await readRemoteProducts() : null;
-        if (remoteProducts === null) return;
+        if (remoteProducts === null) return false;
 
         let isAdmin = false;
         try {
@@ -355,8 +364,9 @@
             console.warn("Không xác minh được quyền khởi tạo catalog:", error);
         }
 
-        let catalogSeeded = false;
+        let products = remoteProducts;
         if (isAdmin) {
+            let catalogSeeded = false;
             try {
                 const marker = await firebase.firestoreSdk.getDoc(
                     firebase.firestoreSdk.doc(firebase.db, "metadata", "productCatalog")
@@ -365,24 +375,25 @@
             } catch (error) {
                 console.warn("Không đọc được trạng thái khởi tạo catalog:", error);
             }
-        }
-
-        const existingProducts = remoteProducts.length ? remoteProducts : localProducts;
-        const products = mergeCatalogProducts(existingProducts, catalog);
-        if (isAdmin) {
+            if (!catalogSeeded) products = mergeCatalogProducts(remoteProducts, catalog);
             await syncMissingRemoteProducts(remoteProducts, products, !catalogSeeded);
         }
         cacheProducts(products);
-        subscribeToProducts(catalog);
+        subscribeToProducts();
+        return true;
     }
 
-    function startProductSynchronization(localProducts, catalog) {
-        if (synchronization) return;
-        synchronization = synchronizeProducts(localProducts, catalog)
-            .catch((error) => console.warn("Không thể đồng bộ sản phẩm:", error))
+    function startProductSynchronization(catalog) {
+        if (synchronization) return synchronization;
+        synchronization = synchronizeProducts(catalog)
+            .catch((error) => {
+                console.warn("Không thể đồng bộ sản phẩm:", error);
+                return false;
+            })
             .finally(() => {
                 synchronization = null;
             });
+        return synchronization;
     }
 
     async function initialize() {
@@ -394,16 +405,20 @@
                 const response = await fetch("./flower.json?v=2");
                 if (response.ok) {
                     const data = await response.json();
-                    catalog = Array.isArray(data.flower) ? data.flower.map((item) => ({ ...item, quantity: 10 })) : [];
+                    // Starting stock, used only when an admin seeds an empty catalog.
+                    catalog = Array.isArray(data.flower) ? data.flower.map((item) => ({ ...item, quantity: item.quantity ?? 10 })) : [];
                 }
             } catch (error) {
                 console.warn("Không tải được catalog sản phẩm:", error);
             }
 
-            const products = mergeCatalogProducts(localProducts, catalog);
-            cacheProducts(products, false);
-            startProductSynchronization(localProducts, catalog);
-            return products;
+            if (localProducts.length) {
+                startProductSynchronization(catalog);
+                return localProducts;
+            }
+            if (await startProductSynchronization(catalog)) return readProducts();
+            // Firestore unreachable on a first visit: show the catalog but nothing as in stock.
+            return deduplicateProducts(catalog.map((item) => ({ ...item, quantity: 0 })));
         })().finally(() => {
             initialization = null;
         });

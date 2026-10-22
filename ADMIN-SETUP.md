@@ -33,6 +33,28 @@ For local testing, run Vercel CLI from `flower.com` with `vercel dev` after link
    Run these commands from the `flower.com` directory. The script preserves existing custom claims, revokes the user's refresh tokens, and does not require downloading a service-account key. To identify the account by UID instead, set `OWNER_UID` and leave `OWNER_EMAIL` unset. The account must sign in again.
 6. Deploy the Vercel project. The Owner page is `/owner.html`; it can grant or remove `admin` access, but cannot create or modify Owner accounts. Use the trusted bootstrap process above for Owner changes.
 
+## Admin list in Firestore (`adminRoles`)
+
+Firestore rules accept an admin only when the ID token has `admin: true` **and** the document
+`adminRoles/{uid}` exists. The Owner page creates or deletes that document together with the
+claim, so removing an admin cuts their Firestore access immediately instead of after their ID
+token expires (up to one hour). Clients can neither read nor write `adminRoles`.
+
+When upgrading an existing deployment, keep this order so current admins keep access:
+
+1. Deploy the site (Vercel) so the Owner API and scripts know about `adminRoles`.
+2. Create the documents for existing admins, either by opening `/owner.html` as the Owner (the
+   user list backfills `adminRoles` for every listed account) or from a trusted terminal:
+
+   ```sh
+   cd flower.com
+   npm run sync-admin-roles
+   ```
+
+3. Deploy the rules: `firebase deploy --only firestore:rules`.
+
+`npm run set-admin` and `npm run set-owner` also write the document.
+
 ## Roles and access
 
 The admin page and Vercel admin API require the Firebase ID token's `admin: true` custom claim. Owner accounts have both `role: "owner"` and `admin: true`; the separate Owner API requires `role: "owner"` and verifies token revocation. The Owner page can grant or remove admin access, and each role change revokes the target user's refresh tokens. It does not allow creating Owners or changing the signed-in Owner's role. Admin account listing is paginated in batches of 100.

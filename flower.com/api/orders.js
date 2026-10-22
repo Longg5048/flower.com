@@ -37,6 +37,13 @@ async function expireOneReservation(db, orderRef, now) {
         if (!orderSnapshot.exists) return false;
         const order = orderSnapshot.data();
         const expiresAt = order.reservationExpiresAt;
+        // Only orders still waiting for the shop's confirmation expire; once an admin has
+        // confirmed or shipped an order, its stock stays reserved. Older confirmed orders may
+        // still carry a hold timer: drop it so they stop matching the cleanup query.
+        if (order.inventoryReserved === true && order.status !== "Chờ xác nhận" && expiresAt) {
+            transaction.update(orderRef, { reservationExpiresAt: FieldValue.delete() });
+            return false;
+        }
         if (order.inventoryReserved !== true || typeof expiresAt?.toMillis !== "function"
             || expiresAt.toMillis() > now.toMillis()
             || (order.paymentMethod === "qr" && order.paymentVerified === true)) return false;
@@ -62,6 +69,7 @@ async function expireOneReservation(db, orderRef, now) {
             status,
             currentLocation: location,
             inventoryReserved: false,
+            inventoryState: shouldRestoreStock ? "released" : "sold",
             reservationExpiredAt: Timestamp.fromMillis(now.toMillis()),
             ...(order.paymentMethod === "qr" && order.paymentVerified !== true
                 ? { paymentStatus: "Hết hạn chờ thanh toán" }
@@ -434,6 +442,7 @@ async function createOrder(req, res) {
                 orderNote: String(req.body.orderNote || "").trim().slice(0, 500),
                 items,
                 inventoryReserved: true,
+                inventoryState: "reserved",
                 reservationExpiresAt: Timestamp.fromMillis(now.getTime() + (
                     checkout.paymentMethod === "qr" ? QR_RESERVATION_MS : COD_RESERVATION_MS
                 ))

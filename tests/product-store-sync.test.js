@@ -69,11 +69,16 @@ const restoredFullCatalog = mergeCatalogProducts(
   fullCatalog
 );
 
+// Products that share an image or a title are still different products: only ids deduplicate.
 assert.strictEqual(fullCatalog.length, 50);
-assert.strictEqual(restoredFullCatalog.length, 27);
+assert.strictEqual(restoredFullCatalog.length, 51);
 assert.strictEqual(restoredFullCatalog.find((item) => item.id === fullCatalog[0].id).quantity, 2);
-assert.strictEqual(restoredFullCatalog.some((item) => item.id === fullCatalog[24].id), false);
+assert.strictEqual(restoredFullCatalog.find((item) => item.id === fullCatalog[24].id).quantity, 7);
 assert.strictEqual(restoredFullCatalog.find((item) => item.id === 999).title, 'Hoa tùy chỉnh');
-assert.strictEqual(new Set(restoredFullCatalog.map((item) => item.title)).size, restoredFullCatalog.length);
+assert.strictEqual(new Set(restoredFullCatalog.map((item) => String(item.id))).size, restoredFullCatalog.length);
+assert.strictEqual(
+  mergeCatalogProducts([], [{ id: 1, title: 'A', image: 'same.webp' }, { id: 2, title: 'B', image: 'same.webp' }]).length,
+  2
+);
 
 console.log('product-store sync test passed');

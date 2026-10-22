@@ -43,15 +43,10 @@
 
     function deduplicateProducts(products) {
         const uniqueProducts = new Map();
+        // Products are identified by id only: different products may share an image or a title.
         (Array.isArray(products) ? products : []).map(normalizeProduct).forEach((product) => {
-            const imageKey = String(product.image || "").trim().replace(/\\/g, "/").toLocaleLowerCase("vi");
-            const identity = imageKey || product.title.toLocaleLowerCase("vi");
-            const existing = uniqueProducts.get(identity);
-            const productId = Number(product.id);
-            const existingId = Number(existing?.id);
-            if (!existing || (Number.isFinite(productId) && (!Number.isFinite(existingId) || productId < existingId))) {
-                uniqueProducts.set(identity, product);
-            }
+            const identity = String(product.id);
+            if (!uniqueProducts.has(identity)) uniqueProducts.set(identity, product);
         });
         return Array.from(uniqueProducts.values());
     }
@@ -255,22 +250,29 @@
         };
     }
 
-    async function writeRemoteProducts(products, markCatalogSeeded = false) {
+    // Writes only the products that changed and deletes only the ones listed in removedIds,
+    // so saving one product never touches (or wipes) the rest of the catalog.
+    async function writeRemoteProducts(products, removedIds = []) {
         const firebase = await getFirebaseApi();
         if (!firebase) return false;
         try {
             const { db, firestoreSdk } = firebase;
-            const collection = firestoreSdk.collection(db, "products");
-            const snapshot = await firestoreSdk.getDocs(collection);
+            const snapshot = await firestoreSdk.getDocs(firestoreSdk.collection(db, "products"));
+            const remoteById = new Map(snapshot.docs.map((doc) => [doc.id, normalizeProduct({ ...doc.data(), id: doc.id })]));
             const batch = firestoreSdk.writeBatch(db);
-            snapshot.docs.forEach((doc) => batch.delete(doc.ref));
+            let writes = 0;
             products.map(normalizeProduct).forEach((product) => {
+                const remote = remoteById.get(String(product.id));
+                if (remote && JSON.stringify(remote) === JSON.stringify(product)) return;
                 batch.set(firestoreSdk.doc(db, "products", String(product.id)), product);
+                writes += 1;
             });
-            if (markCatalogSeeded) {
-                batch.set(firestoreSdk.doc(db, "metadata", "productCatalog"), { catalogSeeded: true });
-            }
-            await batch.commit();
+            removedIds.map(String).forEach((id) => {
+                if (!remoteById.has(id)) return;
+                batch.delete(firestoreSdk.doc(db, "products", id));
+                writes += 1;
+            });
+            if (writes) await batch.commit();
             return true;
         } catch (error) {
             console.warn("Không ghi được sản phẩm lên Firestore:", error);
@@ -331,7 +333,9 @@
 
     async function saveProducts(products) {
         const normalized = deduplicateProducts(products);
-        const saved = await writeRemoteProducts(normalized);
+        const keptIds = new Set(normalized.map((product) => String(product.id)));
+        const removedIds = readProducts().map((product) => String(product.id)).filter((id) => !keptIds.has(id));
+        const saved = await writeRemoteProducts(normalized, removedIds);
         if (!saved) {
             throw new Error("Could not synchronize the product catalog with Firestore.");
         }

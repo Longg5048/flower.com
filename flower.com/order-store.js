@@ -304,7 +304,9 @@
         transaction.update(snapshot.ref, { quantity: quantity + stockChange * orderQuantity });
       });
 
-      const reserveAgain = state === "released" && nextState === "reserved";
+      // The hold timer only applies while the order waits for confirmation.
+      const waitsForConfirmation = changes.status === "Chờ xác nhận";
+      const reserveAgain = state === "released" && nextState === "reserved" && waitsForConfirmation;
       transaction.update(orderRef, {
         ...changes,
         inventoryState: nextState,
@@ -315,7 +317,7 @@
           ))),
           reservationExpiredAt: firestoreSdk.deleteField()
         } : {}),
-        ...(nextState !== "reserved" ? { reservationExpiresAt: firestoreSdk.deleteField() } : {})
+        ...(!waitsForConfirmation ? { reservationExpiresAt: firestoreSdk.deleteField() } : {})
       });
     });
   }

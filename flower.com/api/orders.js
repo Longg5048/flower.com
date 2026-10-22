@@ -37,6 +37,13 @@ async function expireOneReservation(db, orderRef, now) {
         if (!orderSnapshot.exists) return false;
         const order = orderSnapshot.data();
         const expiresAt = order.reservationExpiresAt;
+        // Only orders still waiting for the shop's confirmation expire; once an admin has
+        // confirmed or shipped an order, its stock stays reserved. Older confirmed orders may
+        // still carry a hold timer: drop it so they stop matching the cleanup query.
+        if (order.inventoryReserved === true && order.status !== "Chờ xác nhận" && expiresAt) {
+            transaction.update(orderRef, { reservationExpiresAt: FieldValue.delete() });
+            return false;
+        }
         if (order.inventoryReserved !== true || typeof expiresAt?.toMillis !== "function"
             || expiresAt.toMillis() > now.toMillis()
             || (order.paymentMethod === "qr" && order.paymentVerified === true)) return false;

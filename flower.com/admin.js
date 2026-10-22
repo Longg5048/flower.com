@@ -434,7 +434,7 @@ function renderProductTab() {
                <h2>${editingProduct ? "Chỉnh sửa sản phẩm" : "Thêm hoa mới"}</h2>
                <form id="add-product-form" class="product-form">
                    <input type="text" id="product-title" placeholder="Tên hoa" value="${escapeHtml(getVietnameseProductName(editingProduct?.title || ""))}" required maxlength="120">
-                   <input type="url" id="product-image" placeholder="Link hình ảnh" value="${escapeHtml(editingProduct?.image || "")}" required>
+                   <input type="text" id="product-image" placeholder="Link hình ảnh (vd ./images/flower-01.webp hoặc https://...)" value="${escapeHtml(editingProduct?.image || "")}" required>
                    <label class="field-label" for="product-category">Phân loại sản phẩm</label>
                    <select id="product-category">
                        <option value="">Chưa phân loại</option>
@@ -850,6 +850,17 @@ function getSafeImageUrl(value) {
    }
 }
 
+// Value to store for a product image: same-site images stay relative ("./images/..."),
+// so they keep working on every domain; other sites keep their full https URL.
+function getStoredImageUrl(value) {
+   const safeImageUrl = getSafeImageUrl(value);
+   if (!safeImageUrl) return null;
+   const parsedUrl = new URL(safeImageUrl);
+   return parsedUrl.origin === window.location.origin
+       ? `.${parsedUrl.pathname}${parsedUrl.search}`
+       : safeImageUrl;
+}
+
 function toDateInput(value) {
     if (!value) return "";
     const date = new Date(value);
@@ -1077,7 +1088,7 @@ async function addNewProduct(event) {
    event.preventDefault();
    const title = document.getElementById("product-title").value.trim();
    const image = document.getElementById("product-image").value.trim();
-   const safeImageUrl = getSafeImageUrl(image);
+   const safeImageUrl = getStoredImageUrl(image);
     const priceInVnd = Number(document.getElementById("product-price").value);
    const quantity = Number(document.getElementById("product-quantity").value);
    const description = document.getElementById("product-description").value.trim();

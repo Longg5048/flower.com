@@ -1142,6 +1142,10 @@ async function updateOrderStatus(orderId, status, location, estimatedDelivery) {
        alert("Không tìm thấy đơn hàng trên hệ thống dùng chung.");
        return;
    }
+   // A delivered order being cancelled: only put the flowers back in stock if they came back.
+   const wasDelivered = normalizeOrderStatus(order.status) === "Đã giao";
+   const restockSold = status === "Đã hủy" && wasDelivered
+       && window.confirm("Đơn này đã giao. Hoa có được trả lại cửa hàng không?\n\nOK: cộng lại số lượng vào kho.\nCancel: chỉ hủy đơn, không đổi tồn kho.");
    const updatedAt = new Date().toISOString();
    const markCodAsPaid = status === "Đã giao"
        && order.paymentMethod === "cod"
@@ -1163,7 +1167,7 @@ async function updateOrderStatus(orderId, status, location, estimatedDelivery) {
            estimatedDelivery,
            trackingUpdatedAt: updatedAt,
            trackingHistory: [...trackingHistory, { status, location, estimatedDelivery, updatedAt }]
-       });
+       }, { restockSold });
    } catch (error) {
        console.error("Không thể cập nhật đơn hàng trên Firestore:", error);
        alert("Chưa thể cập nhật đơn hàng dùng chung. Hãy thử lại sau.");

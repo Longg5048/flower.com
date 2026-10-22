@@ -62,6 +62,7 @@ async function expireOneReservation(db, orderRef, now) {
             status,
             currentLocation: location,
             inventoryReserved: false,
+            inventoryState: shouldRestoreStock ? "released" : "sold",
             reservationExpiredAt: Timestamp.fromMillis(now.toMillis()),
             ...(order.paymentMethod === "qr" && order.paymentVerified !== true
                 ? { paymentStatus: "Hết hạn chờ thanh toán" }
@@ -434,6 +435,7 @@ async function createOrder(req, res) {
                 orderNote: String(req.body.orderNote || "").trim().slice(0, 500),
                 items,
                 inventoryReserved: true,
+                inventoryState: "reserved",
                 reservationExpiresAt: Timestamp.fromMillis(now.getTime() + (
                     checkout.paymentMethod === "qr" ? QR_RESERVATION_MS : COD_RESERVATION_MS
                 ))

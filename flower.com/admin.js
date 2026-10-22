@@ -18,6 +18,7 @@ let productSearchTerm = "";
 let ordersCache = [];
 let orderStoreError = null;
 let stopOrderSubscription = null;
+let stopPromotionSubscription = null;
 let reviewsCache = [];
 let stopReviewSubscription = null;
 let categoriesCache = [];
@@ -155,9 +156,13 @@ function getOffers() {
    });
 }
 
-async function saveOffers(offers) {
-   await window.FlowerOrderStore.savePromotions(offers);
+function cacheOffers(offers) {
    window.FlowerSafeStorage.writeJson(STORAGE_KEYS.offers, offers);
+}
+
+// change(latestOffers) runs against the newest server copy, not this browser's cache.
+async function updateOffers(change) {
+   cacheOffers(await window.FlowerOrderStore.updatePromotions(change));
 }
 
 function getOrders() {
@@ -566,10 +571,9 @@ async function addOffer(event) {
        return;
    }
 
-   const offers = getOffers();
    const allProductIds = new Set(getProducts().map((product) => String(product.id)));
    const selectedProductIds = new Set(productIds);
-   offers.push({
+   const newOffer = {
        id: (window.crypto && typeof window.crypto.randomUUID === "function")
            ? window.crypto.randomUUID()
            : String(Date.now()),
@@ -581,9 +585,9 @@ async function addOffer(event) {
            && [...allProductIds].every((id) => selectedProductIds.has(id)),
        active: true,
        createdAt: new Date().toISOString()
-   });
+   };
    try {
-       await saveOffers(offers);
+       await updateOffers((offers) => [...offers, newOffer]);
    } catch (error) {
        console.error("Không thể lưu ưu đãi dùng chung:", error);
        alert("Chưa thể lưu ưu đãi lên hệ thống. Hãy thử lại sau.");
@@ -600,7 +604,7 @@ async function updateOffer(offerId, action) {
    if (action === "delete") {
        if (!window.confirm(`Xóa ưu đãi “${offer.name}”?`)) return;
        try {
-           await saveOffers(offers.filter((item) => String(item.id) !== String(offerId)));
+           await updateOffers((latest) => latest.filter((item) => String(item.id) !== String(offerId)));
        } catch (error) {
            console.error("Không thể xóa ưu đãi dùng chung:", error);
            alert("Chưa thể cập nhật ưu đãi trên hệ thống. Hãy thử lại sau.");
@@ -608,8 +612,9 @@ async function updateOffer(offerId, action) {
        }
    } else {
        try {
-           await saveOffers(offers.map((item) => String(item.id) === String(offerId)
-               ? { ...item, active: !item.active }
+           const active = !offer.active;
+           await updateOffers((latest) => latest.map((item) => String(item.id) === String(offerId)
+               ? { ...item, active }
                : item
            ));
        } catch (error) {
@@ -1679,7 +1684,15 @@ async function initializeAdmin() {
        }
        try {
            const promotions = await window.FlowerOrderStore.initializePromotions(getOffers());
-           window.FlowerSafeStorage.writeJson(STORAGE_KEYS.offers, promotions);
+           cacheOffers(promotions);
+           stopPromotionSubscription = await window.FlowerOrderStore.subscribePromotions((latest) => {
+               cacheOffers(latest);
+               // Refresh the open offers tab, unless the admin is part-way through the add form.
+               const form = main.querySelector("#add-offer-form");
+               const typing = form && (form.querySelector("#offer-name")?.value || form.querySelector("#offer-percent")?.value
+                   || form.querySelector('input[name="productIds"]:checked'));
+               if (form && !typing) renderOffersTab();
+           }, (error) => console.error("Không thể đồng bộ ưu đãi từ Firestore:", error));
        } catch (error) {
            console.error("Không thể đồng bộ ưu đãi dùng chung:", error);
        }
@@ -1768,6 +1781,7 @@ window.addEventListener("storage", (event) => {
 
 window.addEventListener("pagehide", () => {
    if (stopOrderSubscription) stopOrderSubscription();
+   if (stopPromotionSubscription) stopPromotionSubscription();
    if (stopReviewSubscription) stopReviewSubscription();
    if (stopCategorySubscription) stopCategorySubscription();
    if (stopMessageSubscription) stopMessageSubscription();

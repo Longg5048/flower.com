@@ -122,6 +122,31 @@
     return getPromotions();
   }
 
+  // Applies change(items) to the latest promotions inside a transaction, so two admins
+  // editing at the same time never overwrite each other's promotions.
+  async function updatePromotions(change) {
+    const { auth, db, firestoreSdk } = await getFirebase();
+    await auth.authStateReady();
+    if (!auth.currentUser || (await auth.currentUser.getIdTokenResult()).claims.admin !== true) {
+      throw new Error("Chỉ quản trị viên mới được thay đổi ưu đãi.");
+    }
+    const reference = firestoreSdk.doc(db, "metadata", "activePromotions");
+    return firestoreSdk.runTransaction(db, async (transaction) => {
+      const snapshot = await transaction.get(reference);
+      const current = snapshot.exists() && Array.isArray(snapshot.data().items) ? snapshot.data().items : [];
+      const items = change(current.map((item) => ({ ...item })));
+      transaction.set(reference, { items, updatedAt: firestoreSdk.serverTimestamp() });
+      return items;
+    });
+  }
+
+  async function subscribePromotions(onPromotions, onError = () => {}) {
+    const { db, firestoreSdk } = await getFirebase();
+    return firestoreSdk.onSnapshot(firestoreSdk.doc(db, "metadata", "activePromotions"), (snapshot) => {
+      onPromotions(snapshot.exists() && Array.isArray(snapshot.data().items) ? snapshot.data().items : []);
+    }, onError);
+  }
+
   // Admin-defined categories, kept even when no product uses them yet.
   async function getCategories() {
     const { db, firestoreSdk } = await getFirebase();
@@ -301,6 +326,8 @@
     getPromotions,
     savePromotions,
     initializePromotions,
+    updatePromotions,
+    subscribePromotions,
     getCategories,
     saveCategories,
     subscribeAdmin,

@@ -250,25 +250,35 @@
         };
     }
 
-    // Writes only the products that changed and deletes only the ones listed in removedIds,
-    // so saving one product never touches (or wipes) the rest of the catalog.
-    async function writeRemoteProducts(products, removedIds = []) {
+    // Writes only the fields the admin actually changed (compared with the copy they were
+    // looking at), so saving one product never overwrites stock that orders changed meanwhile.
+    async function writeRemoteProducts(products, previousProducts) {
         const firebase = await getFirebaseApi();
         if (!firebase) return false;
         try {
             const { db, firestoreSdk } = firebase;
-            const snapshot = await firestoreSdk.getDocs(firestoreSdk.collection(db, "products"));
-            const remoteById = new Map(snapshot.docs.map((doc) => [doc.id, normalizeProduct({ ...doc.data(), id: doc.id })]));
+            const previousById = new Map(previousProducts.map((product) => [String(product.id), normalizeProduct(product)]));
+            const keptIds = new Set();
             const batch = firestoreSdk.writeBatch(db);
             let writes = 0;
             products.map(normalizeProduct).forEach((product) => {
-                const remote = remoteById.get(String(product.id));
-                if (remote && JSON.stringify(remote) === JSON.stringify(product)) return;
-                batch.set(firestoreSdk.doc(db, "products", String(product.id)), product);
+                const id = String(product.id);
+                keptIds.add(id);
+                const reference = firestoreSdk.doc(db, "products", id);
+                const previous = previousById.get(id);
+                if (!previous) {
+                    batch.set(reference, product);
+                    writes += 1;
+                    return;
+                }
+                const changedFields = Object.fromEntries(Object.entries(product)
+                    .filter(([key, value]) => key !== "id" && JSON.stringify(value) !== JSON.stringify(previous[key])));
+                if (!Object.keys(changedFields).length) return;
+                batch.update(reference, changedFields);
                 writes += 1;
             });
-            removedIds.map(String).forEach((id) => {
-                if (!remoteById.has(id)) return;
+            previousById.forEach((_product, id) => {
+                if (keptIds.has(id)) return;
                 batch.delete(firestoreSdk.doc(db, "products", id));
                 writes += 1;
             });
@@ -333,9 +343,7 @@
 
     async function saveProducts(products) {
         const normalized = deduplicateProducts(products);
-        const keptIds = new Set(normalized.map((product) => String(product.id)));
-        const removedIds = readProducts().map((product) => String(product.id)).filter((id) => !keptIds.has(id));
-        const saved = await writeRemoteProducts(normalized, removedIds);
+        const saved = await writeRemoteProducts(normalized, readProducts());
         if (!saved) {
             throw new Error("Could not synchronize the product catalog with Firestore.");
         }

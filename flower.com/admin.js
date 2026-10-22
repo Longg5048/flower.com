@@ -446,7 +446,7 @@ function renderProductTab() {
                        ${categories.map((category) => `<option value="${escapeHtml(category)}" ${editingProduct?.category === category ? "selected" : ""}>${escapeHtml(category)}</option>`).join("")}
                    </select>
                    <input type="number" id="product-price" placeholder="Giá (VND)" value="${editingProduct ? toVndAmount(editingProduct.price) : ""}" min="1" step="1" required>
-                   <input type="number" id="product-quantity" placeholder="Số lượng" value="${editingProduct ? Number(editingProduct.quantity) || 0 : ""}" min="0" step="1" required>
+                   <input type="number" id="product-quantity" placeholder="Số lượng" value="${editingProduct ? Number(editingProduct.quantity) || 0 : ""}" data-shown-value="${editingProduct ? Number(editingProduct.quantity) || 0 : ""}" min="0" step="1" required>
                    <textarea id="product-description" placeholder="Mô tả sản phẩm" required maxlength="1000">${escapeHtml(getVietnameseProductDescription(editingProduct?.description || ""))}</textarea>
                    <div class="product-form-actions">
                        <button type="submit" class="submit-btn">${editingProduct ? "Lưu thay đổi" : "Thêm sản phẩm"}</button>
@@ -1107,6 +1107,10 @@ async function addNewProduct(event) {
    const products = getProducts();
     const productData = { title, image: safeImageUrl, price: usdFromVnd(priceInVnd), quantity, description, category };
    const isEditing = editingProductId !== null;
+   // Keep the live stock if the admin did not touch the quantity: orders may have changed it
+   // since the form was opened.
+   const quantityInput = document.getElementById("product-quantity");
+   if (isEditing && quantityInput.value === quantityInput.dataset.shownValue) delete productData.quantity;
    const nextProducts = isEditing
        ? products.map((item) => String(item.id) === String(editingProductId) ? { ...item, ...productData } : item)
        : [...products, { id: Date.now(), ...productData }];

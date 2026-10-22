@@ -403,6 +403,13 @@ const flowerCategoryLabels = {
   mixed: "Hoa tổng hợp"
 }
 
+// ?flower=rose etc. from the homepage, menu and footer; cleared when the shopper picks
+// another category from the filter.
+let activeFlowerType = Object.prototype.hasOwnProperty.call(flowerCategoryLabels, initialFlowerType) ? initialFlowerType : ""
+if (activeFlowerType && !initialCategory) {
+  document.getElementById("catalog-title").textContent = flowerCategoryLabels[activeFlowerType]
+}
+
 function getAdminCategories() {
   return FlowerInventory.readCategories()
 }
@@ -440,6 +447,7 @@ function populateFlowerCategoryFilter() {
     )
     if (matchingOption) {
       flowerTypeSelect.value = matchingOption.value
+      activeFlowerType = ""
       initialCategoryApplied = true
     } else if (!initialFlowerType) {
       initialCategoryApplied = true
@@ -449,7 +457,8 @@ function populateFlowerCategoryFilter() {
 
 function getProductCategory(product) {
   if (product.category) return product.category
-  return flowerCategoryLabels[getFlowerTypes(product)[0]] || flowerCategoryLabels.mixed
+  const types = getFlowerTypes(product)
+  return types.length === 1 ? flowerCategoryLabels[types[0]] : flowerCategoryLabels.mixed
 }
 
 function getProductImages(product) {
@@ -601,29 +610,31 @@ function normalizeSearchText(value) {
   return value.toLocaleLowerCase("vi").normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/đ/g, "d")
 }
 
+// Keywords are matched on title + description without Vietnamese diacritics.
+const flowerTypeKeywords = {
+  rose: /\b(hoa hong|bo hong|gio hong|roses?)\b/,
+  orchid: /\b(hoa lan|lan ho diep|orchids?)\b/,
+  lily: /\b(hoa ly|lily|lilies)\b/,
+  lavender: /\b(oai huong|lavender)\b/,
+  gerber: /\b(dong tien|gerberas?|gerbers?)\b/,
+  tulip: /\btulips?\b/,
+  hydrangea: /\b(cam tu cau|hydrangeas?)\b/,
+  peony: /\b(mau don|peony|peonies)\b/,
+  carnation: /\b(cam chuong|carnations?)\b/,
+  sunflower: /\b(huong duong|sunflowers?)\b/,
+  babyBreath: /\b(hoa bi|baby'?s breath|gypsophila)\b/,
+  iris: /\b(dien vi|iris|irises)\b/
+}
+
+// Flower species found in a product; a bouquet with zero or several species is "mixed".
 function getFlowerTypes(product) {
-  const productDetails = `${product.title} ${product.description}`.toLocaleLowerCase("en")
-  const types = []
-  const typeKeywords = {
-    rose: /\broses?\b/,
-    orchid: /\borchids?\b/,
-    lily: /\blilies?\b|\blily\b/,
-    lavender: /\blavender\b/,
-    gerber: /\bgerbera?s?\b|\bgerbers?\b|\bdais(?:y|ies)\b/,
-    tulip: /\btulips?\b/,
-    hydrangea: /\bhydrangeas?\b/,
-    peony: /\bpeonies\b|\bpeony\b/,
-    carnation: /\bcarnations?\b/,
-    sunflower: /\bsunflowers?\b/,
-    babyBreath: /\bbaby'?s breath\b|\bgypsophila\b/,
-    iris: /\birises?\b|\biris\b/
-  }
+  const productDetails = normalizeSearchText(`${product.title} ${product.description}`)
+  const types = Object.keys(flowerTypeKeywords).filter((type) => flowerTypeKeywords[type].test(productDetails))
+  return types.length === 1 ? types : [...types, "mixed"]
+}
 
-  Object.entries(typeKeywords).forEach(([type, keyword]) => {
-    if (keyword.test(productDetails)) types.push(type)
-  })
-
-  return types.length ? types : ["mixed"]
+function productHasFlowerType(product, type) {
+  return getFlowerTypes(product).includes(type)
 }
 
 function renderProducts() {
@@ -641,6 +652,7 @@ function renderProducts() {
     const matchesFlowerType = !flowerType
       || normalizeSearchText(String(product.category || "")) === normalizeSearchText(flowerType.slice("category:".length))
     const matchesCategory = FlowerProductCategories.matchesCategory(product, initialCategoryKey)
+      && (!activeFlowerType || productHasFlowerType(product, activeFlowerType))
     const priceInVnd = toVndAmount(product.price)
     let matchesPrice = true
 
@@ -698,7 +710,10 @@ function renderProducts() {
 }
 
 sortSelect.addEventListener("change", renderProducts)
-flowerTypeSelect.addEventListener("change", renderProducts)
+flowerTypeSelect.addEventListener("change", () => {
+  activeFlowerType = ""
+  renderProducts()
+})
 priceFilterSelect.addEventListener("change", renderProducts)
 searchButton.addEventListener("click", renderProducts)
 searchInput.addEventListener("input", renderProducts)

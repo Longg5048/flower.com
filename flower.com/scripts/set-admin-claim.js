@@ -1,5 +1,7 @@
 const { applicationDefault, initializeApp } = require("firebase-admin/app");
 const { getAuth } = require("firebase-admin/auth");
+const { getFirestore } = require("firebase-admin/firestore");
+const { syncAdminRole } = require("../lib/admin-roles");
 
 const email = process.env.ADMIN_EMAIL?.trim().toLowerCase();
 const projectId = process.env.GOOGLE_CLOUD_PROJECT || "web-ban-hoa-9fe0b";
@@ -13,10 +15,10 @@ if (!email) {
         projectId
     });
     getAuth().getUserByEmail(email)
-        .then((user) => getAuth().setCustomUserClaims(user.uid, {
-            ...user.customClaims,
-            admin: true
-        }))
+        .then(async (user) => {
+            await getAuth().setCustomUserClaims(user.uid, { ...user.customClaims, admin: true });
+            await syncAdminRole(getFirestore(), await getAuth().getUser(user.uid), true);
+        })
         .then(() => {
             console.log(`Granted admin access to ${email}. Sign out and sign in again to refresh the token.`);
         })

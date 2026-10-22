@@ -53,7 +53,7 @@ async function expireOneReservation(db, orderRef, now) {
         const status = shouldRestoreStock ? "Đã hủy" : order.status;
         const location = shouldRestoreStock ? "Đơn hàng hết thời hạn giữ sản phẩm" : order.currentLocation || "";
         productSnapshots.forEach((snapshot, index) => {
-            if (!snapshot.exists()) return;
+            if (!snapshot.exists) return;
             const currentQuantity = Number(snapshot.data().quantity) || 0;
             transaction.update(snapshot.ref, { quantity: currentQuantity + items[index].quantity });
         });
@@ -97,6 +97,15 @@ async function expireReservations(db, maxOrders = 500) {
         if (batchReleased === 0) break;
     }
     return released;
+}
+
+// Cleanup must never block quoting or ordering: log and continue.
+async function releaseExpiredReservations(db) {
+    try {
+        await expireReservations(db);
+    } catch (error) {
+        console.error("Reservation cleanup failed:", error.code || error.message);
+    }
 }
 
 function serializeTimestamp(value) {
@@ -224,7 +233,7 @@ async function quoteOrder(req, res) {
     if (!quote) return sendError(res, 400, "invalid-checkout", "Danh sách sản phẩm không hợp lệ.");
     try {
         const db = getAdminFirestore();
-        await expireReservations(db);
+        await releaseExpiredReservations(db);
         const productRefs = quote.items.map((item) => db.collection("products").doc(item.id));
         const [products, promotionsSnapshot] = await Promise.all([
             db.getAll(...productRefs),
@@ -305,7 +314,7 @@ async function createOrder(req, res) {
     try {
         const user = await optionalAuthenticatedUser(req);
         const db = getAdminFirestore();
-        await expireReservations(db);
+        await releaseExpiredReservations(db);
         const idempotencyRef = db.collection("orderRequests").doc(checkout.idempotencyKey);
         const productRefs = checkout.items.map((item) => db.collection("products").doc(item.id));
         const promotionsRef = db.collection("metadata").doc("activePromotions");

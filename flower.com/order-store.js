@@ -320,6 +320,28 @@
     });
   }
 
+  // Marks a QR transfer as received. Runs in a transaction so it cannot land on an order
+  // that the reservation cleanup has just cancelled and restocked.
+  async function verifyPayment(id) {
+    const { db, firestoreSdk } = await getFirebase();
+    const orderRef = firestoreSdk.doc(db, "orders", String(id));
+    await firestoreSdk.runTransaction(db, async (transaction) => {
+      const snapshot = await transaction.get(orderRef);
+      if (!snapshot.exists()) throw new Error("Không tìm thấy đơn hàng.");
+      const order = snapshot.data();
+      if (order.status === "Đã hủy" || inventoryStateOf(order) === "released") {
+        const error = new Error("Đơn này đã bị hủy (có thể do hết hạn giữ hàng) nên không xác nhận thanh toán được. Hãy khôi phục đơn trước nếu khách đã chuyển tiền.");
+        error.code = "order-cancelled";
+        throw error;
+      }
+      transaction.update(orderRef, {
+        paymentVerified: true,
+        paymentStatus: "Đã thanh toán",
+        paidAt: new Date().toISOString()
+      });
+    });
+  }
+
   async function remove(id) {
     const { db, firestoreSdk } = await getFirebase();
     const orderRef = firestoreSdk.doc(db, "orders", String(id));
@@ -358,6 +380,7 @@
     getPublicOrder,
     expireReservations,
     update,
+    verifyPayment,
     remove
   };
 })(typeof window !== "undefined" ? window : globalThis);

@@ -1188,14 +1188,10 @@ async function verifyOrderPayment(orderId) {
    );
    if (!confirmed) return;
    try {
-       await window.FlowerOrderStore.update(orderId, {
-           paymentVerified: true,
-           paymentStatus: "Đã thanh toán",
-           paidAt: new Date().toISOString()
-       });
+       await window.FlowerOrderStore.verifyPayment(orderId);
    } catch (error) {
        console.error("Không thể xác nhận thanh toán trên Firestore:", error);
-       alert("Chưa thể xác nhận thanh toán. Hãy thử lại sau.");
+       alert(error.code === "order-cancelled" ? error.message : "Chưa thể xác nhận thanh toán. Hãy thử lại sau.");
    }
 }
 

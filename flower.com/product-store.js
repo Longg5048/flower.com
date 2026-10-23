@@ -6,6 +6,7 @@
     let firebaseApiPromise;
     let unsubscribeProducts;
     let unsubscribeCategories;
+    let catalogProducts = [];
 
     function storage() {
         try {
@@ -407,6 +408,7 @@
                     const data = await response.json();
                     // Starting stock, used only when an admin seeds an empty catalog.
                     catalog = Array.isArray(data.flower) ? data.flower.map((item) => ({ ...item, quantity: item.quantity ?? 10 })) : [];
+                    catalogProducts = catalog;
                 }
             } catch (error) {
                 console.warn("Không tải được catalog sản phẩm:", error);
@@ -425,8 +427,39 @@
         return initialization;
     }
 
+    // Products of flower.json that are not in the shop any more (lost or deleted).
+    function getMissingCatalogProducts() {
+        const shopIds = new Set(readProducts().map((product) => String(product.id)));
+        return catalogProducts.filter((product) => !shopIds.has(String(normalizeProduct(product).id)));
+    }
+
+    // Admin only: adds back the flower.json products that are missing from Firestore, with their
+    // starting stock. Products that still exist are not touched.
+    async function restoreCatalogProducts() {
+        const firebase = await getFirebaseApi();
+        if (!firebase) throw new Error("Không kết nối được Firestore.");
+        await firebase.auth.authStateReady();
+        const user = firebase.auth.currentUser;
+        if (!user || (await user.getIdTokenResult()).claims.admin !== true) {
+            throw new Error("Chỉ quản trị viên mới được khôi phục sản phẩm.");
+        }
+        const remoteProducts = await readRemoteProducts();
+        if (remoteProducts === null) throw new Error("Không đọc được sản phẩm trên Firestore.");
+        const remoteIds = new Set(remoteProducts.map((product) => String(product.id)));
+        const missing = catalogProducts.map(normalizeProduct).filter((product) => !remoteIds.has(String(product.id)));
+        const { db, firestoreSdk } = firebase;
+        const batch = firestoreSdk.writeBatch(db);
+        missing.forEach((product) => batch.set(firestoreSdk.doc(db, "products", String(product.id)), product));
+        batch.set(firestoreSdk.doc(db, "metadata", "productCatalog"), { catalogSeeded: true });
+        await batch.commit();
+        cacheProducts([...remoteProducts, ...missing]);
+        return missing.length;
+    }
+
     const api = {
         initialize,
+        getMissingCatalogProducts,
+        restoreCatalogProducts,
         readProducts,
         saveProducts,
         mergeCatalogProducts,

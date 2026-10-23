@@ -1179,3 +1179,23 @@ nav button {
     cursor: not-allowed;
     opacity: 0.6;
 }
+
+.restore-catalog-notice {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin: 0 0 18px;
+    padding: 14px 16px;
+    border: 1px solid #f2b8c6;
+    border-radius: 14px;
+    background: #fff4f7;
+    color: #6b2138;
+}
+
+.restore-catalog-notice p {
+    flex: 1 1 320px;
+    margin: 0;
+    line-height: 1.5;
+}

@@ -208,6 +208,7 @@ function renderDashboard() {
 
    main.innerHTML = `
        <section class="dashboard">
+           ${renderRestoreCatalogNotice()}
            <div class="summary">
                <div class="summary-card">
                    <h3>Tổng sản phẩm</h3>
@@ -381,6 +382,34 @@ function renderRevenueTab() {
    });
 }
 
+// Shown when products of the original catalog (flower.json) are missing from the shop.
+function renderRestoreCatalogNotice() {
+   const missingCount = FlowerInventory.getMissingCatalogProducts().length;
+   if (!missingCount) return "";
+   return `
+       <div class="restore-catalog-notice" role="status">
+           <p><strong>Cửa hàng đang thiếu ${missingCount} sản phẩm so với danh mục gốc.</strong>
+           Sản phẩm có thể đã bị xóa do lỗi lưu kho trước đây. Khôi phục sẽ thêm lại các sản phẩm còn thiếu với tồn kho ban đầu; sản phẩm đang có giữ nguyên.</p>
+           <button class="primary-btn" type="button" data-action="restore-catalog">Khôi phục ${missingCount} sản phẩm</button>
+       </div>
+   `;
+}
+
+async function restoreCatalog() {
+   const missingCount = FlowerInventory.getMissingCatalogProducts().length;
+   if (!missingCount || !window.confirm(`Thêm lại ${missingCount} sản phẩm còn thiếu từ danh mục gốc?\n\nNếu có sản phẩm bạn cố ý xóa, chúng cũng sẽ được thêm lại; bạn có thể xóa lại sau.`)) return;
+   try {
+       const restored = await FlowerInventory.restoreCatalogProducts();
+       alert(`Đã khôi phục ${restored} sản phẩm.`);
+   } catch (error) {
+       console.error("Không thể khôi phục sản phẩm:", error);
+       alert(error.message || "Chưa thể khôi phục sản phẩm. Hãy thử lại sau.");
+   }
+   const heading = main.querySelector(".panel h2")?.textContent;
+   if (heading === "Quản lý kho hoa") renderProductTab();
+   else renderDashboard();
+}
+
 function renderProductTab() {
    const products = getProducts();
    const categories = getCategories();
@@ -393,6 +422,7 @@ function renderProductTab() {
        <section class="panel-wrap">
            <div class="panel">
                <h2>Quản lý kho hoa</h2>
+               ${renderRestoreCatalogNotice()}
                <form id="product-search-form" class="product-search" role="search">
                    <label class="visually-hidden" for="product-search">Tìm sản phẩm</label>
                    <input id="product-search" name="search" type="search" placeholder="Tìm theo tên hoặc mô tả..." value="${escapeHtml(productSearchTerm)}">
@@ -1540,6 +1570,10 @@ main.addEventListener("click", (event) => {
    }
 
    const actionButton = event.target.closest("[data-action]");
+   if (actionButton?.dataset.action === "restore-catalog") {
+       restoreCatalog();
+       return;
+   }
    if (actionButton?.dataset.action === "clear-search") {
        productSearchTerm = "";
        renderProductTab();

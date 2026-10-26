@@ -384,17 +384,15 @@ function renderRevenueTab() {
 
 // Shown when products of the original catalog (flower.json) are missing from the shop.
 function renderRestoreCatalogNotice() {
+   let offlineNotice = "";
    if (FlowerInventory.isFirestoreReachable() === false) {
-       return `
-           <div class="restore-catalog-notice" role="alert">
-               <p><strong>Trình duyệt không kết nối được Firestore.</strong>
-               Số liệu đang hiển thị có thể cũ hoặc trống. Hãy kiểm tra mạng (Wi-Fi trường/công ty có thể chặn Firebase), tắt tiện ích chặn quảng cáo cho trang này, rồi tải lại trang.</p>
-           </div>
-       `;
+       offlineNotice = FlowerInventory.areProductsLoaded()
+           ? `<div class="restore-catalog-notice" role="alert"><p><strong>Trình duyệt không kết nối trực tiếp được Firestore</strong> (mạng có thể đang chặn Firebase). Sản phẩm đang được đọc qua máy chủ; đơn hàng, ưu đãi và thao tác lưu trên trang này có thể chưa hoạt động. Hãy thử mạng khác (ví dụ 4G) nếu cần chỉnh sửa.</p></div>`
+           : `<div class="restore-catalog-notice" role="alert"><p><strong>Không đọc được kho sản phẩm</strong> cả từ trình duyệt lẫn qua máy chủ. Hãy kiểm tra mạng rồi tải lại trang.</p></div>`;
    }
    const missingCount = FlowerInventory.getMissingCatalogProducts().length;
-   if (!missingCount) return "";
-   return `
+   if (!missingCount) return offlineNotice;
+   return offlineNotice + `
        <div class="restore-catalog-notice" role="status">
            <p><strong>Cửa hàng đang thiếu ${missingCount} sản phẩm so với danh mục gốc.</strong>
            Sản phẩm có thể đã bị xóa do lỗi lưu kho trước đây. Khôi phục sẽ thêm lại các sản phẩm còn thiếu với tồn kho ban đầu; sản phẩm đang có giữ nguyên.</p>
@@ -1677,6 +1675,18 @@ main.addEventListener("submit", (event) => {
 });
 }
 
+// Firestore calls can wait forever when the browser cannot reach Firestore (writes and
+// transactions are queued until it is back). Startup steps give up after a while instead.
+function withTimeout(promise, label, ms = 15000) {
+   let timer;
+   return Promise.race([
+       promise,
+       new Promise((_, reject) => {
+           timer = setTimeout(() => reject(new Error(`${label}: quá ${ms / 1000} giây chưa phản hồi (có thể đang mất kết nối Firestore).`)), ms);
+       })
+   ]).finally(() => clearTimeout(timer));
+}
+
 async function initializeAdmin() {
    try {
        const [appSdk, authSdk] = await Promise.all([
@@ -1722,14 +1732,20 @@ async function initializeAdmin() {
            role: currentUserRole
        });
 
-       await ensureStorage();
+       // Buttons must work even while (or if) the data below is still loading.
+       bindAdminEvents({ auth, signOut: authSdk.signOut });
        try {
-           await window.FlowerOrderStore.expireReservations();
+           await withTimeout(ensureStorage(), "Tải sản phẩm");
+       } catch (error) {
+           console.error("Không thể tải kho sản phẩm:", error);
+       }
+       try {
+           await withTimeout(window.FlowerOrderStore.expireReservations(), "Dọn đơn hết hạn");
        } catch (error) {
            console.error("Không thể giải phóng tồn kho đơn đã hết hạn:", error);
        }
        try {
-           const promotions = await window.FlowerOrderStore.initializePromotions(getOffers());
+           const promotions = await withTimeout(window.FlowerOrderStore.initializePromotions(getOffers()), "Tải ưu đãi");
            cacheOffers(promotions);
            stopPromotionSubscription = await window.FlowerOrderStore.subscribePromotions((latest) => {
                cacheOffers(latest);
@@ -1757,7 +1773,7 @@ async function initializeAdmin() {
            orderStoreError = error;
        }
        try {
-           await loadCategories();
+           await withTimeout(loadCategories(), "Tải phân loại");
            stopCategorySubscription = FlowerInventory.subscribeCategories((categories) => {
                cacheCategories(categories);
                if (main.querySelector(".panel h2")?.textContent === "Quản lý phân loại") renderCategoriesTab();
@@ -1778,7 +1794,7 @@ async function initializeAdmin() {
                    && value.every((message) => message && typeof message === "object" && !Array.isArray(message)),
                throwOnError: true
            });
-           await window.FlowerMessageStore.migrateLegacyMessages(legacyMessages);
+           await withTimeout(window.FlowerMessageStore.migrateLegacyMessages(legacyMessages), "Chuyển phản hồi cũ");
            window.FlowerSafeStorage.remove("flowerMessages", { required: true });
            window.FlowerSafeStorage.writeText(messageMigrationKey, "true", { required: true });
        } catch (error) {
@@ -1793,7 +1809,7 @@ async function initializeAdmin() {
                        && value.every((review) => review && typeof review === "object" && !Array.isArray(review)),
                    throwOnError: true
                });
-               await window.FlowerReviewStore.migrateLegacyAdminReviews(legacyReviews);
+               await withTimeout(window.FlowerReviewStore.migrateLegacyAdminReviews(legacyReviews), "Chuyển đánh giá cũ");
                window.FlowerSafeStorage.writeText(reviewMigrationKey, "true", { required: true });
            }
        } catch (error) {
@@ -1805,12 +1821,15 @@ async function initializeAdmin() {
            if (heading === "Đánh giá khách hàng") renderReviewsTab();
            else if (main.querySelector(".dashboard")) renderDashboard();
        }, (error) => console.error("Không thể đồng bộ đánh giá từ Firestore:", error));
-       stopMessageSubscription = await window.FlowerMessageStore.subscribeAdmin((messages) => {
-           messagesCache = messages;
-           if (main.querySelector(".panel h2")?.textContent === "Phản hồi từ khách hàng") renderMessagesTab();
-           else if (main.querySelector(".dashboard")) renderDashboard();
-       }, (error) => console.error("Không thể đồng bộ phản hồi từ Firestore:", error));
-       bindAdminEvents({ auth, signOut: authSdk.signOut });
+       try {
+           stopMessageSubscription = await withTimeout(window.FlowerMessageStore.subscribeAdmin((messages) => {
+               messagesCache = messages;
+               if (main.querySelector(".panel h2")?.textContent === "Phản hồi từ khách hàng") renderMessagesTab();
+               else if (main.querySelector(".dashboard")) renderDashboard();
+           }, (error) => console.error("Không thể đồng bộ phản hồi từ Firestore:", error)), "Tải phản hồi");
+       } catch (error) {
+           console.error("Không thể kết nối phản hồi Firestore:", error);
+       }
        renderDashboard();
    } catch (error) {
        console.error("Không thể xác thực trang quản trị:", error);

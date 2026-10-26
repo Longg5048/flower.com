@@ -8,6 +8,7 @@
     let unsubscribeCategories;
     let catalogProducts = [];
     let firestoreReachable = null;
+    let productsLoaded = false;
 
     function storage() {
         try {
@@ -135,19 +136,35 @@
         return firebaseApiPromise;
     }
 
-    async function readRemoteProducts() {
-        const firebase = await getFirebaseApi();
-        if (!firebase) return null;
+    // Products from the server-side API (works when the browser cannot reach Firestore).
+    async function readProductsFromApi() {
         try {
-            const { db, firestoreSdk } = firebase;
-            // getDocsFromServer fails when the browser cannot reach Firestore instead of quietly
-            // returning an empty local cache (which looked like "every product is gone").
-            const snapshot = await firestoreSdk.getDocsFromServer(firestoreSdk.collection(db, "products"));
-            return snapshot.docs.map((doc) => normalizeProduct({ ...doc.data(), id: doc.id }));
+            const response = await fetch("/api/products", { headers: { Accept: "application/json" }, cache: "no-store" });
+            if (!response.ok) return null;
+            const result = await response.json();
+            return Array.isArray(result.products) ? result.products.map((product) => normalizeProduct(product)) : null;
         } catch (error) {
-            console.warn("Không đọc được sản phẩm trên Firestore:", error);
+            console.warn("Không đọc được sản phẩm qua máy chủ:", error);
             return null;
         }
+    }
+
+    async function readRemoteProducts() {
+        const firebase = await getFirebaseApi();
+        if (firebase) {
+            try {
+                const { db, firestoreSdk } = firebase;
+                // getDocsFromServer fails when the browser cannot reach Firestore instead of quietly
+                // returning an empty local cache (which looked like "every product is gone").
+                const snapshot = await firestoreSdk.getDocsFromServer(firestoreSdk.collection(db, "products"));
+                firestoreReachable = true;
+                return snapshot.docs.map((doc) => normalizeProduct({ ...doc.data(), id: doc.id }));
+            } catch (error) {
+                console.warn("Không đọc được sản phẩm trên Firestore:", error);
+            }
+        }
+        firestoreReachable = false;
+        return readProductsFromApi();
     }
 
     function normalizeCategories(categories) {
@@ -359,9 +376,15 @@
     // empty catalog; after that, products an admin deleted stay deleted.
     async function synchronizeProducts(catalog) {
         const firebase = await getFirebaseApi();
-        const remoteProducts = firebase ? await readRemoteProducts() : null;
-        firestoreReachable = remoteProducts !== null;
+        const remoteProducts = await readRemoteProducts();
         if (remoteProducts === null) return false;
+        productsLoaded = true;
+        if (!firestoreReachable) {
+            // Read through the server: show the data, keep polling it, skip client-side seeding.
+            cacheProducts(remoteProducts);
+            scheduleApiRefresh();
+            return true;
+        }
 
         let isAdmin = false;
         try {
@@ -392,6 +415,15 @@
         cacheProducts(products);
         subscribeToProducts();
         return true;
+    }
+
+    let apiRefreshTimer = null;
+    function scheduleApiRefresh() {
+        if (apiRefreshTimer || typeof window === "undefined") return;
+        apiRefreshTimer = window.setInterval(async () => {
+            const products = await readProductsFromApi();
+            if (products) cacheProducts(products);
+        }, 30000);
     }
 
     function startProductSynchronization(catalog) {
@@ -439,38 +471,36 @@
 
     // Products of flower.json that are not in the shop any more (lost or deleted).
     function getMissingCatalogProducts() {
-        if (firestoreReachable !== true) return [];
+        if (!productsLoaded) return [];
         const shopIds = new Set(readProducts().map((product) => String(product.id)));
         return catalogProducts.filter((product) => !shopIds.has(String(normalizeProduct(product).id)));
     }
 
     // Admin only: adds back the flower.json products that are missing from Firestore, with their
-    // starting stock. Products that still exist are not touched.
+    // starting stock, through the server (so it also works when Firestore is blocked here).
     async function restoreCatalogProducts() {
         const firebase = await getFirebaseApi();
-        if (!firebase) throw new Error("Không kết nối được Firestore.");
+        if (!firebase) throw new Error("Không tải được Firebase.");
         await firebase.auth.authStateReady();
         const user = firebase.auth.currentUser;
-        if (!user || (await user.getIdTokenResult()).claims.admin !== true) {
-            throw new Error("Chỉ quản trị viên mới được khôi phục sản phẩm.");
-        }
-        const remoteProducts = await readRemoteProducts();
-        if (remoteProducts === null) throw new Error("Không đọc được sản phẩm trên Firestore.");
-        const remoteIds = new Set(remoteProducts.map((product) => String(product.id)));
-        const missing = catalogProducts.map(normalizeProduct).filter((product) => !remoteIds.has(String(product.id)));
-        const { db, firestoreSdk } = firebase;
-        const batch = firestoreSdk.writeBatch(db);
-        missing.forEach((product) => batch.set(firestoreSdk.doc(db, "products", String(product.id)), product));
-        batch.set(firestoreSdk.doc(db, "metadata", "productCatalog"), { catalogSeeded: true });
-        await batch.commit();
-        cacheProducts([...remoteProducts, ...missing]);
-        return missing.length;
+        if (!user) throw new Error("Vui lòng đăng nhập tài khoản quản trị.");
+        const response = await fetch("/api/products", {
+            method: "POST",
+            headers: { "Content-Type": "application/json", Accept: "application/json", Authorization: `Bearer ${await user.getIdToken()}` },
+            body: JSON.stringify({ action: "restore-catalog" })
+        });
+        const result = await response.json().catch(() => ({}));
+        if (!response.ok) throw new Error(result.error || "Chưa thể khôi phục sản phẩm.");
+        const products = await readRemoteProducts();
+        if (products) cacheProducts(products);
+        return result.restored || 0;
     }
 
     const api = {
         initialize,
         getMissingCatalogProducts,
         isFirestoreReachable: () => firestoreReachable,
+        areProductsLoaded: () => productsLoaded,
         restoreCatalogProducts,
         readProducts,
         saveProducts,

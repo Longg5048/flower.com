@@ -157,3 +157,44 @@ if (accountNav) {
         }
     });
 }
+
+// "loggedUser" in the browser is only a copy of the Firebase session. When that session is gone
+// (password reset, account disabled or deleted, token revoked) clear the copy, so pages stop
+// showing the account and new orders are not silently placed as a guest.
+async function verifyStoredSession() {
+    if (!getCurrentAccount()) return;
+    let auth;
+    try {
+        const [{ firebaseConfig }, appSdk, authSdk] = await Promise.all([
+            import("./firebase-config.js"),
+            import("https://www.gstatic.com/firebasejs/11.6.0/firebase-app.js"),
+            import("https://www.gstatic.com/firebasejs/11.6.0/firebase-auth.js")
+        ]);
+        const app = appSdk.getApps().length ? appSdk.getApp() : appSdk.initializeApp(firebaseConfig);
+        auth = authSdk.getAuth(app);
+        await auth.authStateReady();
+    } catch (error) {
+        console.warn("Chưa kiểm tra được phiên đăng nhập:", error);
+        return;
+    }
+    const account = getCurrentAccount();
+    const user = auth.currentUser;
+    if (!account || (user && (!account.uid || user.uid === account.uid))) return;
+
+    try {
+        FlowerSafeStorage.remove("loggedUser");
+        FlowerSafeStorage.remove("loggedAdmin");
+    } catch (error) {
+        console.error("Không thể xóa phiên đăng nhập đã hết hạn:", error);
+    }
+    const label = document.querySelector(".signin h5");
+    if (label) label.textContent = "Tài khoản";
+    const notice = document.createElement("p");
+    notice.className = "session-expired-notice";
+    notice.setAttribute("role", "status");
+    notice.innerHTML = 'Phiên đăng nhập đã hết hạn. <a href="./login.html">Đăng nhập lại</a> để xem đơn hàng và lưu đơn vào tài khoản.';
+    document.querySelector("main")?.prepend(notice);
+    window.dispatchEvent(new CustomEvent("flowersessionexpired"));
+}
+
+void verifyStoredSession();

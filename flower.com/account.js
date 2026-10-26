@@ -39,6 +39,19 @@ async function restoreFirebaseAccount() {
 }
 
 let account = getStoredAccount();
+if (account) {
+    // The stored copy can outlive the Firebase session (password reset, disabled account).
+    try {
+        const firebaseAccount = await restoreFirebaseAccount();
+        if (!firebaseAccount || (account.uid && firebaseAccount.uid !== account.uid)) {
+            window.FlowerSafeStorage.remove("loggedUser");
+            window.FlowerSafeStorage.remove("loggedAdmin");
+            account = null;
+        }
+    } catch (error) {
+        console.warn("Chưa kiểm tra được phiên đăng nhập:", error);
+    }
+}
 if (!account) {
     try {
         account = await restoreFirebaseAccount();

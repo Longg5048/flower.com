@@ -546,6 +546,19 @@ window.addEventListener("storage", (event) => {
     if (event.key === "flowerReviews" && currentOrder) renderReviewPanel(currentOrder);
 });
 
+// store-header.js found that the Firebase session behind "loggedUser" is gone.
+window.addEventListener("flowersessionexpired", () => {
+    if (stopAccountOrderSubscription) stopAccountOrderSubscription();
+    stopAccountOrderSubscription = null;
+    accountOrdersCache = [];
+    accountOrdersError = "";
+    if (currentOrder && currentOrder.privacyLimited !== true) {
+        currentOrder = null;
+        results.hidden = true;
+    }
+    renderMyOrders();
+});
+
 window.addEventListener("pagehide", () => {
     if (stopAccountOrderSubscription) stopAccountOrderSubscription();
 });

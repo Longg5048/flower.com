@@ -1856,10 +1856,33 @@ async function initializeAdmin() {
    }
 }
 
+// Re-renders the products tab with fresh data while keeping whatever the admin has typed but
+// not saved yet (stock boxes, the add/edit form, the search box) and the focused field.
+function refreshProductTabKeepingEdits() {
+   const isDirty = (field) => field.tagName === "SELECT"
+       ? [...field.options].some((option) => option.selected !== option.defaultSelected)
+       : field.value !== field.defaultValue;
+   const keyOf = (field) => field.id || (field.classList.contains("qty-input") ? `qty:${field.dataset.id}` : "");
+   const edits = new Map();
+   main.querySelectorAll("input, select, textarea").forEach((field) => {
+       const key = keyOf(field);
+       if (key && isDirty(field)) edits.set(key, field.value);
+   });
+   const focusedKey = document.activeElement && main.contains(document.activeElement) ? keyOf(document.activeElement) : "";
+
+   renderProductTab();
+
+   main.querySelectorAll("input, select, textarea").forEach((field) => {
+       const key = keyOf(field);
+       if (edits.has(key)) field.value = edits.get(key);
+       if (key && key === focusedKey) field.focus();
+   });
+}
+
 window.addEventListener("storage", (event) => {
    const activeHeading = main.querySelector(".panel h2");
    if (event.key === "flowerInventory" && activeHeading?.textContent === "Quản lý kho hoa") {
-       renderProductTab();
+       refreshProductTabKeepingEdits();
    }
 });
 
@@ -1874,7 +1897,7 @@ window.addEventListener("pagehide", () => {
 window.addEventListener("flowerinventorychange", () => {
     const activeHeading = main.querySelector(".panel h2");
     if (activeHeading?.textContent === "Quản lý kho hoa") {
-         renderProductTab();
+         refreshProductTabKeepingEdits();
     }
 });
 

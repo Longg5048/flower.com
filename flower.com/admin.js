@@ -1209,6 +1209,10 @@ async function updateOrderStatus(orderId, status, location, estimatedDelivery) {
        alert("Không tìm thấy đơn hàng trên hệ thống dùng chung.");
        return;
    }
+   // Restoring a cancelled order: do not keep showing "the order expired" as its location.
+   if (normalizeOrderStatus(order.status) === "Đã hủy" && status !== "Đã hủy" && location === (order.currentLocation || "")) {
+       location = "Đơn hàng đã được cửa hàng khôi phục";
+   }
    // A delivered order being cancelled: only put the flowers back in stock if they came back.
    const wasDelivered = normalizeOrderStatus(order.status) === "Đã giao";
    const restockSold = status === "Đã hủy" && wasDelivered

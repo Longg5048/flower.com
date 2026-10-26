@@ -311,6 +311,10 @@
         ...changes,
         inventoryState: nextState,
         inventoryReserved: nextState === "reserved",
+        // A restored QR order is waiting for the transfer again, not "expired".
+        ...(reserveAgain && order.paymentMethod === "qr" && order.paymentVerified !== true
+          ? { paymentStatus: "Chờ xác minh thanh toán" }
+          : {}),
         ...(reserveAgain ? {
           reservationExpiresAt: firestoreSdk.Timestamp.fromDate(new Date(Date.now() + (
             order.paymentMethod === "qr" ? 30 * 60 * 1000 : 24 * 60 * 60 * 1000

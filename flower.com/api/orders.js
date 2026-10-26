@@ -324,7 +324,13 @@ async function optionalAuthenticatedUser(req) {
     return getAdminAuth().verifyIdToken(match[1], true);
 }
 
+const MAX_ORDER_NOTE_LENGTH = 500;
+
 async function createOrder(req, res) {
+    // Reject an over-long note instead of cutting it silently (the end often holds the delivery time).
+    if (String(req.body?.orderNote || "").trim().length > MAX_ORDER_NOTE_LENGTH) {
+        return sendError(res, 400, "note-too-long", `Ghi chú tối đa ${MAX_ORDER_NOTE_LENGTH} ký tự. Hãy rút gọn ghi chú rồi đặt lại.`);
+    }
     const checkout = validateCheckout(req.body);
     if (!checkout) {
         return sendError(res, 400, "invalid-checkout", "Thông tin đặt hàng hoặc danh sách sản phẩm không hợp lệ.");
@@ -451,7 +457,7 @@ async function createOrder(req, res) {
                 paidAt: "",
                 paymentVerified: false,
                 promotionId: promotion ? checkout.promotionId : "",
-                orderNote: String(req.body.orderNote || "").trim().slice(0, 500),
+                orderNote: String(req.body.orderNote || "").trim(),
                 items,
                 inventoryReserved: true,
                 inventoryState: "reserved",

@@ -124,6 +124,10 @@ body {
     font-weight: 400;
 }
 
+.checkout-note-counter {
+    justify-self: end;
+}
+
 .checkout-field input,
 .checkout-field textarea {
     width: 100%;

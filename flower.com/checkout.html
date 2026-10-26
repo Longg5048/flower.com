@@ -7,7 +7,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Thanh toán</title>
   <link rel="stylesheet" href="./store-header.css?v=1">
-  <link rel="stylesheet" href="./checkout.css?v=2">
+  <link rel="stylesheet" href="./checkout.css?v=3">
   <link rel="stylesheet" href="./store-footer.css?v=2">
 <link rel="stylesheet" href="./contact-tools.css?v=2">
 </head>
@@ -55,7 +55,8 @@
             </label>
             <label class="checkout-field checkout-field-wide">
               <span>Ghi chú cho cửa hàng <small>(không bắt buộc)</small></span>
-              <textarea name="orderNote" rows="3" placeholder="Lời nhắn hoặc lưu ý khi giao hoa"></textarea>
+              <textarea name="orderNote" rows="3" maxlength="500" aria-describedby="order-note-counter" placeholder="Lời nhắn hoặc lưu ý khi giao hoa"></textarea>
+              <small class="checkout-note-counter" id="order-note-counter" aria-live="polite">0/500 ký tự</small>
             </label>
           </div>
         </section>
@@ -132,6 +133,13 @@
   const CartContainer = document.getElementById("product-container");
   const checkoutForm = document.getElementById("checkout-form");
   const checkoutMessage = document.getElementById("checkout-message");
+  const orderNoteInput = checkoutForm.querySelector('textarea[name="orderNote"]');
+  const orderNoteCounter = document.getElementById("order-note-counter");
+  function updateOrderNoteCounter() {
+    const length = orderNoteInput.value.length;
+    orderNoteCounter.textContent = length >= 500 ? "500/500 ký tự · Đã đạt giới hạn" : `${length}/500 ký tự`;
+  }
+  orderNoteInput.addEventListener("input", updateOrderNoteCounter);
   const promotionSelect = document.getElementById("promotion-select");
   const promotionMessage = document.getElementById("promotion-message");
   let Cart = FlowerSafeStorage.readJson("cart", {

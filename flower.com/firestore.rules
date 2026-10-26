@@ -11,7 +11,9 @@ service cloud.firestore {
 
     match /products/{productId} {
       allow get, list: if true;
-      allow create, update, delete: if isAdmin();
+      allow create, update: if isAdmin()
+        && request.resource.data.quantity is int && request.resource.data.quantity >= 0;
+      allow delete: if isAdmin();
     }
 
     match /metadata/{metadataId} {

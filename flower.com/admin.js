@@ -1114,16 +1114,30 @@ function renderMessagesTab() {
    `;
 }
 
-async function saveProductQuantity(id, quantity) {
+// Stock is a whole number of bouquets; the order API rejects anything else.
+function parseStockQuantity(value) {
+   const text = String(value ?? "").trim();
+   if (!/^\d+$/.test(text)) return null;
+   const quantity = Number(text);
+   return Number.isSafeInteger(quantity) ? quantity : null;
+}
+
+async function saveProductQuantity(id, value) {
+   const quantity = parseStockQuantity(value);
+   if (quantity === null) {
+       alert("Số lượng phải là số nguyên từ 0 trở lên (ví dụ 0, 5, 12).");
+       return;
+   }
    const products = getProducts();
    const nextProducts = products.map((item) => {
        if (String(item.id) === String(id)) {
-           return { ...item, quantity: Number(quantity || 0) };
+           return { ...item, quantity };
        }
        return item;
    });
     if (!await saveAdminProducts(nextProducts)) return;
    renderProductTab();
+   alert("Đã lưu tồn kho.");
 }
 
 async function addNewProduct(event) {
@@ -1132,12 +1146,16 @@ async function addNewProduct(event) {
    const image = document.getElementById("product-image").value.trim();
    const safeImageUrl = getStoredImageUrl(image);
     const priceInVnd = Number(document.getElementById("product-price").value);
-   const quantity = Number(document.getElementById("product-quantity").value);
+   const quantity = parseStockQuantity(document.getElementById("product-quantity").value);
    const description = document.getElementById("product-description").value.trim();
    const category = document.getElementById("product-category").value;
 
-    if (!title || !safeImageUrl || !description || !Number.isFinite(priceInVnd) || priceInVnd < 1 || !Number.isFinite(quantity) || quantity < 0) {
+    if (!title || !safeImageUrl || !description || !Number.isFinite(priceInVnd) || priceInVnd < 1) {
        alert("Vui lòng nhập đầy đủ thông tin.");
+       return;
+   }
+   if (quantity === null) {
+       alert("Số lượng phải là số nguyên từ 0 trở lên (ví dụ 0, 5, 12).");
        return;
    }
 

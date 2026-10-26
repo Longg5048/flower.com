@@ -1281,6 +1281,9 @@ async function recordLateOrderPayment(orderId) {
 async function updateReviewReply(reviewId, reply) {
    try {
        await window.FlowerReviewStore.update(reviewId, { reply });
+       alert(reply.trim()
+           ? "Đã lưu phản hồi. Khách sẽ thấy ở trang sản phẩm và trang theo dõi đơn hàng."
+           : "Đã xóa phản hồi.");
    } catch (error) {
        console.error("Không thể lưu phản hồi đánh giá:", error);
        alert("Chưa thể lưu phản hồi. Hãy thử lại sau.");

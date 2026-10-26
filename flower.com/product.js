@@ -350,6 +350,15 @@ function renderProductReviews(reviews) {
     comment.textContent = review.comment || ""
     meta.append(name, stars, date)
     card.append(meta, comment)
+    const replyText = String(review.reply || "").trim()
+    if (replyText) {
+      const reply = document.createElement("p")
+      const replyLabel = document.createElement("strong")
+      reply.className = "product-review-reply"
+      replyLabel.textContent = "Phản hồi từ Flowerflow: "
+      reply.append(replyLabel, document.createTextNode(replyText))
+      card.append(reply)
+    }
     list.append(card)
   })
 }

@@ -83,6 +83,15 @@
     return result.review.id;
   }
 
+  // The public review of one order (see reviewIdForOrder in api/orders.js), or null.
+  async function getForOrder(orderId) {
+    const bytes = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(`review:${orderId}`));
+    const id = Array.from(new Uint8Array(bytes), (value) => value.toString(16).padStart(2, "0")).join("").slice(0, 40);
+    const { db, firestoreSdk } = await getFirebase();
+    const snapshot = await firestoreSdk.getDoc(firestoreSdk.doc(db, "reviews", id));
+    return snapshot.exists() ? serializeReview(snapshot) : null;
+  }
+
   function serializeReview(doc) {
     const data = doc.data();
     return {
@@ -161,5 +170,5 @@
     await firestoreSdk.deleteDoc(firestoreSdk.doc(db, "reviews", String(id)));
   }
 
-  root.FlowerReviewStore = { subscribe, submit, subscribeAll, migrateLegacyAdminReviews, update, remove };
+  root.FlowerReviewStore = { subscribe, submit, getForOrder, subscribeAll, migrateLegacyAdminReviews, update, remove };
 })(typeof window !== "undefined" ? window : globalThis);

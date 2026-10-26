@@ -181,7 +181,16 @@ function renderReviewPanel(order) {
     reviewForm.hidden = false;
     reviewFeedback.textContent = "";
 
-    const existingReview = reviews.find((review) => String(review.orderId) === String(order.id));
+    showExistingReview(reviews.find((review) => String(review.orderId) === String(order.id)));
+
+    // The review (and the shop's reply) live in Firestore, so other devices see them too.
+    const orderId = String(order.id);
+    window.FlowerReviewStore.getForOrder(orderId).then((review) => {
+        if (review && currentOrder && String(currentOrder.id) === orderId) showExistingReview(review);
+    }).catch((error) => console.warn("Không thể tải đánh giá của đơn hàng:", error));
+}
+
+function showExistingReview(existingReview) {
     if (existingReview) {
         reviewForm.hidden = true;
         const rating = Math.min(5, Math.max(0, Number(existingReview.rating) || 0));

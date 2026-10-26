@@ -580,6 +580,18 @@ select{
     white-space: pre-wrap;
 }
 
+.product-review-reply {
+    margin: 10px 0 0;
+    padding: 10px 12px;
+    border-left: 3px solid #c58aa0;
+    border-radius: 6px;
+    background: #f8f1f3;
+    color: #52645a;
+    font-size: 13px;
+    line-height: 1.6;
+    white-space: pre-wrap;
+}
+
 @media (max-width: 620px) {
     .product-reviews-heading {
         align-items: flex-start;

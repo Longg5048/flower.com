@@ -53,25 +53,34 @@
     };
   }
 
+  // Sent to the server, which takes the products and the shown name from the order itself.
   async function submit(review) {
-    const { auth, db, firestoreSdk } = await getFirebase();
+    const { auth } = await getFirebase();
     await auth.authStateReady();
     if (!auth.currentUser) {
       throw new Error("Đăng nhập tài khoản khách hàng để gửi đánh giá công khai.");
     }
-
-    const productIds = [...new Set((review.productIds || []).map(String).filter(Boolean))].slice(0, 10);
-    if (!productIds.length) throw new Error("Đơn hàng không có thông tin sản phẩm để gắn đánh giá.");
-
-    const result = await firestoreSdk.addDoc(firestoreSdk.collection(db, "reviews"), {
-      productIds,
-      productName: String(review.productName || "Sản phẩm hoa").slice(0, 500),
-      customerName: String(review.customerName || "Khách hàng").slice(0, 80),
-      rating: Math.max(1, Math.min(5, Math.round(Number(review.rating) || 0))),
-      comment: String(review.comment || "").trim().slice(0, 1000),
-      createdAt: firestoreSdk.serverTimestamp()
+    const response = await fetch("/api/orders", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Accept: "application/json",
+        Authorization: `Bearer ${await auth.currentUser.getIdToken()}`
+      },
+      body: JSON.stringify({
+        action: "review",
+        orderId: String(review.orderId || ""),
+        rating: Math.max(1, Math.min(5, Math.round(Number(review.rating) || 0))),
+        comment: String(review.comment || "").trim()
+      })
     });
-    return result.id;
+    const result = await response.json().catch(() => ({}));
+    if (!response.ok) {
+      const error = new Error(result.error || "Chưa thể gửi đánh giá. Hãy thử lại sau.");
+      error.code = result.code || "review-failed";
+      throw error;
+    }
+    return result.review.id;
   }
 
   function serializeReview(doc) {

@@ -21,30 +21,11 @@ service cloud.firestore {
       allow list, create, update, delete: if isAdmin();
     }
 
+    // Customers review through /api/orders (action "review"), which checks that the order is
+    // theirs and delivered and allows one review per order.
     match /reviews/{reviewId} {
       allow get, list: if true;
-      allow create: if isAdmin() || (request.auth != null
-        && request.resource.data.keys().hasOnly([
-          'productIds', 'productName', 'customerName', 'rating', 'comment', 'createdAt'
-        ])
-        && request.resource.data.keys().hasAll([
-          'productIds', 'productName', 'customerName', 'rating', 'comment', 'createdAt'
-        ])
-        && request.resource.data.productIds is list
-        && request.resource.data.productIds.size() > 0
-        && request.resource.data.productIds.size() <= 10
-        && request.resource.data.productName is string
-        && request.resource.data.productName.size() <= 500
-        && request.resource.data.customerName is string
-        && request.resource.data.customerName.size() <= 80
-        && request.resource.data.rating is int
-        && request.resource.data.rating >= 1
-        && request.resource.data.rating <= 5
-        && request.resource.data.comment is string
-        && request.resource.data.comment.size() > 0
-        && request.resource.data.comment.size() <= 1000
-        && request.resource.data.createdAt == request.time);
-      allow update, delete: if isAdmin();
+      allow create, update, delete: if isAdmin();
     }
 
     match /messages/{messageId} {

@@ -247,23 +247,33 @@ async function quoteOrder(req, res) {
             db.getAll(...productRefs),
             db.collection("metadata").doc("activePromotions").get()
         ]);
+        // Report every product that cannot be sold in the asked quantity, with what is left, so the
+        // checkout can tell the customer exactly what to change.
+        const shortages = [];
         const cart = quote.items.map((item, index) => {
             const snapshot = products[index];
-            if (!snapshot.exists) {
-                const error = new Error("Một sản phẩm không còn bán.");
-                error.code = "product-unavailable";
-                throw error;
-            }
-            const data = snapshot.data();
+            const data = snapshot.exists ? snapshot.data() : {};
             const price = priceInUsd(data.price);
             const stock = Number(data.quantity);
-            if (!Number.isFinite(price) || price <= 0 || !Number.isInteger(stock) || stock < item.quantity) {
-                const error = new Error("Sản phẩm không đủ tồn kho hoặc có giá chưa hợp lệ.");
-                error.code = "insufficient-stock";
-                throw error;
+            if (!snapshot.exists || !Number.isFinite(price) || price <= 0 || !Number.isInteger(stock) || stock < item.quantity) {
+                shortages.push({
+                    id: item.id,
+                    title: String(data.title || "").slice(0, 120),
+                    available: snapshot.exists && Number.isInteger(stock) && Number.isFinite(price) && price > 0 ? Math.max(0, stock) : 0
+                });
             }
-            return { ...item, data, price };
+            return { ...item, data, price, stock };
         });
+        if (shortages.length) {
+            const message = shortages.map((item) => item.available
+                ? `“${item.title || "Một sản phẩm"}” chỉ còn ${item.available} sản phẩm`
+                : `“${item.title || "Một sản phẩm"}” đã hết hàng`).join("; ");
+            return res.status(409).json({
+                code: "insufficient-stock",
+                error: `${message}. Hãy giảm số lượng hoặc xóa sản phẩm đó khỏi giỏ.`,
+                items: shortages
+            });
+        }
         const promotions = Array.isArray(promotionsSnapshot.data()?.items) ? promotionsSnapshot.data().items : [];
         const promotion = quote.promotionId
             ? promotions.find((item) => String(item.id) === quote.promotionId && item.active === true)
@@ -294,7 +304,8 @@ async function quoteOrder(req, res) {
                 title: String(item.data.title || "Sản phẩm").slice(0, 120),
                 image: String(item.data.image || "").slice(0, 1000),
                 quantity: item.quantity,
-                price: vnd(item.price)
+                price: vnd(item.price),
+                stock: item.stock
             }))
         });
     } catch (error) {
@@ -414,7 +425,8 @@ async function createOrder(req, res) {
                 title: String(item.data.title || "Sản phẩm").slice(0, 120),
                 image: String(item.data.image || "").slice(0, 1000),
                 quantity: item.quantity,
-                price: vnd(item.price)
+                price: vnd(item.price),
+                stock: item.stock
             }));
             const initialStatus = "Chờ xác nhận";
             const initialLocation = "Đơn hàng đã được gửi đến cửa hàng";

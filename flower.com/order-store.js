@@ -98,6 +98,7 @@
     if (!response.ok) {
       const error = new Error(result.error || "Không thể kiểm tra giá sản phẩm.");
       error.code = result.code || "order-quote-failed";
+      error.items = Array.isArray(result.items) ? result.items : [];
       throw error;
     }
     return result;

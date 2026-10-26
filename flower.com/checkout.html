@@ -126,7 +126,7 @@
   </main>
   <script src="./store-footer.js?v=2"></script>
   <script src="./currency.js?v=9"></script>
-  <script src="./order-store.js?v=12"></script>
+  <script src="./order-store.js?v=13"></script>
   <script src="./product-names.js?v=2"></script>
   <script>
   const CartContainer = document.getElementById("product-container");
@@ -233,7 +233,7 @@
     }
   }
 
-  function DisplayProduct() {
+  function DisplayProduct({ refreshQuote = true } = {}) {
     CartContainer.innerHTML = "";
     document.getElementById("checkout-item-count").textContent = Cart.reduce(
       (count, product) => count + Math.max(1, Number(product.quantity) || 1),
@@ -305,6 +305,7 @@
       details.append(name, unitPrice);
       if (hasStockLimit) {
         const stockMessage = document.createElement("p");
+        stockMessage.className = "checkout-stock";
         stockMessage.textContent = exceedsStock
           ? `Số lượng trong giỏ vượt tồn kho (${stock}).`
           : `Tồn kho: ${stock}`;
@@ -329,7 +330,7 @@
     updatePaymentQr();
     const cartTotal = document.getElementById("cartTotal");
     if (cartTotal) cartTotal.textContent = Cart.length;
-    void refreshServerQuote();
+    if (refreshQuote) void refreshServerQuote();
   }
 
   async function refreshServerQuote() {
@@ -357,8 +358,10 @@
           cartItem.price = usdFromVnd(quotedItem.price);
           cartItem.title = quotedItem.title;
           cartItem.image = quotedItem.image;
+          if (Number.isInteger(quotedItem.stock)) cartItem.stockQuantity = quotedItem.stock;
         }
       });
+      FlowerSafeStorage.writeJson("cart", Cart);
       const totals = quote.totals;
       document.getElementById("originalprice").textContent = formatVnd(usdFromVnd(totals.subtotal));
       document.getElementById("savings").textContent = formatVnd(usdFromVnd(totals.savings));
@@ -376,12 +379,23 @@
         }
         card.querySelector(".checkout-unit-price").textContent = formatVnd(item.price);
         card.querySelector(".checkout-item-total").textContent = formatVnd(item.price * Math.max(1, Number(item.quantity) || 1));
+        const stockMessage = card.querySelector(".checkout-stock");
+        if (stockMessage && Number.isInteger(item.stockQuantity)) stockMessage.textContent = `Tồn kho: ${item.stockQuantity}`;
       });
       checkoutMessage.textContent = "Giá, ưu đãi và tồn kho đã được xác minh từ cửa hàng.";
       submitButton.disabled = false;
       updatePaymentQr();
     } catch (error) {
       if (requestId !== quoteRequestId) return;
+      if (error.code === "insufficient-stock" && error.items?.length) {
+        // Show the real stock on each line so the customer sees which product to reduce.
+        error.items.forEach((shortage) => {
+          const cartItem = Cart.find((item) => String(item.id) === String(shortage.id));
+          if (cartItem) cartItem.stockQuantity = Math.max(0, Number(shortage.available) || 0);
+        });
+        FlowerSafeStorage.writeJson("cart", Cart);
+        DisplayProduct({ refreshQuote: false });
+      }
       checkoutMessage.textContent = error.message || "Không thể xác minh giá và tồn kho. Vui lòng thử lại.";
       renderCartSummary(Cart);
       updatePaymentQr();

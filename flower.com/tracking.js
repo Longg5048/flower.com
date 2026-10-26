@@ -213,6 +213,13 @@ function renderOrder(order) {
     document.getElementById("result-payment-status").textContent = order.paymentMethod === "qr"
         ? (["Hết hạn chờ thanh toán", "Đã thanh toán"].includes(order.paymentStatus) ? order.paymentStatus : "Chờ cửa hàng xác minh")
         : order.paymentStatus || "Thanh toán khi nhận hàng";
+    // The note and the shop's reply are only present for the signed-in owner of the order.
+    const note = String(order.orderNote || "").trim();
+    const reply = String(order.orderNoteReply || "").trim();
+    document.getElementById("result-note-row").hidden = !note;
+    document.getElementById("result-note").textContent = note;
+    document.getElementById("result-reply-row").hidden = !reply;
+    document.getElementById("result-reply").textContent = reply;
     renderHistory(order);
     renderProducts(order.items);
     renderReviewPanel(order);

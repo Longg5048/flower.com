@@ -815,6 +815,12 @@ function renderOrderCard(order, showCompletionAction = true) {
                </div>
            </div>
 
+           ${String(order.orderNote || "").trim() ? `
+               <div class="section-label">Lời nhắn của khách</div>
+               <div class="detail-block quote-box">${escapeHtml(order.orderNote)}</div>
+               ${order.orderNoteReply ? `<div class="reply-banner"><strong>Cửa hàng đã trả lời:</strong> ${escapeHtml(order.orderNoteReply)}</div>` : ""}
+           ` : ""}
+
            <div class="section-label">Sản phẩm trong đơn</div>
            <div class="order-product-list">
                ${items.map((item) => {

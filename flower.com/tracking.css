@@ -728,3 +728,69 @@ h1,
         gap: 12px;
     }
 }
+
+.tracking-payment {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20px;
+    align-items: center;
+    justify-content: space-between;
+    margin: 16px 0;
+    padding: 18px 20px;
+    border: 1px solid #e7d7b8;
+    border-radius: 12px;
+    background: #fffaf0;
+}
+
+.tracking-payment h2 {
+    margin: 0 0 6px;
+    font-size: 18px;
+}
+
+.tracking-payment dl {
+    display: grid;
+    gap: 6px;
+    margin: 12px 0;
+}
+
+.tracking-payment dl div {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.tracking-payment dt {
+    min-width: 80px;
+    color: var(--muted);
+}
+
+.tracking-payment dd {
+    margin: 0;
+    font-weight: 600;
+    overflow-wrap: anywhere;
+}
+
+.tracking-payment-deadline {
+    margin: 0;
+    color: #9a4b1d;
+    font-weight: 600;
+}
+
+.tracking-payment-note {
+    margin: 0;
+    color: var(--muted);
+    font-size: 13px;
+}
+
+.tracking-payment img {
+    width: 200px;
+    max-width: 100%;
+    height: auto;
+    border-radius: 8px;
+    background: #fff;
+}
+
+.tracking-payment[hidden],
+.order-details dl div[hidden] {
+    display: none;
+}

@@ -220,6 +220,7 @@ function renderOrder(order) {
     document.getElementById("result-note").textContent = note;
     document.getElementById("result-reply-row").hidden = !reply;
     document.getElementById("result-reply").textContent = reply;
+    renderPaymentInstructions(order);
     renderHistory(order);
     renderProducts(order.items);
     renderReviewPanel(order);
@@ -228,6 +229,37 @@ function renderOrder(order) {
     myOrdersList.querySelectorAll(".my-order-card").forEach((card) => {
         card.classList.toggle("is-selected", card.dataset.orderId === String(order.id));
     });
+}
+
+function toDateValue(value) {
+    if (value && typeof value.toDate === "function") return value.toDate();
+    const date = new Date(value || "");
+    return Number.isNaN(date.getTime()) ? null : date;
+}
+
+// QR orders waiting for the transfer: show the amount, transfer content, QR code and deadline
+// again, so the customer can still pay after leaving the checkout page.
+function renderPaymentInstructions(order) {
+    const panel = document.getElementById("tracking-payment");
+    const waiting = order.paymentMethod === "qr" && order.paymentVerified !== true
+        && normalizeOrderStatus(order.status) === "Chờ xác nhận" && Number(order.total) > 0;
+    panel.hidden = !waiting;
+    if (!waiting) return;
+    const total = Number(order.total);
+    const reference = String(order.paymentReference || "");
+    document.getElementById("tracking-payment-amount").textContent = formatOrderTotal(order);
+    document.getElementById("tracking-payment-reference").textContent = reference || "Mã đơn hàng của bạn";
+    const deadline = toDateValue(order.reservationExpiresAt);
+    document.getElementById("tracking-payment-deadline").textContent = deadline
+        ? deadline.getTime() > Date.now()
+            ? `Vui lòng chuyển khoản trước ${deadline.toLocaleTimeString("vi-VN", { hour: "2-digit", minute: "2-digit" })} ngày ${deadline.toLocaleDateString("vi-VN")}.`
+            : "Đã quá hạn giữ hàng. Đơn có thể bị hủy bất cứ lúc nào; hãy liên hệ cửa hàng trước khi chuyển khoản."
+        : "Vui lòng chuyển khoản sớm để cửa hàng giữ hàng cho bạn.";
+    const qrUrl = new URL("https://img.vietqr.io/image/VCB-1063118243-compact2.png");
+    qrUrl.searchParams.set("amount", String(total));
+    if (reference) qrUrl.searchParams.set("addInfo", reference);
+    qrUrl.searchParams.set("accountName", "DO BA THAI");
+    document.getElementById("tracking-payment-qr").src = qrUrl.toString();
 }
 
 function getLoggedAccount() {

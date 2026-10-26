@@ -133,8 +133,20 @@ function publicTrackingOrder(id, data) {
                 updatedAt: serializeTimestamp(event.updatedAt) || event.updatedAt || ""
             }))
             : [],
+        // What a customer needs to finish a QR transfer (no name, phone or address).
+        ...(awaitsQrTransfer(data) ? {
+            paymentMethod: "qr",
+            paymentStatus: data.paymentStatus || "Chờ xác minh thanh toán",
+            total: Number(data.total) || 0,
+            paymentReference: data.paymentReference || "",
+            reservationExpiresAt: serializeTimestamp(data.reservationExpiresAt)
+        } : {}),
         privacyLimited: true
     };
+}
+
+function awaitsQrTransfer(data) {
+    return data.paymentMethod === "qr" && data.paymentVerified !== true && (data.status || "Chờ xác nhận") === "Chờ xác nhận";
 }
 
 async function checkOrderLookupLimit(db, req) {

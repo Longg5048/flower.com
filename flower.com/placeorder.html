@@ -45,7 +45,7 @@
     paymentButton.disabled = true;
     if (checkoutData?.paymentMethod === "qr") {
       paymentButton.textContent = "Gửi đơn hàng chờ xác minh";
-      paymentNote.textContent = `Quét mã Vietcombank để chuyển khoản · STK 1063118243 · DO BA THAI. Nội dung: ${checkoutData.paymentReference || "mã đơn của bạn"}. Gửi đơn không xác nhận đã nhận tiền; cửa hàng cần đối chiếu giao dịch.`;
+      paymentNote.textContent = `Quét mã Vietcombank để chuyển khoản · STK 1063118243 · DO BA THAI. Nội dung: ${checkoutData.paymentReference || "mã đơn của bạn"}. Gửi đơn không xác nhận đã nhận tiền; cửa hàng cần đối chiếu giao dịch. Hàng được giữ 30 phút sau khi gửi đơn, quá hạn chưa nhận được tiền đơn sẽ tự hủy.`;
     }
 
     async function saveOrderToAdmin() {

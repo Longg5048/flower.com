@@ -186,15 +186,32 @@ function validateCheckout(body = {}) {
     const customerName = String(body.customerName || "").trim();
     const phone = String(body.phone || "").trim();
     const address = String(body.address || "").trim();
+    const recipientName = String(body.recipientName || customerName).trim();
+    const recipientPhone = String(body.recipientPhone || phone).trim();
+    const deliveryDate = String(body.deliveryDate || "").trim();
+    const deliveryTime = String(body.deliveryTime || "").trim();
+    const greetingCard = String(body.greetingCard || "").trim();
+    const giftWrap = String(body.giftWrap || "none");
     const paymentMethod = String(body.paymentMethod || "");
     const promotionId = String(body.promotionId || "").trim();
     const idempotencyKey = String(body.idempotencyKey || "").trim();
     const items = body.items;
     const expectedTotals = body.expectedTotals;
+    const deliveryDateTimestamp = Date.parse(`${deliveryDate}T00:00:00Z`);
+    const todayUtc = new Date().toISOString().slice(0, 10);
 
     if (!customerName || customerName.length > 100
         || !address || address.length > 500
         || normalizePhone(phone).length < 8 || normalizePhone(phone).length > 15
+        || recipientName.length > 120
+        || normalizePhone(recipientPhone).length < 8 || normalizePhone(recipientPhone).length > 15
+        || !/^\d{4}-\d{2}-\d{2}$/.test(deliveryDate)
+        || !Number.isFinite(deliveryDateTimestamp)
+        || new Date(deliveryDateTimestamp).toISOString().slice(0, 10) !== deliveryDate
+        || deliveryDate < todayUtc
+        || !["08:00–12:00", "12:00–16:00", "16:00–20:00"].includes(deliveryTime)
+        || greetingCard.length > 300
+        || !["none", "pastel", "classic"].includes(giftWrap)
         || !["qr", "cod"].includes(paymentMethod)
         || !/^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(idempotencyKey)
         || promotionId.length > 100
@@ -223,6 +240,12 @@ function validateCheckout(body = {}) {
         customerName,
         phone,
         address,
+        recipientName,
+        recipientPhone,
+        deliveryDate,
+        deliveryTime,
+        greetingCard,
+        giftWrap,
         paymentMethod,
         promotionId,
         idempotencyKey,
@@ -454,6 +477,12 @@ async function createOrder(req, res) {
                 customerName: checkout.customerName,
                 phone: checkout.phone,
                 address: checkout.address,
+                recipientName: checkout.recipientName,
+                recipientPhone: checkout.recipientPhone,
+                deliveryDate: checkout.deliveryDate,
+                deliveryTime: checkout.deliveryTime,
+                greetingCard: checkout.greetingCard,
+                giftWrap: checkout.giftWrap,
                 createdAt: FieldValue.serverTimestamp(),
                 status: initialStatus,
                 currentLocation: initialLocation,

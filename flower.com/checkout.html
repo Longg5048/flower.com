@@ -53,6 +53,37 @@
               <span>Địa chỉ</span>
               <textarea name="address" autocomplete="street-address" rows="3" placeholder="Số nhà, tên đường, phường/xã, quận/huyện, tỉnh/thành phố" required></textarea>
             </label>
+            <label class="checkout-field">
+              <span>Tên người nhận <small>(để trống nếu là người đặt)</small></span>
+              <input type="text" name="recipientName" autocomplete="off" maxlength="120" placeholder="Tên người nhận hoa">
+            </label>
+            <label class="checkout-field">
+              <span>Số điện thoại người nhận</span>
+              <input type="tel" name="recipientPhone" inputmode="tel" pattern="\+?[0-9]{8,15}" placeholder="Để trống nếu dùng số người đặt">
+            </label>
+            <label class="checkout-field">
+              <span>Ngày giao mong muốn</span>
+              <input type="date" name="deliveryDate" id="delivery-date" required>
+            </label>
+            <label class="checkout-field">
+              <span>Khung giờ giao</span>
+              <select name="deliveryTime" required>
+                <option value="">Chọn khung giờ</option>
+                <option>08:00–12:00</option><option>12:00–16:00</option><option>16:00–20:00</option>
+              </select>
+            </label>
+            <label class="checkout-field checkout-field-wide">
+              <span>Lời chúc trên thiệp <small>(không bắt buộc)</small></span>
+              <textarea name="greetingCard" rows="2" maxlength="300" placeholder="Nhập lời chúc ngắn gửi kèm bó hoa"></textarea>
+            </label>
+            <label class="checkout-field checkout-field-wide">
+              <span>Gói quà / ruy băng <small>(không bắt buộc)</small></span>
+              <select name="giftWrap">
+                <option value="none">Không yêu cầu thêm</option>
+                <option value="pastel">Giấy gói pastel, ruy băng kem</option>
+                <option value="classic">Giấy kraft, ruy băng đỏ</option>
+              </select>
+            </label>
             <label class="checkout-field checkout-field-wide">
               <span>Ghi chú cho cửa hàng <small>(không bắt buộc)</small></span>
               <textarea name="orderNote" rows="3" maxlength="500" aria-describedby="order-note-counter" placeholder="Lời nhắn hoặc lưu ý khi giao hoa"></textarea>
@@ -167,6 +198,9 @@
 
   const orderRequestId = createOrderRequestId();
   const paymentReference = `FF${orderRequestId.replaceAll("-", "").slice(0, 12).toUpperCase()}`;
+  const deliveryDateInput = document.getElementById("delivery-date");
+  const today = new Date();
+  deliveryDateInput.min = new Date(today.getTime() - today.getTimezoneOffset() * 60000).toISOString().slice(0, 10);
 
   function updatePaymentQr() {
     const isQrPayment = checkoutForm.querySelector('input[name="paymentMethod"]:checked')?.value === "qr";
@@ -466,6 +500,12 @@
       idempotencyKey: orderRequestId,
       promotionId: promotionSelect.value,
       quotedTotals: serverQuote.totals,
+      recipientName: String(formData.get("recipientName") || "").trim(),
+      recipientPhone: String(formData.get("recipientPhone") || "").trim(),
+      deliveryDate: String(formData.get("deliveryDate") || ""),
+      deliveryTime: String(formData.get("deliveryTime") || ""),
+      greetingCard: String(formData.get("greetingCard") || "").trim(),
+      giftWrap: String(formData.get("giftWrap") || "none"),
       orderNote: String(formData.get("orderNote") || "").trim()
     };
 

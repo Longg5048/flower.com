@@ -17,6 +17,12 @@
   <main class="nav">
     <div id="product-container"></div>
 
+    <section class="order-review" aria-labelledby="order-review-title">
+      <h1 id="order-review-title">Kiểm tra thông tin giao hoa</h1>
+      <dl id="order-review-details"></dl>
+      <div id="order-review-totals"></div>
+    </section>
+
     <div class="placeorder">
       <button type="button">Xác nhận đặt hàng</button>
       <p id="payment-confirmation-note" role="status"></p>
@@ -40,9 +46,31 @@
     });
     const paymentButton = document.querySelector(".placeorder > button");
     const paymentNote = document.getElementById("payment-confirmation-note");
+    const reviewDetails = document.getElementById("order-review-details");
+    const reviewTotals = document.getElementById("order-review-totals");
     let serverQuote = null;
     let orderSubmissionInProgress = false;
     paymentButton.disabled = true;
+    if (checkoutData) {
+      const fields = [
+        ["Người đặt", checkoutData.customerName], ["Điện thoại", checkoutData.phone],
+        ["Địa chỉ giao", checkoutData.address], ["Người nhận", checkoutData.recipientName || checkoutData.customerName],
+        ["Điện thoại người nhận", checkoutData.recipientPhone || checkoutData.phone],
+        ["Ngày giao", checkoutData.deliveryDate], ["Khung giờ", checkoutData.deliveryTime],
+        ["Thiệp chúc mừng", checkoutData.greetingCard || "Không có"],
+        ["Gói quà", checkoutData.giftWrap === "pastel" ? "Pastel, ruy băng kem" : checkoutData.giftWrap === "classic" ? "Kraft, ruy băng đỏ" : "Không yêu cầu"],
+        ["Ghi chú giao hàng", checkoutData.orderNote || "Không có"]
+      ];
+      fields.forEach(([label, value]) => {
+        const row = document.createElement("div");
+        const term = document.createElement("dt");
+        const description = document.createElement("dd");
+        term.textContent = label;
+        description.textContent = value || "—";
+        row.append(term, description);
+        reviewDetails.append(row);
+      });
+    }
     if (checkoutData?.paymentMethod === "qr") {
       paymentButton.textContent = "Gửi đơn hàng chờ xác minh";
       paymentNote.textContent = `Quét mã Vietcombank để chuyển khoản · STK 1063118243 · DO BA THAI. Nội dung: ${checkoutData.paymentReference || "mã đơn của bạn"}. Gửi đơn không xác nhận đã nhận tiền; cửa hàng cần đối chiếu giao dịch. Hàng được giữ 30 phút sau khi gửi đơn, quá hạn chưa nhận được tiền đơn sẽ tự hủy.`;
@@ -60,6 +88,11 @@
         window.location.assign("./checkout.html");
         return;
       }
+      if (!checkoutData.deliveryDate || !checkoutData.deliveryTime) {
+        alert("Vui lòng quay lại chọn ngày và khung giờ giao hoa.");
+        window.location.assign("./checkout.html");
+        return;
+      }
       if (!serverQuote) {
         alert("Chưa xác minh được giá và tồn kho. Hãy thử tải lại trang.");
         return;
@@ -70,6 +103,12 @@
         customerName,
         phone,
         address,
+        recipientName: checkoutData.recipientName || customerName,
+        recipientPhone: checkoutData.recipientPhone || phone,
+        deliveryDate: checkoutData.deliveryDate,
+        deliveryTime: checkoutData.deliveryTime,
+        greetingCard: checkoutData.greetingCard || "",
+        giftWrap: checkoutData.giftWrap || "none",
         orderNote: String(checkoutData.orderNote || "").trim(),
         paymentMethod: checkoutData.paymentMethod,
         paymentReference: checkoutData.paymentReference || "",
@@ -120,6 +159,7 @@
           cartItem.image = quotedItem.image;
           cartItem.price = usdFromVnd(quotedItem.price);
         });
+        reviewTotals.textContent = `Tiền hàng ${formatVnd(serverQuote.totals.subtotal)} · Giảm ${formatVnd(serverQuote.totals.savings)} · Giao hàng miễn phí · Tổng thanh toán ${formatVnd(serverQuote.totals.total)}`;
         DisplayProduct();
         const previousQuote = checkoutData?.quotedTotals;
         const amountChanged = previousQuote && ["subtotal", "savings", "tax", "total"].some(

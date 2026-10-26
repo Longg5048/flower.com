@@ -384,6 +384,14 @@ function renderRevenueTab() {
 
 // Shown when products of the original catalog (flower.json) are missing from the shop.
 function renderRestoreCatalogNotice() {
+   if (FlowerInventory.isFirestoreReachable() === false) {
+       return `
+           <div class="restore-catalog-notice" role="alert">
+               <p><strong>Trình duyệt không kết nối được Firestore.</strong>
+               Số liệu đang hiển thị có thể cũ hoặc trống. Hãy kiểm tra mạng (Wi-Fi trường/công ty có thể chặn Firebase), tắt tiện ích chặn quảng cáo cho trang này, rồi tải lại trang.</p>
+           </div>
+       `;
+   }
    const missingCount = FlowerInventory.getMissingCatalogProducts().length;
    if (!missingCount) return "";
    return `

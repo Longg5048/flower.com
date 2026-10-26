@@ -7,6 +7,7 @@
     let unsubscribeProducts;
     let unsubscribeCategories;
     let catalogProducts = [];
+    let firestoreReachable = null;
 
     function storage() {
         try {
@@ -139,7 +140,9 @@
         if (!firebase) return null;
         try {
             const { db, firestoreSdk } = firebase;
-            const snapshot = await firestoreSdk.getDocs(firestoreSdk.collection(db, "products"));
+            // getDocsFromServer fails when the browser cannot reach Firestore instead of quietly
+            // returning an empty local cache (which looked like "every product is gone").
+            const snapshot = await firestoreSdk.getDocsFromServer(firestoreSdk.collection(db, "products"));
             return snapshot.docs.map((doc) => normalizeProduct({ ...doc.data(), id: doc.id }));
         } catch (error) {
             console.warn("Không đọc được sản phẩm trên Firestore:", error);
@@ -334,6 +337,8 @@
             unsubscribeProducts = firestoreSdk.onSnapshot(
                 firestoreSdk.collection(db, "products"),
                 (snapshot) => {
+                    // Snapshots served from the local cache while offline may be empty or stale.
+                    if (snapshot.metadata.fromCache) return;
                     cacheProducts(snapshot.docs.map((doc) => ({ ...doc.data(), id: doc.id })));
                 },
                 (error) => console.warn("Không nhận được cập nhật sản phẩm:", error)
@@ -355,6 +360,7 @@
     async function synchronizeProducts(catalog) {
         const firebase = await getFirebaseApi();
         const remoteProducts = firebase ? await readRemoteProducts() : null;
+        firestoreReachable = remoteProducts !== null;
         if (remoteProducts === null) return false;
 
         let isAdmin = false;
@@ -367,17 +373,21 @@
 
         let products = remoteProducts;
         if (isAdmin) {
-            let catalogSeeded = false;
+            // Seed only when we know for sure the catalog was never seeded; if the marker cannot be
+            // read, do nothing rather than writing (writes made offline never finish).
+            let catalogSeeded = null;
             try {
-                const marker = await firebase.firestoreSdk.getDoc(
+                const marker = await firebase.firestoreSdk.getDocFromServer(
                     firebase.firestoreSdk.doc(firebase.db, "metadata", "productCatalog")
                 );
                 catalogSeeded = marker.exists() && marker.data().catalogSeeded === true;
             } catch (error) {
                 console.warn("Không đọc được trạng thái khởi tạo catalog:", error);
             }
-            if (!catalogSeeded) products = mergeCatalogProducts(remoteProducts, catalog);
-            await syncMissingRemoteProducts(remoteProducts, products, !catalogSeeded);
+            if (catalogSeeded === false) {
+                products = mergeCatalogProducts(remoteProducts, catalog);
+                await syncMissingRemoteProducts(remoteProducts, products, true);
+            }
         }
         cacheProducts(products);
         subscribeToProducts();
@@ -429,6 +439,7 @@
 
     // Products of flower.json that are not in the shop any more (lost or deleted).
     function getMissingCatalogProducts() {
+        if (firestoreReachable !== true) return [];
         const shopIds = new Set(readProducts().map((product) => String(product.id)));
         return catalogProducts.filter((product) => !shopIds.has(String(normalizeProduct(product).id)));
     }
@@ -459,6 +470,7 @@
     const api = {
         initialize,
         getMissingCatalogProducts,
+        isFirestoreReachable: () => firestoreReachable,
         restoreCatalogProducts,
         readProducts,
         saveProducts,

@@ -1,6 +1,6 @@
 // One command to set up (or repair) the Firestore database of the shop:
 //   1. adminRoles/{uid} for every admin/owner account (needed by firestore.rules)
-//   2. products from flower.json that are missing, and catalog photos/names the admin never changed
+//   2. products from flower.json that are missing (existing products are not touched)
 //   3. firestore.rules deployed (Firebase Rules API)
 //   4. the composite index and TTL policy from firestore.indexes.json
 // Safe to run again. Uses Application Default Credentials of a project owner:
@@ -138,31 +138,6 @@ async function createIndexes() {
         batch.set(db.collection("metadata").doc("productCatalog"), { catalogSeeded: true }, { merge: true });
         await batch.commit();
         return `xong (thêm ${missing.length}, giữ nguyên ${existing.size} sản phẩm đã có)`;
-    }));
-
-    // Older catalogs reused six photos in rotation (one of them not even flowers) and gave pairs of
-    // products the same name. Bring catalog products up to date, but only where the admin has not
-    // changed the photo or name since.
-    results.push(await step("Cập nhật ảnh và tên sản phẩm mẫu", async () => {
-        const catalog = JSON.parse(fs.readFileSync(path.join(root, "flower.json"), "utf8")).flower;
-        const snapshot = await db.collection("products").get();
-        const docs = new Map(snapshot.docs.map((doc) => [doc.id, doc]));
-        const batch = db.batch();
-        let changed = 0;
-        catalog.forEach((product) => {
-            const doc = docs.get(String(product.id));
-            if (!doc) return;
-            const data = doc.data();
-            const update = {};
-            if (data.image !== product.image && /\/images\/flower-0[1-6]\.webp$/.test(String(data.image || ""))) update.image = product.image;
-            if (data.title !== product.title && data.title === product.title.split(" · ")[0]) update.title = product.title;
-            if (Object.keys(update).length) {
-                batch.update(doc.ref, update);
-                changed += 1;
-            }
-        });
-        if (changed) await batch.commit();
-        return `xong (cập nhật ${changed} sản phẩm)`;
     }));
 
     results.push(await step("Bật Firebase Rules API", enableRulesApi));

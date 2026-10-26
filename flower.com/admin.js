@@ -871,6 +871,9 @@ function renderOrderCard(order, showCompletionAction = true) {
                        ${order.paymentMethod === "qr" && order.paymentVerified !== true && normalizeOrderStatus(order.status) !== "Đã hủy"
                            ? `<button class="secondary-btn verify-payment" data-order-id="${escapeHtml(order.id)}" type="button">Xác nhận đã nhận tiền</button>`
                            : ""}
+                       ${order.paymentMethod === "qr" && order.paymentVerified !== true && normalizeOrderStatus(order.status) === "Đã hủy"
+                           ? `<button class="secondary-btn record-late-payment" data-order-id="${escapeHtml(order.id)}" type="button">Ghi nhận tiền chuyển trễ</button>`
+                           : ""}
                        ${showCompletionAction ? renderCompletionAction("orders", order) : ""}
                    </div>
                </div>
@@ -1254,6 +1257,24 @@ async function verifyOrderPayment(orderId) {
    } catch (error) {
        console.error("Không thể xác nhận thanh toán trên Firestore:", error);
        alert(error.code === "order-cancelled" ? error.message : "Chưa thể xác nhận thanh toán. Hãy thử lại sau.");
+   }
+}
+
+async function recordLateOrderPayment(orderId) {
+   const order = getOrders().find((item) => String(item.id) === String(orderId));
+   if (!order) return;
+   const confirmed = window.confirm(
+       `Ghi nhận khách đã chuyển ${moneyFormat(order.total)} cho đơn #${order.id} sau khi đơn bị hủy` +
+       (order.paymentReference ? ` (nội dung ${order.paymentReference})` : "") +
+       "?\n\nSau đó hãy khôi phục đơn (chọn lại trạng thái “Chờ xác nhận”) hoặc hoàn tiền cho khách."
+   );
+   if (!confirmed) return;
+   try {
+       await window.FlowerOrderStore.recordLatePayment(orderId);
+       alert("Đã ghi nhận tiền chuyển trễ. Đơn được đánh dấu cần khôi phục hoặc hoàn tiền.");
+   } catch (error) {
+       console.error("Không thể ghi nhận thanh toán trễ:", error);
+       alert(error.code ? error.message : "Chưa thể ghi nhận thanh toán. Hãy thử lại sau.");
    }
 }
 
@@ -1645,6 +1666,12 @@ main.addEventListener("click", (event) => {
        if (input) {
            saveProductQuantity(id, input.value);
        }
+   }
+
+   const latePayment = event.target.closest(".record-late-payment");
+   if (latePayment) {
+       recordLateOrderPayment(latePayment.dataset.orderId);
+       return;
    }
 
    const verifyPayment = event.target.closest(".verify-payment");

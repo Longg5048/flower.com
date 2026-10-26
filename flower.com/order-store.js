@@ -304,12 +304,19 @@
       const productSnapshots = [];
       for (const productRef of productRefs) productSnapshots.push(await transaction.get(productRef));
 
-      if (stockChange < 0 && productSnapshots.some((snapshot, index) => (
-        !snapshot.exists()
-        || !Number.isInteger(Number(snapshot.data().quantity))
-        || Number(snapshot.data().quantity) < Number(items[index].quantity)
-      ))) {
-        throw new Error("Không đủ tồn kho để khôi phục đơn đã hủy.");
+      if (stockChange < 0) {
+        const shortages = productSnapshots.map((snapshot, index) => {
+          const available = snapshot.exists() ? Number(snapshot.data().quantity) : 0;
+          if (Number.isInteger(available) && available >= Number(items[index].quantity)) return "";
+          const orderItem = (order.items || []).find((item) => String(item?.id) === items[index].id);
+          const title = (snapshot.exists() && snapshot.data().title) || orderItem?.title || `#${items[index].id}`;
+          return `${title} (cần ${items[index].quantity}, còn ${Number.isInteger(available) ? Math.max(0, available) : 0})`;
+        }).filter(Boolean);
+        if (shortages.length) {
+          const error = new Error(`Không đủ tồn kho để khôi phục đơn đã hủy: ${shortages.join("; ")}. Hãy nhập thêm hàng rồi thử lại.`);
+          error.code = "insufficient-stock";
+          throw error;
+        }
       }
       productSnapshots.forEach((snapshot, index) => {
         if (!snapshot.exists()) return;
@@ -326,8 +333,8 @@
         inventoryState: nextState,
         inventoryReserved: nextState === "reserved",
         // A restored QR order is waiting for the transfer again, not "expired".
-        ...(reserveAgain && order.paymentMethod === "qr" && order.paymentVerified !== true
-          ? { paymentStatus: "Chờ xác minh thanh toán" }
+        ...(reserveAgain && order.paymentMethod === "qr"
+          ? { paymentStatus: order.paymentVerified === true ? "Đã thanh toán" : "Chờ xác minh thanh toán" }
           : {}),
         ...(reserveAgain ? {
           reservationExpiresAt: firestoreSdk.Timestamp.fromDate(new Date(Date.now() + (
@@ -358,6 +365,30 @@
         paymentVerified: true,
         paymentStatus: "Đã thanh toán",
         paidAt: new Date().toISOString()
+      });
+    });
+  }
+
+  // Records a QR transfer that arrived after the order was cancelled (usually by the 30-minute
+  // hold expiring), so the shop remembers to restore the order or refund the customer.
+  async function recordLatePayment(id) {
+    const { db, firestoreSdk } = await getFirebase();
+    const orderRef = firestoreSdk.doc(db, "orders", String(id));
+    await firestoreSdk.runTransaction(db, async (transaction) => {
+      const snapshot = await transaction.get(orderRef);
+      if (!snapshot.exists()) throw new Error("Không tìm thấy đơn hàng.");
+      const order = snapshot.data();
+      if (order.status !== "Đã hủy") {
+        const error = new Error("Đơn này chưa bị hủy. Hãy dùng nút “Xác nhận đã nhận tiền”.");
+        error.code = "order-changed";
+        throw error;
+      }
+      if (order.paymentVerified === true) return;
+      transaction.update(orderRef, {
+        paymentVerified: true,
+        paymentStatus: "Đã nhận tiền sau khi đơn bị hủy – cần khôi phục đơn hoặc hoàn tiền",
+        paidAt: new Date().toISOString(),
+        latePayment: true
       });
     });
   }
@@ -401,6 +432,7 @@
     expireReservations,
     update,
     verifyPayment,
+    recordLatePayment,
     remove
   };
 })(typeof window !== "undefined" ? window : globalThis);

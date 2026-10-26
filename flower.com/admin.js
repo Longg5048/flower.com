@@ -176,7 +176,7 @@ function getReviews() {
 // Customer messages are the notes left on orders at checkout.
 function getMessages() {
    const orderMessages = ordersCache
-       .filter((order) => String(order.orderNote || "").trim())
+       .filter((order) => String(order.orderNote || "").trim() && !order.orderNoteArchivedAt)
        .map((order) => ({
            id: String(order.id),
            source: "order",
@@ -484,7 +484,7 @@ function renderProductTab() {
                    </select>
                    <input type="number" id="product-price" placeholder="Giá (VND)" value="${editingProduct ? toVndAmount(editingProduct.price) : ""}" min="1" step="1" required>
                    <input type="number" id="product-quantity" placeholder="Số lượng" value="${editingProduct ? Number(editingProduct.quantity) || 0 : ""}" data-shown-value="${editingProduct ? Number(editingProduct.quantity) || 0 : ""}" min="0" step="1" required>
-                   <textarea id="product-description" placeholder="Mô tả sản phẩm" required maxlength="1000">${escapeHtml(getVietnameseProductDescription(editingProduct?.description || ""))}</textarea>
+                   <textarea id="product-description" placeholder="Mô tả sản phẩm" required maxlength="1000">${escapeHtml(editingProduct?.description || "")}</textarea>
                    <div class="product-form-actions">
                        <button type="submit" class="submit-btn">${editingProduct ? "Lưu thay đổi" : "Thêm sản phẩm"}</button>
                        ${editingProduct ? '<button type="button" class="secondary-btn" data-action="cancel-edit">Hủy</button>' : ""}
@@ -537,7 +537,7 @@ function renderOffersTab() {
        <section class="panel-wrap">
            <div class="panel">
                <h2>Thêm ưu đãi</h2>
-               <p class="category-help">Chọn sản phẩm và phần trăm giảm giá. Tiền giảm = giá × số lượng × phần trăm giảm. Nếu một sản phẩm có nhiều ưu đãi đang bật, chỉ ưu đãi cao nhất được áp dụng.</p>
+               <p class="category-help">Chọn sản phẩm và phần trăm giảm giá. Tiền giảm = giá × số lượng × phần trăm giảm. Mỗi đơn chỉ áp dụng một ưu đãi; trang thanh toán tự chọn ưu đãi giúp khách giảm được nhiều tiền nhất.</p>
                <form id="add-offer-form" class="offer-form">
                    <label>
                        <span class="field-label">Tên ưu đãi</span>
@@ -728,10 +728,12 @@ async function saveAdminProducts(products) {
 }
 
 function renderCompletionAction(type, record) {
+   const attributes = `data-record-type="${escapeHtml(type)}" data-record-id="${escapeHtml(record.id)}"`;
+   const deleteButton = `<button class="delete-record" ${attributes} type="button">Xóa</button>`;
    if (record.completedAt) {
-       return `<button class="restore-record" data-record-type="${escapeHtml(type)}" data-record-id="${escapeHtml(record.id)}" type="button">Khôi phục</button>`;
+       return `<button class="restore-record" ${attributes} type="button">Khôi phục</button>${deleteButton}`;
    }
-   return `<button class="complete-record" data-record-type="${escapeHtml(type)}" data-record-id="${escapeHtml(record.id)}" type="button">Hoàn thành</button>`;
+   return `<button class="complete-record" ${attributes} type="button">Hoàn thành</button>${deleteButton}`;
 }
 
 function renderCompletedSection(records, renderCard, label) {
@@ -813,6 +815,12 @@ function renderOrderCard(order, showCompletionAction = true) {
                </div>
            </div>
 
+           ${String(order.orderNote || "").trim() ? `
+               <div class="section-label">Lời nhắn của khách</div>
+               <div class="detail-block quote-box">${escapeHtml(order.orderNote)}</div>
+               ${order.orderNoteReply ? `<div class="reply-banner"><strong>Cửa hàng đã trả lời:</strong> ${escapeHtml(order.orderNoteReply)}</div>` : ""}
+           ` : ""}
+
            <div class="section-label">Sản phẩm trong đơn</div>
            <div class="order-product-list">
                ${items.map((item) => {
@@ -862,6 +870,9 @@ function renderOrderCard(order, showCompletionAction = true) {
                        <button class="status-save" data-order-id="${escapeHtml(order.id)}">Cập nhật trạng thái</button>
                        ${order.paymentMethod === "qr" && order.paymentVerified !== true && normalizeOrderStatus(order.status) !== "Đã hủy"
                            ? `<button class="secondary-btn verify-payment" data-order-id="${escapeHtml(order.id)}" type="button">Xác nhận đã nhận tiền</button>`
+                           : ""}
+                       ${order.paymentMethod === "qr" && order.paymentVerified !== true && normalizeOrderStatus(order.status) === "Đã hủy"
+                           ? `<button class="secondary-btn record-late-payment" data-order-id="${escapeHtml(order.id)}" type="button">Ghi nhận tiền chuyển trễ</button>`
                            : ""}
                        ${showCompletionAction ? renderCompletionAction("orders", order) : ""}
                    </div>
@@ -942,8 +953,8 @@ function renderOrdersTab() {
 
 function refreshOrdersView() {
    const heading = main.querySelector(".panel h2")?.textContent;
-   if (heading === "Quản lý đơn hàng") renderOrdersTab();
-   else if (heading === "Phản hồi từ khách hàng") renderMessagesTab();
+   if (heading === "Quản lý đơn hàng") rerenderKeepingEdits(renderOrdersTab);
+   else if (heading === "Phản hồi từ khách hàng") rerenderKeepingEdits(renderMessagesTab);
    else if (heading === "Doanh thu & kho hàng") renderRevenueTab();
    else if (main.querySelector(".dashboard") || !heading) renderDashboard();
 }
@@ -1114,16 +1125,30 @@ function renderMessagesTab() {
    `;
 }
 
-async function saveProductQuantity(id, quantity) {
+// Stock is a whole number of bouquets; the order API rejects anything else.
+function parseStockQuantity(value) {
+   const text = String(value ?? "").trim();
+   if (!/^\d+$/.test(text)) return null;
+   const quantity = Number(text);
+   return Number.isSafeInteger(quantity) ? quantity : null;
+}
+
+async function saveProductQuantity(id, value) {
+   const quantity = parseStockQuantity(value);
+   if (quantity === null) {
+       alert("Số lượng phải là số nguyên từ 0 trở lên (ví dụ 0, 5, 12).");
+       return;
+   }
    const products = getProducts();
    const nextProducts = products.map((item) => {
        if (String(item.id) === String(id)) {
-           return { ...item, quantity: Number(quantity || 0) };
+           return { ...item, quantity };
        }
        return item;
    });
     if (!await saveAdminProducts(nextProducts)) return;
    renderProductTab();
+   alert("Đã lưu tồn kho.");
 }
 
 async function addNewProduct(event) {
@@ -1132,12 +1157,16 @@ async function addNewProduct(event) {
    const image = document.getElementById("product-image").value.trim();
    const safeImageUrl = getStoredImageUrl(image);
     const priceInVnd = Number(document.getElementById("product-price").value);
-   const quantity = Number(document.getElementById("product-quantity").value);
+   const quantity = parseStockQuantity(document.getElementById("product-quantity").value);
    const description = document.getElementById("product-description").value.trim();
    const category = document.getElementById("product-category").value;
 
-    if (!title || !safeImageUrl || !description || !Number.isFinite(priceInVnd) || priceInVnd < 1 || !Number.isFinite(quantity) || quantity < 0) {
+    if (!title || !safeImageUrl || !description || !Number.isFinite(priceInVnd) || priceInVnd < 1) {
        alert("Vui lòng nhập đầy đủ thông tin.");
+       return;
+   }
+   if (quantity === null) {
+       alert("Số lượng phải là số nguyên từ 0 trở lên (ví dụ 0, 5, 12).");
        return;
    }
 
@@ -1183,6 +1212,10 @@ async function updateOrderStatus(orderId, status, location, estimatedDelivery) {
        alert("Không tìm thấy đơn hàng trên hệ thống dùng chung.");
        return;
    }
+   // Restoring a cancelled order: do not keep showing "the order expired" as its location.
+   if (normalizeOrderStatus(order.status) === "Đã hủy" && status !== "Đã hủy" && location === (order.currentLocation || "")) {
+       location = "Đơn hàng đã được cửa hàng khôi phục";
+   }
    // A delivered order being cancelled: only put the flowers back in stock if they came back.
    const wasDelivered = normalizeOrderStatus(order.status) === "Đã giao";
    const restockSold = status === "Đã hủy" && wasDelivered
@@ -1191,27 +1224,22 @@ async function updateOrderStatus(orderId, status, location, estimatedDelivery) {
    const markCodAsPaid = status === "Đã giao"
        && order.paymentMethod === "cod"
        && !isOrderPaid(order);
-   const trackingHistory = Array.isArray(order.trackingHistory) && order.trackingHistory.length
-       ? order.trackingHistory
-       : [{
-           status: normalizeOrderStatus(order.status),
-           location: order.currentLocation || "Đơn hàng đã được tạo",
-           estimatedDelivery: order.estimatedDelivery || "",
-           updatedAt: order.createdAt || updatedAt
-       }];
-
    try {
        await window.FlowerOrderStore.update(orderId, {
            status,
            ...(markCodAsPaid ? { paymentStatus: "Đã thanh toán", paidAt: updatedAt } : {}),
            currentLocation: location,
            estimatedDelivery,
-           trackingUpdatedAt: updatedAt,
-           trackingHistory: [...trackingHistory, { status, location, estimatedDelivery, updatedAt }]
-       }, { restockSold });
+           trackingUpdatedAt: updatedAt
+       }, {
+           restockSold,
+           expectedStatus: order.status,
+           newEvent: { status, location, estimatedDelivery, updatedAt }
+       });
    } catch (error) {
        console.error("Không thể cập nhật đơn hàng trên Firestore:", error);
-       alert("Chưa thể cập nhật đơn hàng dùng chung. Hãy thử lại sau.");
+       alert(error.code ? error.message : "Chưa thể cập nhật đơn hàng dùng chung. Hãy thử lại sau.");
+       if (error.code === "order-changed") renderOrdersTab();
    }
 }
 
@@ -1232,9 +1260,30 @@ async function verifyOrderPayment(orderId) {
    }
 }
 
+async function recordLateOrderPayment(orderId) {
+   const order = getOrders().find((item) => String(item.id) === String(orderId));
+   if (!order) return;
+   const confirmed = window.confirm(
+       `Ghi nhận khách đã chuyển ${moneyFormat(order.total)} cho đơn #${order.id} sau khi đơn bị hủy` +
+       (order.paymentReference ? ` (nội dung ${order.paymentReference})` : "") +
+       "?\n\nSau đó hãy khôi phục đơn (chọn lại trạng thái “Chờ xác nhận”) hoặc hoàn tiền cho khách."
+   );
+   if (!confirmed) return;
+   try {
+       await window.FlowerOrderStore.recordLatePayment(orderId);
+       alert("Đã ghi nhận tiền chuyển trễ. Đơn được đánh dấu cần khôi phục hoặc hoàn tiền.");
+   } catch (error) {
+       console.error("Không thể ghi nhận thanh toán trễ:", error);
+       alert(error.code ? error.message : "Chưa thể ghi nhận thanh toán. Hãy thử lại sau.");
+   }
+}
+
 async function updateReviewReply(reviewId, reply) {
    try {
        await window.FlowerReviewStore.update(reviewId, { reply });
+       alert(reply.trim()
+           ? "Đã lưu phản hồi. Khách sẽ thấy ở trang sản phẩm và trang theo dõi đơn hàng."
+           : "Đã xóa phản hồi.");
    } catch (error) {
        console.error("Không thể lưu phản hồi đánh giá:", error);
        alert("Chưa thể lưu phản hồi. Hãy thử lại sau.");
@@ -1268,7 +1317,12 @@ async function deleteAdminRecord(type, id) {
        return;
    }
 
-   if (!window.confirm(`Bạn có chắc muốn xóa ${record.label} này không?`)) return;
+   const warning = type === "orders"
+       ? "Bạn có chắc muốn xóa đơn hàng này không? Nếu đơn còn đang giữ hàng, số lượng sẽ được trả lại kho. Không thể hoàn tác."
+       : type === "messages"
+           ? "Ẩn lời nhắn này khỏi danh sách phản hồi? Ghi chú gốc vẫn được giữ trong đơn hàng."
+           : `Bạn có chắc muốn xóa ${record.label} này không? Không thể hoàn tác.`;
+   if (!window.confirm(warning)) return;
 
    if (type === "orders") {
        try {
@@ -1285,10 +1339,8 @@ async function deleteAdminRecord(type, id) {
        else {
            const message = getMessages().find((item) => String(item.id) === String(id));
            if (message?.source === "legacy") await window.FlowerMessageStore.deleteAdminMessage(id);
+           // The note belongs to the order: hide it from this list, never erase it.
            else if (message) await window.FlowerOrderStore.update(id, {
-               orderNote: "",
-               orderNoteReply: "",
-               orderNoteCompletedAt: null,
                orderNoteArchivedAt: new Date().toISOString()
            });
        }
@@ -1619,6 +1671,12 @@ main.addEventListener("click", (event) => {
        }
    }
 
+   const latePayment = event.target.closest(".record-late-payment");
+   if (latePayment) {
+       recordLateOrderPayment(latePayment.dataset.orderId);
+       return;
+   }
+
    const verifyPayment = event.target.closest(".verify-payment");
    if (verifyPayment) {
        verifyOrderPayment(verifyPayment.dataset.orderId);
@@ -1819,13 +1877,13 @@ async function initializeAdmin() {
        stopReviewSubscription = window.FlowerReviewStore.subscribeAll((reviews) => {
            reviewsCache = reviews;
            const heading = main.querySelector(".panel h2")?.textContent;
-           if (heading === "Đánh giá khách hàng") renderReviewsTab();
+           if (heading === "Đánh giá khách hàng") rerenderKeepingEdits(renderReviewsTab);
            else if (main.querySelector(".dashboard")) renderDashboard();
        }, (error) => console.error("Không thể đồng bộ đánh giá từ Firestore:", error));
        try {
            stopMessageSubscription = await withTimeout(window.FlowerMessageStore.subscribeAdmin((messages) => {
                messagesCache = messages;
-               if (main.querySelector(".panel h2")?.textContent === "Phản hồi từ khách hàng") renderMessagesTab();
+               if (main.querySelector(".panel h2")?.textContent === "Phản hồi từ khách hàng") rerenderKeepingEdits(renderMessagesTab);
                else if (main.querySelector(".dashboard")) renderDashboard();
            }, (error) => console.error("Không thể đồng bộ phản hồi từ Firestore:", error)), "Tải phản hồi");
        } catch (error) {
@@ -1838,10 +1896,57 @@ async function initializeAdmin() {
    }
 }
 
+// Re-renders a tab with fresh data while keeping what the admin has typed but not saved yet
+// (stock boxes, forms, status/location fields, reply drafts), the opened detail cards, the
+// focused field and the scroll position.
+function rerenderKeepingEdits(render) {
+   const isDirty = (field) => field.tagName === "SELECT"
+       ? [...field.options].some((option) => option.selected !== option.defaultSelected)
+       : field.value !== field.defaultValue;
+   const keyOf = (field) => {
+       if (field.id) return field.id;
+       const recordId = field.dataset.id ?? field.dataset.orderId ?? field.dataset.reviewId ?? field.dataset.messageId;
+       return recordId === undefined ? "" : `${field.className}:${recordId}`;
+   };
+   const edits = new Map();
+   main.querySelectorAll("input, select, textarea").forEach((field) => {
+       const key = keyOf(field);
+       if (key && isDirty(field)) edits.set(key, field.value);
+   });
+   const focusedKey = document.activeElement && main.contains(document.activeElement) ? keyOf(document.activeElement) : "";
+   const openDetails = new Set([...main.querySelectorAll(".record-details:not([hidden])")]
+       .map((element) => element.dataset.recordDetails));
+   const scrollY = window.scrollY;
+
+   render();
+
+   main.querySelectorAll(".record-details").forEach((details) => {
+       if (!openDetails.has(details.dataset.recordDetails)) return;
+       details.hidden = false;
+       const [type, id] = details.dataset.recordDetails.split(/:(.*)/s);
+       const button = [...main.querySelectorAll(".show-record-details")]
+           .find((element) => element.dataset.recordType === type && element.dataset.recordId === id);
+       if (button) {
+           button.setAttribute("aria-expanded", "true");
+           button.textContent = "Ẩn chi tiết";
+       }
+   });
+   main.querySelectorAll("input, select, textarea").forEach((field) => {
+       const key = keyOf(field);
+       if (edits.has(key)) field.value = edits.get(key);
+       if (key && key === focusedKey) field.focus({ preventScroll: true });
+   });
+   window.scrollTo(0, scrollY);
+}
+
+function refreshProductTabKeepingEdits() {
+   rerenderKeepingEdits(renderProductTab);
+}
+
 window.addEventListener("storage", (event) => {
    const activeHeading = main.querySelector(".panel h2");
    if (event.key === "flowerInventory" && activeHeading?.textContent === "Quản lý kho hoa") {
-       renderProductTab();
+       refreshProductTabKeepingEdits();
    }
 });
 
@@ -1856,7 +1961,7 @@ window.addEventListener("pagehide", () => {
 window.addEventListener("flowerinventorychange", () => {
     const activeHeading = main.querySelector(".panel h2");
     if (activeHeading?.textContent === "Quản lý kho hoa") {
-         renderProductTab();
+         refreshProductTabKeepingEdits();
     }
 });
 

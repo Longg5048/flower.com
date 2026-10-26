@@ -6,14 +6,14 @@
   <script src="./safe-storage.js"></script>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Thanh toán</title>
-  <link rel="stylesheet" href="./store-header.css?v=1">
-  <link rel="stylesheet" href="./checkout.css?v=2">
+  <link rel="stylesheet" href="./store-header.css?v=2">
+  <link rel="stylesheet" href="./checkout.css?v=3">
   <link rel="stylesheet" href="./store-footer.css?v=2">
 <link rel="stylesheet" href="./contact-tools.css?v=2">
 </head>
 
 <body>
-  <script src="./store-header.js?v=2"></script>
+  <script src="./store-header.js?v=3"></script>
 
   <main class="checkout-page">
     <header class="checkout-heading">
@@ -55,7 +55,8 @@
             </label>
             <label class="checkout-field checkout-field-wide">
               <span>Ghi chú cho cửa hàng <small>(không bắt buộc)</small></span>
-              <textarea name="orderNote" rows="3" placeholder="Lời nhắn hoặc lưu ý khi giao hoa"></textarea>
+              <textarea name="orderNote" rows="3" maxlength="500" aria-describedby="order-note-counter" placeholder="Lời nhắn hoặc lưu ý khi giao hoa"></textarea>
+              <small class="checkout-note-counter" id="order-note-counter" aria-live="polite">0/500 ký tự</small>
             </label>
           </div>
         </section>
@@ -85,6 +86,7 @@
             <img id="payment-qr-image" alt="Mã QR chuyển khoản Vietcombank" width="220" height="220">
             <p id="payment-qr-amount" class="payment-qr-amount"></p>
             <p class="payment-qr-note">Mã QR chỉ hướng dẫn chuyển khoản. Đơn hàng chờ cửa hàng đối chiếu giao dịch; thao tác gửi đơn không xác nhận đã nhận tiền.</p>
+            <p class="payment-qr-note"><strong>Hàng được giữ 30 phút sau khi gửi đơn.</strong> Quá hạn mà cửa hàng chưa nhận được tiền, đơn sẽ tự hủy. Bạn có thể xem lại mã QR và nội dung chuyển khoản ở trang Theo dõi đơn hàng.</p>
           </div>
         </section>
       </div>
@@ -126,12 +128,19 @@
   </main>
   <script src="./store-footer.js?v=2"></script>
   <script src="./currency.js?v=9"></script>
-  <script src="./order-store.js?v=9"></script>
-  <script src="./product-names.js"></script>
+  <script src="./order-store.js?v=14"></script>
+  <script src="./product-names.js?v=2"></script>
   <script>
   const CartContainer = document.getElementById("product-container");
   const checkoutForm = document.getElementById("checkout-form");
   const checkoutMessage = document.getElementById("checkout-message");
+  const orderNoteInput = checkoutForm.querySelector('textarea[name="orderNote"]');
+  const orderNoteCounter = document.getElementById("order-note-counter");
+  function updateOrderNoteCounter() {
+    const length = orderNoteInput.value.length;
+    orderNoteCounter.textContent = length >= 500 ? "500/500 ký tự · Đã đạt giới hạn" : `${length}/500 ký tự`;
+  }
+  orderNoteInput.addEventListener("input", updateOrderNoteCounter);
   const promotionSelect = document.getElementById("promotion-select");
   const promotionMessage = document.getElementById("promotion-message");
   let Cart = FlowerSafeStorage.readJson("cart", {
@@ -189,28 +198,46 @@
     });
   }
 
+  // The promotion that saves the customer the most on the current cart, or "" when none applies.
+  function getBestPromotionId(availablePromotions) {
+    let bestId = "";
+    let bestSavings = 0;
+    availablePromotions.forEach((promotion) => {
+      const { savings } = calculateCartTotals(Cart, promotion.id);
+      if (savings > bestSavings) {
+        bestSavings = savings;
+        bestId = String(promotion.id);
+      }
+    });
+    return bestId;
+  }
+
   function renderPromotionOptions() {
     const availablePromotions = getAvailableCartPromotions(Cart);
-    const selectedPromotionId = FlowerSafeStorage.readText("flowerSelectedPromotion", "") || "";
+    // Only one promotion applies per order: always start from the one that saves the most.
+    // The customer can still pick another one until the cart changes.
+    const bestPromotionId = getBestPromotionId(availablePromotions);
     promotionSelect.replaceChildren(new Option("Không áp dụng ưu đãi", ""));
 
     availablePromotions.forEach((promotion) => {
+      const isBest = String(promotion.id) === bestPromotionId;
       promotionSelect.add(new Option(
-        `${promotion.name} · Giảm ${Number(promotion.discountPercent)}%${promotionAppliesToAllProducts(promotion) ? " · Tất cả hoa" : ""}`,
+        `${promotion.name} · Giảm ${Number(promotion.discountPercent)}%${promotionAppliesToAllProducts(promotion) ? " · Tất cả hoa" : ""}${isBest ? " · Tiết kiệm nhất" : ""}`,
         String(promotion.id)
       ));
     });
 
-    const selectionIsAvailable = availablePromotions.some(
-      (promotion) => String(promotion.id) === selectedPromotionId
-    );
-    promotionSelect.value = selectionIsAvailable ? selectedPromotionId : "";
-    if (!selectionIsAvailable && selectedPromotionId) {
+    promotionSelect.value = bestPromotionId;
+    if (bestPromotionId) {
+      FlowerSafeStorage.writeText("flowerSelectedPromotion", bestPromotionId);
+    } else {
       FlowerSafeStorage.remove("flowerSelectedPromotion");
     }
-    promotionMessage.textContent = availablePromotions.length
-      ? "Ưu đãi chỉ áp dụng cho những sản phẩm được chọn trong chương trình."
-      : "Hiện không có ưu đãi đang áp dụng cho sản phẩm trong giỏ hàng.";
+    promotionMessage.textContent = bestPromotionId
+      ? "Đã tự áp dụng ưu đãi giảm nhiều nhất cho giỏ hàng của bạn. Mỗi đơn áp dụng một ưu đãi."
+      : availablePromotions.length
+        ? "Ưu đãi chỉ áp dụng cho những sản phẩm được chọn trong chương trình."
+        : "Hiện không có ưu đãi đang áp dụng cho sản phẩm trong giỏ hàng.";
   }
 
   promotionSelect.addEventListener("change", () => {
@@ -233,7 +260,7 @@
     }
   }
 
-  function DisplayProduct() {
+  function DisplayProduct({ refreshQuote = true } = {}) {
     CartContainer.innerHTML = "";
     document.getElementById("checkout-item-count").textContent = Cart.reduce(
       (count, product) => count + Math.max(1, Number(product.quantity) || 1),
@@ -305,6 +332,7 @@
       details.append(name, unitPrice);
       if (hasStockLimit) {
         const stockMessage = document.createElement("p");
+        stockMessage.className = "checkout-stock";
         stockMessage.textContent = exceedsStock
           ? `Số lượng trong giỏ vượt tồn kho (${stock}).`
           : `Tồn kho: ${stock}`;
@@ -329,7 +357,7 @@
     updatePaymentQr();
     const cartTotal = document.getElementById("cartTotal");
     if (cartTotal) cartTotal.textContent = Cart.length;
-    void refreshServerQuote();
+    if (refreshQuote) void refreshServerQuote();
   }
 
   async function refreshServerQuote() {
@@ -357,8 +385,10 @@
           cartItem.price = usdFromVnd(quotedItem.price);
           cartItem.title = quotedItem.title;
           cartItem.image = quotedItem.image;
+          if (Number.isInteger(quotedItem.stock)) cartItem.stockQuantity = quotedItem.stock;
         }
       });
+      FlowerSafeStorage.writeJson("cart", Cart);
       const totals = quote.totals;
       document.getElementById("originalprice").textContent = formatVnd(usdFromVnd(totals.subtotal));
       document.getElementById("savings").textContent = formatVnd(usdFromVnd(totals.savings));
@@ -376,12 +406,23 @@
         }
         card.querySelector(".checkout-unit-price").textContent = formatVnd(item.price);
         card.querySelector(".checkout-item-total").textContent = formatVnd(item.price * Math.max(1, Number(item.quantity) || 1));
+        const stockMessage = card.querySelector(".checkout-stock");
+        if (stockMessage && Number.isInteger(item.stockQuantity)) stockMessage.textContent = `Tồn kho: ${item.stockQuantity}`;
       });
       checkoutMessage.textContent = "Giá, ưu đãi và tồn kho đã được xác minh từ cửa hàng.";
       submitButton.disabled = false;
       updatePaymentQr();
     } catch (error) {
       if (requestId !== quoteRequestId) return;
+      if (error.code === "insufficient-stock" && error.items?.length) {
+        // Show the real stock on each line so the customer sees which product to reduce.
+        error.items.forEach((shortage) => {
+          const cartItem = Cart.find((item) => String(item.id) === String(shortage.id));
+          if (cartItem) cartItem.stockQuantity = Math.max(0, Number(shortage.available) || 0);
+        });
+        FlowerSafeStorage.writeJson("cart", Cart);
+        DisplayProduct({ refreshQuote: false });
+      }
       checkoutMessage.textContent = error.message || "Không thể xác minh giá và tồn kho. Vui lòng thử lại.";
       renderCartSummary(Cart);
       updatePaymentQr();

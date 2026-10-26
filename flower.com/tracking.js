@@ -181,7 +181,16 @@ function renderReviewPanel(order) {
     reviewForm.hidden = false;
     reviewFeedback.textContent = "";
 
-    const existingReview = reviews.find((review) => String(review.orderId) === String(order.id));
+    showExistingReview(reviews.find((review) => String(review.orderId) === String(order.id)));
+
+    // The review (and the shop's reply) live in Firestore, so other devices see them too.
+    const orderId = String(order.id);
+    window.FlowerReviewStore.getForOrder(orderId).then((review) => {
+        if (review && currentOrder && String(currentOrder.id) === orderId) showExistingReview(review);
+    }).catch((error) => console.warn("Không thể tải đánh giá của đơn hàng:", error));
+}
+
+function showExistingReview(existingReview) {
     if (existingReview) {
         reviewForm.hidden = true;
         const rating = Math.min(5, Math.max(0, Number(existingReview.rating) || 0));
@@ -213,6 +222,14 @@ function renderOrder(order) {
     document.getElementById("result-payment-status").textContent = order.paymentMethod === "qr"
         ? (["Hết hạn chờ thanh toán", "Đã thanh toán"].includes(order.paymentStatus) ? order.paymentStatus : "Chờ cửa hàng xác minh")
         : order.paymentStatus || "Thanh toán khi nhận hàng";
+    // The note and the shop's reply are only present for the signed-in owner of the order.
+    const note = String(order.orderNote || "").trim();
+    const reply = String(order.orderNoteReply || "").trim();
+    document.getElementById("result-note-row").hidden = !note;
+    document.getElementById("result-note").textContent = note;
+    document.getElementById("result-reply-row").hidden = !reply;
+    document.getElementById("result-reply").textContent = reply;
+    renderPaymentInstructions(order);
     renderHistory(order);
     renderProducts(order.items);
     renderReviewPanel(order);
@@ -221,6 +238,37 @@ function renderOrder(order) {
     myOrdersList.querySelectorAll(".my-order-card").forEach((card) => {
         card.classList.toggle("is-selected", card.dataset.orderId === String(order.id));
     });
+}
+
+function toDateValue(value) {
+    if (value && typeof value.toDate === "function") return value.toDate();
+    const date = new Date(value || "");
+    return Number.isNaN(date.getTime()) ? null : date;
+}
+
+// QR orders waiting for the transfer: show the amount, transfer content, QR code and deadline
+// again, so the customer can still pay after leaving the checkout page.
+function renderPaymentInstructions(order) {
+    const panel = document.getElementById("tracking-payment");
+    const waiting = order.paymentMethod === "qr" && order.paymentVerified !== true
+        && normalizeOrderStatus(order.status) === "Chờ xác nhận" && Number(order.total) > 0;
+    panel.hidden = !waiting;
+    if (!waiting) return;
+    const total = Number(order.total);
+    const reference = String(order.paymentReference || "");
+    document.getElementById("tracking-payment-amount").textContent = formatOrderTotal(order);
+    document.getElementById("tracking-payment-reference").textContent = reference || "Mã đơn hàng của bạn";
+    const deadline = toDateValue(order.reservationExpiresAt);
+    document.getElementById("tracking-payment-deadline").textContent = deadline
+        ? deadline.getTime() > Date.now()
+            ? `Vui lòng chuyển khoản trước ${deadline.toLocaleTimeString("vi-VN", { hour: "2-digit", minute: "2-digit" })} ngày ${deadline.toLocaleDateString("vi-VN")}.`
+            : "Đã quá hạn giữ hàng. Đơn có thể bị hủy bất cứ lúc nào; hãy liên hệ cửa hàng trước khi chuyển khoản."
+        : "Vui lòng chuyển khoản sớm để cửa hàng giữ hàng cho bạn.";
+    const qrUrl = new URL("https://img.vietqr.io/image/VCB-1063118243-compact2.png");
+    qrUrl.searchParams.set("amount", String(total));
+    if (reference) qrUrl.searchParams.set("addInfo", reference);
+    qrUrl.searchParams.set("accountName", "DO BA THAI");
+    document.getElementById("tracking-payment-qr").src = qrUrl.toString();
 }
 
 function getLoggedAccount() {
@@ -496,6 +544,19 @@ window.addEventListener("storage", (event) => {
         void startAccountOrderSync();
     }
     if (event.key === "flowerReviews" && currentOrder) renderReviewPanel(currentOrder);
+});
+
+// store-header.js found that the Firebase session behind "loggedUser" is gone.
+window.addEventListener("flowersessionexpired", () => {
+    if (stopAccountOrderSubscription) stopAccountOrderSubscription();
+    stopAccountOrderSubscription = null;
+    accountOrdersCache = [];
+    accountOrdersError = "";
+    if (currentOrder && currentOrder.privacyLimited !== true) {
+        currentOrder = null;
+        results.hidden = true;
+    }
+    renderMyOrders();
 });
 
 window.addEventListener("pagehide", () => {

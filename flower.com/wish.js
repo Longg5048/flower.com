@@ -124,6 +124,12 @@ window.addEventListener("storage", (event) => {
   }
 });
 
+// The live Firestore sync arrives after initialize(): show the latest stock without a reload.
+window.addEventListener("flowerinventorychange", (event) => {
+  products = Array.isArray(event.detail) ? event.detail : FlowerInventory.readProducts();
+  renderWishlist();
+});
+
 FlowerInventory.initialize()
   .then((inventory) => {
     products = inventory;

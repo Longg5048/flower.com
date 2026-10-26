@@ -54,6 +54,15 @@
   async function create(order, expectedTotals) {
     const { auth } = await getFirebase();
     await auth.authStateReady();
+    // A browser that still shows an account whose Firebase session is gone would otherwise
+    // place a guest order that never appears under "Đơn hàng của bạn".
+    const storedAccount = root.FlowerSafeStorage?.readJson("loggedUser", { fallback: null }) || null;
+    if (storedAccount?.uid && auth.currentUser?.uid !== storedAccount.uid) {
+      root.FlowerSafeStorage.remove("loggedUser");
+      const error = new Error("Phiên đăng nhập đã hết hạn. Hãy đăng nhập lại để đơn được lưu vào tài khoản của bạn (giỏ hàng vẫn được giữ).");
+      error.code = "session-expired";
+      throw error;
+    }
     const headers = { "Content-Type": "application/json", Accept: "application/json" };
     if (auth.currentUser) headers.Authorization = `Bearer ${await auth.currentUser.getIdToken()}`;
     const response = await fetch("/api/orders", {
@@ -98,6 +107,7 @@
     if (!response.ok) {
       const error = new Error(result.error || "Không thể kiểm tra giá sản phẩm.");
       error.code = result.code || "order-quote-failed";
+      error.items = Array.isArray(result.items) ? result.items : [];
       throw error;
     }
     return result;
@@ -253,6 +263,9 @@
 
   // options.restockSold: when cancelling an order that was already delivered, put its items
   // back in stock (the goods came back). Otherwise a delivered order stays counted as sold.
+  // options.expectedStatus: the status the admin was looking at; if the order changed since
+  // (e.g. the reservation expired), nothing is written and the admin is asked to look again.
+  // options.newEvent: tracking event appended to the latest history inside the transaction.
   async function update(id, changes, options = {}) {
     const { db, firestoreSdk } = await getFirebase();
     const orderRef = firestoreSdk.doc(db, "orders", String(id));
@@ -265,6 +278,17 @@
       const orderSnapshot = await transaction.get(orderRef);
       if (!orderSnapshot.exists()) throw new Error("Không tìm thấy đơn hàng.");
       const order = orderSnapshot.data();
+      if (options.expectedStatus !== undefined && order.status !== options.expectedStatus) {
+        const error = new Error(`Đơn hàng vừa được cập nhật thành “${order.status}”. Hãy xem lại đơn trước khi đổi trạng thái.`);
+        error.code = "order-changed";
+        throw error;
+      }
+      if (options.newEvent) {
+        changes = {
+          ...changes,
+          trackingHistory: [...(Array.isArray(order.trackingHistory) ? order.trackingHistory : []), options.newEvent]
+        };
+      }
       const state = inventoryStateOf(order);
       const willBeCancelled = changes.status === "Đã hủy";
       const willBeDelivered = changes.status === "Đã giao";
@@ -290,12 +314,19 @@
       const productSnapshots = [];
       for (const productRef of productRefs) productSnapshots.push(await transaction.get(productRef));
 
-      if (stockChange < 0 && productSnapshots.some((snapshot, index) => (
-        !snapshot.exists()
-        || !Number.isInteger(Number(snapshot.data().quantity))
-        || Number(snapshot.data().quantity) < Number(items[index].quantity)
-      ))) {
-        throw new Error("Không đủ tồn kho để khôi phục đơn đã hủy.");
+      if (stockChange < 0) {
+        const shortages = productSnapshots.map((snapshot, index) => {
+          const available = snapshot.exists() ? Number(snapshot.data().quantity) : 0;
+          if (Number.isInteger(available) && available >= Number(items[index].quantity)) return "";
+          const orderItem = (order.items || []).find((item) => String(item?.id) === items[index].id);
+          const title = (snapshot.exists() && snapshot.data().title) || orderItem?.title || `#${items[index].id}`;
+          return `${title} (cần ${items[index].quantity}, còn ${Number.isInteger(available) ? Math.max(0, available) : 0})`;
+        }).filter(Boolean);
+        if (shortages.length) {
+          const error = new Error(`Không đủ tồn kho để khôi phục đơn đã hủy: ${shortages.join("; ")}. Hãy nhập thêm hàng rồi thử lại.`);
+          error.code = "insufficient-stock";
+          throw error;
+        }
       }
       productSnapshots.forEach((snapshot, index) => {
         if (!snapshot.exists()) return;
@@ -311,6 +342,10 @@
         ...changes,
         inventoryState: nextState,
         inventoryReserved: nextState === "reserved",
+        // A restored QR order is waiting for the transfer again, not "expired".
+        ...(reserveAgain && order.paymentMethod === "qr"
+          ? { paymentStatus: order.paymentVerified === true ? "Đã thanh toán" : "Chờ xác minh thanh toán" }
+          : {}),
         ...(reserveAgain ? {
           reservationExpiresAt: firestoreSdk.Timestamp.fromDate(new Date(Date.now() + (
             order.paymentMethod === "qr" ? 30 * 60 * 1000 : 24 * 60 * 60 * 1000
@@ -340,6 +375,30 @@
         paymentVerified: true,
         paymentStatus: "Đã thanh toán",
         paidAt: new Date().toISOString()
+      });
+    });
+  }
+
+  // Records a QR transfer that arrived after the order was cancelled (usually by the 30-minute
+  // hold expiring), so the shop remembers to restore the order or refund the customer.
+  async function recordLatePayment(id) {
+    const { db, firestoreSdk } = await getFirebase();
+    const orderRef = firestoreSdk.doc(db, "orders", String(id));
+    await firestoreSdk.runTransaction(db, async (transaction) => {
+      const snapshot = await transaction.get(orderRef);
+      if (!snapshot.exists()) throw new Error("Không tìm thấy đơn hàng.");
+      const order = snapshot.data();
+      if (order.status !== "Đã hủy") {
+        const error = new Error("Đơn này chưa bị hủy. Hãy dùng nút “Xác nhận đã nhận tiền”.");
+        error.code = "order-changed";
+        throw error;
+      }
+      if (order.paymentVerified === true) return;
+      transaction.update(orderRef, {
+        paymentVerified: true,
+        paymentStatus: "Đã nhận tiền sau khi đơn bị hủy – cần khôi phục đơn hoặc hoàn tiền",
+        paidAt: new Date().toISOString(),
+        latePayment: true
       });
     });
   }
@@ -383,6 +442,7 @@
     expireReservations,
     update,
     verifyPayment,
+    recordLatePayment,
     remove
   };
 })(typeof window !== "undefined" ? window : globalThis);

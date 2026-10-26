@@ -38,9 +38,7 @@
             categoryKey: String(product.categoryKey || "").trim(),
             sameDayDelivery: product.sameDayDelivery === true,
             onSale: product.onSale === true,
-            description: description.includes("?")
-                ? `${title} được tuyển chọn và sắp xếp tỉ mỉ, phù hợp làm quà tặng cho những dịp đặc biệt. Màu sắc và chủng loại hoa có thể thay đổi nhẹ theo mùa.`
-                : description
+            description
         };
     }
 

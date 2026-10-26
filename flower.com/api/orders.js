@@ -1,4 +1,4 @@
-const { createHmac } = require("node:crypto");
+const { createHash, createHmac } = require("node:crypto");
 const { FieldValue, Timestamp } = require("firebase-admin/firestore");
 const { getAdminAuth, getAdminFirestore, sendError } = require("../lib/firebase-admin");
 
@@ -133,8 +133,20 @@ function publicTrackingOrder(id, data) {
                 updatedAt: serializeTimestamp(event.updatedAt) || event.updatedAt || ""
             }))
             : [],
+        // What a customer needs to finish a QR transfer (no name, phone or address).
+        ...(awaitsQrTransfer(data) ? {
+            paymentMethod: "qr",
+            paymentStatus: data.paymentStatus || "Chờ xác minh thanh toán",
+            total: Number(data.total) || 0,
+            paymentReference: data.paymentReference || "",
+            reservationExpiresAt: serializeTimestamp(data.reservationExpiresAt)
+        } : {}),
         privacyLimited: true
     };
+}
+
+function awaitsQrTransfer(data) {
+    return data.paymentMethod === "qr" && data.paymentVerified !== true && (data.status || "Chờ xác nhận") === "Chờ xác nhận";
 }
 
 async function checkOrderLookupLimit(db, req) {
@@ -247,23 +259,33 @@ async function quoteOrder(req, res) {
             db.getAll(...productRefs),
             db.collection("metadata").doc("activePromotions").get()
         ]);
+        // Report every product that cannot be sold in the asked quantity, with what is left, so the
+        // checkout can tell the customer exactly what to change.
+        const shortages = [];
         const cart = quote.items.map((item, index) => {
             const snapshot = products[index];
-            if (!snapshot.exists) {
-                const error = new Error("Một sản phẩm không còn bán.");
-                error.code = "product-unavailable";
-                throw error;
-            }
-            const data = snapshot.data();
+            const data = snapshot.exists ? snapshot.data() : {};
             const price = priceInUsd(data.price);
             const stock = Number(data.quantity);
-            if (!Number.isFinite(price) || price <= 0 || !Number.isInteger(stock) || stock < item.quantity) {
-                const error = new Error("Sản phẩm không đủ tồn kho hoặc có giá chưa hợp lệ.");
-                error.code = "insufficient-stock";
-                throw error;
+            if (!snapshot.exists || !Number.isFinite(price) || price <= 0 || !Number.isInteger(stock) || stock < item.quantity) {
+                shortages.push({
+                    id: item.id,
+                    title: String(data.title || "").slice(0, 120),
+                    available: snapshot.exists && Number.isInteger(stock) && Number.isFinite(price) && price > 0 ? Math.max(0, stock) : 0
+                });
             }
-            return { ...item, data, price };
+            return { ...item, data, price, stock };
         });
+        if (shortages.length) {
+            const message = shortages.map((item) => item.available
+                ? `“${item.title || "Một sản phẩm"}” chỉ còn ${item.available} sản phẩm`
+                : `“${item.title || "Một sản phẩm"}” đã hết hàng`).join("; ");
+            return res.status(409).json({
+                code: "insufficient-stock",
+                error: `${message}. Hãy giảm số lượng hoặc xóa sản phẩm đó khỏi giỏ.`,
+                items: shortages
+            });
+        }
         const promotions = Array.isArray(promotionsSnapshot.data()?.items) ? promotionsSnapshot.data().items : [];
         const promotion = quote.promotionId
             ? promotions.find((item) => String(item.id) === quote.promotionId && item.active === true)
@@ -294,7 +316,8 @@ async function quoteOrder(req, res) {
                 title: String(item.data.title || "Sản phẩm").slice(0, 120),
                 image: String(item.data.image || "").slice(0, 1000),
                 quantity: item.quantity,
-                price: vnd(item.price)
+                price: vnd(item.price),
+                stock: item.stock
             }))
         });
     } catch (error) {
@@ -313,7 +336,13 @@ async function optionalAuthenticatedUser(req) {
     return getAdminAuth().verifyIdToken(match[1], true);
 }
 
+const MAX_ORDER_NOTE_LENGTH = 500;
+
 async function createOrder(req, res) {
+    // Reject an over-long note instead of cutting it silently (the end often holds the delivery time).
+    if (String(req.body?.orderNote || "").trim().length > MAX_ORDER_NOTE_LENGTH) {
+        return sendError(res, 400, "note-too-long", `Ghi chú tối đa ${MAX_ORDER_NOTE_LENGTH} ký tự. Hãy rút gọn ghi chú rồi đặt lại.`);
+    }
     const checkout = validateCheckout(req.body);
     if (!checkout) {
         return sendError(res, 400, "invalid-checkout", "Thông tin đặt hàng hoặc danh sách sản phẩm không hợp lệ.");
@@ -414,7 +443,8 @@ async function createOrder(req, res) {
                 title: String(item.data.title || "Sản phẩm").slice(0, 120),
                 image: String(item.data.image || "").slice(0, 1000),
                 quantity: item.quantity,
-                price: vnd(item.price)
+                price: vnd(item.price),
+                stock: item.stock
             }));
             const initialStatus = "Chờ xác nhận";
             const initialLocation = "Đơn hàng đã được gửi đến cửa hàng";
@@ -439,7 +469,7 @@ async function createOrder(req, res) {
                 paidAt: "",
                 paymentVerified: false,
                 promotionId: promotion ? checkout.promotionId : "",
-                orderNote: String(req.body.orderNote || "").trim().slice(0, 500),
+                orderNote: String(req.body.orderNote || "").trim(),
                 items,
                 inventoryReserved: true,
                 inventoryState: "reserved",
@@ -502,11 +532,92 @@ async function lookupOrder(req, res) {
     }
 }
 
+// One public review per order. The id is derived from the order id so a second review of the same
+// order collides, without listing order ids in the public reviews collection.
+function reviewIdForOrder(orderId) {
+    return createHash("sha256").update(`review:${orderId}`).digest("hex").slice(0, 40);
+}
+
+// Only the signed-in owner of a delivered order may review it. Products and the shown name come
+// from the order, never from the browser.
+async function submitReview(req, res) {
+    const match = String(req.headers.authorization || "").match(/^Bearer\s+(.+)$/i);
+    if (!match) return sendError(res, 401, "unauthenticated", "Đăng nhập tài khoản đã đặt đơn để gửi đánh giá.");
+    const orderId = String(req.body?.orderId || "").trim();
+    const rating = Number(req.body?.rating);
+    const comment = String(req.body?.comment || "").trim();
+    if (!orderId || orderId.length > 128 || orderId.includes("/")
+        || !Number.isInteger(rating) || rating < 1 || rating > 5
+        || !comment || comment.length > 1000) {
+        return sendError(res, 400, "invalid-argument", "Hãy chọn số sao và nhập nhận xét (tối đa 1000 ký tự).");
+    }
+
+    let user;
+    try {
+        user = await getAdminAuth().verifyIdToken(match[1], true);
+    } catch {
+        return sendError(res, 401, "unauthenticated", "Phiên đăng nhập đã hết hạn. Hãy đăng nhập lại.");
+    }
+
+    try {
+        const db = getAdminFirestore();
+        const orderRef = db.collection("orders").doc(orderId);
+        const reviewRef = db.collection("reviews").doc(reviewIdForOrder(orderId));
+        const review = await db.runTransaction(async (transaction) => {
+            const [orderSnapshot, reviewSnapshot] = await Promise.all([transaction.get(orderRef), transaction.get(reviewRef)]);
+            const order = orderSnapshot.exists ? orderSnapshot.data() : null;
+            if (!order || !order.uid || order.uid !== user.uid) {
+                const error = new Error("Không tìm thấy đơn hàng này trong tài khoản của bạn.");
+                error.code = "order-not-found";
+                throw error;
+            }
+            if (order.status !== "Đã giao") {
+                const error = new Error("Chỉ có thể đánh giá đơn hàng đã giao.");
+                error.code = "order-not-delivered";
+                throw error;
+            }
+            if (reviewSnapshot.exists) {
+                const error = new Error("Bạn đã đánh giá đơn hàng này rồi.");
+                error.code = "already-reviewed";
+                throw error;
+            }
+            const items = Array.isArray(order.items) ? order.items : [];
+            const productIds = aggregateItems(items).map((item) => item.id).filter(Boolean).slice(0, 10);
+            if (!productIds.length) {
+                const error = new Error("Đơn hàng không có thông tin sản phẩm để gắn đánh giá.");
+                error.code = "invalid-argument";
+                throw error;
+            }
+            const name = String(order.customerName || "").trim().slice(0, 80);
+            const data = {
+                productIds,
+                productName: items.map((item) => String(item?.title || "")).filter(Boolean).join(", ").slice(0, 500) || "Sản phẩm hoa",
+                // Customers cannot post under the shop's name.
+                customerName: !name || /flower\s*flow|cửa hàng|quản trị|admin/i.test(name) ? "Khách hàng" : name,
+                rating,
+                comment,
+                createdAt: FieldValue.serverTimestamp()
+            };
+            transaction.create(reviewRef, data);
+            return data;
+        });
+        return res.status(201).json({ review: { ...review, id: reviewRef.id, createdAt: new Date().toISOString() } });
+    } catch (error) {
+        if (["order-not-found", "order-not-delivered", "already-reviewed", "invalid-argument"].includes(error.code)) {
+            const status = { "order-not-found": 404, "invalid-argument": 400 }[error.code] || 409;
+            return sendError(res, status, error.code, error.message);
+        }
+        console.error("Review submission failed:", error.code || error.message);
+        return sendError(res, 503, "review-service-unavailable", "Chưa thể gửi đánh giá. Vui lòng thử lại sau.");
+    }
+}
+
 module.exports = async function handler(req, res) {
     res.setHeader("Cache-Control", "no-store");
     if (req.method === "POST") {
         if (req.body?.action === "quote") return quoteOrder(req, res);
         if (req.body?.action === "lookup") return lookupOrder(req, res);
+        if (req.body?.action === "review") return submitReview(req, res);
         return createOrder(req, res);
     }
     if (req.method !== "GET") {

@@ -43,8 +43,9 @@ function getVietnameseProductName(name) {
   return vietnameseProductNames[name] || name;
 }
 
+// Shows the description the admin wrote, whatever its language; only an empty one gets the
+// generic sentence.
 function getVietnameseProductDescription(description) {
   const text = String(description || "").trim();
-  if (!text || /[à-ỹđ]/i.test(text)) return text;
-  return "Mẫu hoa tươi được tuyển chọn và sắp xếp chỉn chu, phù hợp làm quà tặng trong những dịp đáng nhớ.";
+  return text || "Mẫu hoa tươi được tuyển chọn và sắp xếp chỉn chu, phù hợp làm quà tặng trong những dịp đáng nhớ.";
 }

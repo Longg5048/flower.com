@@ -953,8 +953,8 @@ function renderOrdersTab() {
 
 function refreshOrdersView() {
    const heading = main.querySelector(".panel h2")?.textContent;
-   if (heading === "Quản lý đơn hàng") renderOrdersTab();
-   else if (heading === "Phản hồi từ khách hàng") renderMessagesTab();
+   if (heading === "Quản lý đơn hàng") rerenderKeepingEdits(renderOrdersTab);
+   else if (heading === "Phản hồi từ khách hàng") rerenderKeepingEdits(renderMessagesTab);
    else if (heading === "Doanh thu & kho hàng") renderRevenueTab();
    else if (main.querySelector(".dashboard") || !heading) renderDashboard();
 }
@@ -1874,13 +1874,13 @@ async function initializeAdmin() {
        stopReviewSubscription = window.FlowerReviewStore.subscribeAll((reviews) => {
            reviewsCache = reviews;
            const heading = main.querySelector(".panel h2")?.textContent;
-           if (heading === "Đánh giá khách hàng") renderReviewsTab();
+           if (heading === "Đánh giá khách hàng") rerenderKeepingEdits(renderReviewsTab);
            else if (main.querySelector(".dashboard")) renderDashboard();
        }, (error) => console.error("Không thể đồng bộ đánh giá từ Firestore:", error));
        try {
            stopMessageSubscription = await withTimeout(window.FlowerMessageStore.subscribeAdmin((messages) => {
                messagesCache = messages;
-               if (main.querySelector(".panel h2")?.textContent === "Phản hồi từ khách hàng") renderMessagesTab();
+               if (main.querySelector(".panel h2")?.textContent === "Phản hồi từ khách hàng") rerenderKeepingEdits(renderMessagesTab);
                else if (main.querySelector(".dashboard")) renderDashboard();
            }, (error) => console.error("Không thể đồng bộ phản hồi từ Firestore:", error)), "Tải phản hồi");
        } catch (error) {
@@ -1893,27 +1893,51 @@ async function initializeAdmin() {
    }
 }
 
-// Re-renders the products tab with fresh data while keeping whatever the admin has typed but
-// not saved yet (stock boxes, the add/edit form, the search box) and the focused field.
-function refreshProductTabKeepingEdits() {
+// Re-renders a tab with fresh data while keeping what the admin has typed but not saved yet
+// (stock boxes, forms, status/location fields, reply drafts), the opened detail cards, the
+// focused field and the scroll position.
+function rerenderKeepingEdits(render) {
    const isDirty = (field) => field.tagName === "SELECT"
        ? [...field.options].some((option) => option.selected !== option.defaultSelected)
        : field.value !== field.defaultValue;
-   const keyOf = (field) => field.id || (field.classList.contains("qty-input") ? `qty:${field.dataset.id}` : "");
+   const keyOf = (field) => {
+       if (field.id) return field.id;
+       const recordId = field.dataset.id ?? field.dataset.orderId ?? field.dataset.reviewId ?? field.dataset.messageId;
+       return recordId === undefined ? "" : `${field.className}:${recordId}`;
+   };
    const edits = new Map();
    main.querySelectorAll("input, select, textarea").forEach((field) => {
        const key = keyOf(field);
        if (key && isDirty(field)) edits.set(key, field.value);
    });
    const focusedKey = document.activeElement && main.contains(document.activeElement) ? keyOf(document.activeElement) : "";
+   const openDetails = new Set([...main.querySelectorAll(".record-details:not([hidden])")]
+       .map((element) => element.dataset.recordDetails));
+   const scrollY = window.scrollY;
 
-   renderProductTab();
+   render();
 
+   main.querySelectorAll(".record-details").forEach((details) => {
+       if (!openDetails.has(details.dataset.recordDetails)) return;
+       details.hidden = false;
+       const [type, id] = details.dataset.recordDetails.split(/:(.*)/s);
+       const button = [...main.querySelectorAll(".show-record-details")]
+           .find((element) => element.dataset.recordType === type && element.dataset.recordId === id);
+       if (button) {
+           button.setAttribute("aria-expanded", "true");
+           button.textContent = "Ẩn chi tiết";
+       }
+   });
    main.querySelectorAll("input, select, textarea").forEach((field) => {
        const key = keyOf(field);
        if (edits.has(key)) field.value = edits.get(key);
-       if (key && key === focusedKey) field.focus();
+       if (key && key === focusedKey) field.focus({ preventScroll: true });
    });
+   window.scrollTo(0, scrollY);
+}
+
+function refreshProductTabKeepingEdits() {
+   rerenderKeepingEdits(renderProductTab);
 }
 
 window.addEventListener("storage", (event) => {

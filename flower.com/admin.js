@@ -176,7 +176,7 @@ function getReviews() {
 // Customer messages are the notes left on orders at checkout.
 function getMessages() {
    const orderMessages = ordersCache
-       .filter((order) => String(order.orderNote || "").trim())
+       .filter((order) => String(order.orderNote || "").trim() && !order.orderNoteArchivedAt)
        .map((order) => ({
            id: String(order.id),
            source: "order",
@@ -728,10 +728,12 @@ async function saveAdminProducts(products) {
 }
 
 function renderCompletionAction(type, record) {
+   const attributes = `data-record-type="${escapeHtml(type)}" data-record-id="${escapeHtml(record.id)}"`;
+   const deleteButton = `<button class="delete-record" ${attributes} type="button">Xóa</button>`;
    if (record.completedAt) {
-       return `<button class="restore-record" data-record-type="${escapeHtml(type)}" data-record-id="${escapeHtml(record.id)}" type="button">Khôi phục</button>`;
+       return `<button class="restore-record" ${attributes} type="button">Khôi phục</button>${deleteButton}`;
    }
-   return `<button class="complete-record" data-record-type="${escapeHtml(type)}" data-record-id="${escapeHtml(record.id)}" type="button">Hoàn thành</button>`;
+   return `<button class="complete-record" ${attributes} type="button">Hoàn thành</button>${deleteButton}`;
 }
 
 function renderCompletedSection(records, renderCard, label) {
@@ -1286,7 +1288,12 @@ async function deleteAdminRecord(type, id) {
        return;
    }
 
-   if (!window.confirm(`Bạn có chắc muốn xóa ${record.label} này không?`)) return;
+   const warning = type === "orders"
+       ? "Bạn có chắc muốn xóa đơn hàng này không? Nếu đơn còn đang giữ hàng, số lượng sẽ được trả lại kho. Không thể hoàn tác."
+       : type === "messages"
+           ? "Ẩn lời nhắn này khỏi danh sách phản hồi? Ghi chú gốc vẫn được giữ trong đơn hàng."
+           : `Bạn có chắc muốn xóa ${record.label} này không? Không thể hoàn tác.`;
+   if (!window.confirm(warning)) return;
 
    if (type === "orders") {
        try {
@@ -1303,10 +1310,8 @@ async function deleteAdminRecord(type, id) {
        else {
            const message = getMessages().find((item) => String(item.id) === String(id));
            if (message?.source === "legacy") await window.FlowerMessageStore.deleteAdminMessage(id);
+           // The note belongs to the order: hide it from this list, never erase it.
            else if (message) await window.FlowerOrderStore.update(id, {
-               orderNote: "",
-               orderNoteReply: "",
-               orderNoteCompletedAt: null,
                orderNoteArchivedAt: new Date().toISOString()
            });
        }

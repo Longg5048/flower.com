@@ -76,6 +76,12 @@ async function deployRules() {
     return `xong (${ruleset.name.split("/").pop()})`;
 }
 
+// Some Firestore features (TTL policies) need the paid Blaze plan; on the free Spark plan they
+// are skipped instead of failing the whole setup.
+function needsBilling(error) {
+    return /billing/i.test(error.message);
+}
+
 async function createIndexes() {
     const config = JSON.parse(fs.readFileSync(path.join(root, "firestore.indexes.json"), "utf8"));
     const base = `https://firestore.googleapis.com/v1/projects/${projectId}/databases/(default)/collectionGroups`;
@@ -88,14 +94,20 @@ async function createIndexes() {
             });
             done.push(`index ${index.collectionGroup} đang được tạo`);
         } catch (error) {
-            if (error.status !== 409) throw error;
-            done.push(`index ${index.collectionGroup} đã có`);
+            if (error.status === 409) done.push(`index ${index.collectionGroup} đã có`);
+            else if (needsBilling(error)) done.push(`index ${index.collectionGroup} bỏ qua (cần gói Blaze)`);
+            else throw error;
         }
     }
     for (const field of config.fieldOverrides || []) {
         if (!field.ttl) continue;
-        await googleApi("PATCH", `${base}/${field.collectionGroup}/fields/${field.fieldPath}?updateMask=ttlConfig`, { ttlConfig: {} });
-        done.push(`TTL ${field.collectionGroup}.${field.fieldPath}`);
+        try {
+            await googleApi("PATCH", `${base}/${field.collectionGroup}/fields/${field.fieldPath}?updateMask=ttlConfig`, { ttlConfig: {} });
+            done.push(`TTL ${field.collectionGroup}.${field.fieldPath}`);
+        } catch (error) {
+            if (!needsBilling(error)) throw error;
+            done.push(`TTL ${field.collectionGroup}.${field.fieldPath} bỏ qua (cần gói Blaze, không bắt buộc)`);
+        }
     }
     return done.join(", ");
 }

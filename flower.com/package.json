@@ -8,6 +8,7 @@
                     "set-admin":  "node scripts/set-admin-claim.js",
                     "set-owner":  "node scripts/set-owner-claim.js",
                     "sync-admin-roles":  "node scripts/sync-admin-roles.js",
+                    "setup-firestore":  "node scripts/setup-firestore.js",
                     "test":  "node ../tests/product-page.test.js \u0026\u0026 node ../tests/product-related.test.js \u0026\u0026 node ../tests/product-categories.test.js \u0026\u0026 node ../tests/product-store-sync.test.js \u0026\u0026 node ../tests/shopping-store.test.js \u0026\u0026 node ../tests/store-footer.test.js"
                 },
     "dependencies":  {

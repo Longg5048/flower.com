@@ -194,10 +194,10 @@ function getMessages() {
 }
 
 function renderDashboard() {
-   if (orderStoreError) {
-       main.innerHTML = `<section class="panel"><h2>Đơn hàng</h2><p class="empty-state">Không thể tải đơn hàng dùng chung. Kiểm tra cấu hình Firestore và quyền truy cập rồi tải lại trang.</p></section>`;
-       return;
-   }
+   // Without order data the dashboard still shows products and the catalog restore button.
+   const ordersNotice = orderStoreError
+       ? `<div class="restore-catalog-notice" role="alert"><p><strong>Chưa tải được đơn hàng, đánh giá và phản hồi.</strong> Database có thể chưa có luật bảo vệ (firestore.rules): chạy <code>npm run setup-firestore</code> trong thư mục flower.com rồi tải lại trang.</p></div>`
+       : "";
    const products = getProducts();
    const orders = getOrders();
    const reviews = getReviews();
@@ -208,6 +208,7 @@ function renderDashboard() {
 
    main.innerHTML = `
        <section class="dashboard">
+           ${ordersNotice}
            ${renderRestoreCatalogNotice()}
            <div class="summary">
                <div class="summary-card">

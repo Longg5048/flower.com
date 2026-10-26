@@ -253,6 +253,9 @@
 
   // options.restockSold: when cancelling an order that was already delivered, put its items
   // back in stock (the goods came back). Otherwise a delivered order stays counted as sold.
+  // options.expectedStatus: the status the admin was looking at; if the order changed since
+  // (e.g. the reservation expired), nothing is written and the admin is asked to look again.
+  // options.newEvent: tracking event appended to the latest history inside the transaction.
   async function update(id, changes, options = {}) {
     const { db, firestoreSdk } = await getFirebase();
     const orderRef = firestoreSdk.doc(db, "orders", String(id));
@@ -265,6 +268,17 @@
       const orderSnapshot = await transaction.get(orderRef);
       if (!orderSnapshot.exists()) throw new Error("Không tìm thấy đơn hàng.");
       const order = orderSnapshot.data();
+      if (options.expectedStatus !== undefined && order.status !== options.expectedStatus) {
+        const error = new Error(`Đơn hàng vừa được cập nhật thành “${order.status}”. Hãy xem lại đơn trước khi đổi trạng thái.`);
+        error.code = "order-changed";
+        throw error;
+      }
+      if (options.newEvent) {
+        changes = {
+          ...changes,
+          trackingHistory: [...(Array.isArray(order.trackingHistory) ? order.trackingHistory : []), options.newEvent]
+        };
+      }
       const state = inventoryStateOf(order);
       const willBeCancelled = changes.status === "Đã hủy";
       const willBeDelivered = changes.status === "Đã giao";

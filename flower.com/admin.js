@@ -1221,27 +1221,22 @@ async function updateOrderStatus(orderId, status, location, estimatedDelivery) {
    const markCodAsPaid = status === "Đã giao"
        && order.paymentMethod === "cod"
        && !isOrderPaid(order);
-   const trackingHistory = Array.isArray(order.trackingHistory) && order.trackingHistory.length
-       ? order.trackingHistory
-       : [{
-           status: normalizeOrderStatus(order.status),
-           location: order.currentLocation || "Đơn hàng đã được tạo",
-           estimatedDelivery: order.estimatedDelivery || "",
-           updatedAt: order.createdAt || updatedAt
-       }];
-
    try {
        await window.FlowerOrderStore.update(orderId, {
            status,
            ...(markCodAsPaid ? { paymentStatus: "Đã thanh toán", paidAt: updatedAt } : {}),
            currentLocation: location,
            estimatedDelivery,
-           trackingUpdatedAt: updatedAt,
-           trackingHistory: [...trackingHistory, { status, location, estimatedDelivery, updatedAt }]
-       }, { restockSold });
+           trackingUpdatedAt: updatedAt
+       }, {
+           restockSold,
+           expectedStatus: order.status,
+           newEvent: { status, location, estimatedDelivery, updatedAt }
+       });
    } catch (error) {
        console.error("Không thể cập nhật đơn hàng trên Firestore:", error);
-       alert("Chưa thể cập nhật đơn hàng dùng chung. Hãy thử lại sau.");
+       alert(error.code ? error.message : "Chưa thể cập nhật đơn hàng dùng chung. Hãy thử lại sau.");
+       if (error.code === "order-changed") renderOrdersTab();
    }
 }
 

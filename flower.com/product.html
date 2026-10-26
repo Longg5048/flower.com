@@ -6,6 +6,7 @@
     <script src="./safe-storage.js"></script>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="theme-color" content="#fbf8f3">
+  <meta name="description" content="Khám phá hoa tươi Flowerflow, lọc theo loại hoa, màu sắc, dịp tặng và mức giá. Xem tồn kho, chi tiết bó hoa và đặt giao tận nơi.">
   <title>Cửa hàng hoa | Flowerflow</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -27,6 +28,7 @@
           <option value="">Chọn</option>
           <option value="dsc-p">Giá: cao đến thấp</option>
           <option value="asc-p">Giá: thấp đến cao</option>
+          <option value="newest">Sản phẩm mới</option>
           <option value="str-i">Tên: A đến Z</option>
           <option value="str-d">Tên: Z đến A</option>
         </select>
@@ -46,6 +48,24 @@
           <option value="price-under-1500000">Dưới 1.500.000 ₫</option>
           <option value="price-1500000-2000000">1.500.000 - 2.000.000 ₫</option>
           <option value="price-over-2000000">Từ 2.000.000 ₫</option>
+        </select>
+      </div>
+      <div class="sortfilter">
+        <label for="color-filter" class="select">Lọc theo màu sắc:</label>
+        <select id="color-filter" class="select">
+          <option value="">Tất cả màu sắc</option>
+          <option value="đỏ">Đỏ</option><option value="hồng">Hồng</option>
+          <option value="vàng">Vàng</option><option value="trắng">Trắng</option>
+          <option value="tím">Tím</option><option value="xanh">Xanh</option>
+        </select>
+      </div>
+      <div class="sortfilter">
+        <label for="occasion-filter" class="select">Lọc theo dịp tặng:</label>
+        <select id="occasion-filter" class="select">
+          <option value="">Mọi dịp</option>
+          <option value="sinh nhật">Sinh nhật</option><option value="kỷ niệm">Kỷ niệm</option>
+          <option value="chúc mừng">Chúc mừng</option><option value="cảm ơn">Cảm ơn</option>
+          <option value="tân gia">Tân gia</option><option value="thăm hỏi">Thăm hỏi</option>
         </select>
       </div>
     </div>

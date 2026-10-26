@@ -38,7 +38,7 @@
       title: "Quà tặng",
       description: "Những bó hoa và giỏ quà phù hợp để gửi tặng người thương.",
       categoryKey: "gift",
-      keywords: ["gift", "present", "basket", "qua tang", "gio hoa", "gio lan", "hop qua"]
+      keywords: ["gift", "present", "basket", "qua tang", "tang", "nguoi thuong", "gio hoa", "gio lan", "hop qua"]
     },
     food: {
       title: "Giỏ quà & thực phẩm",

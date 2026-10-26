@@ -303,6 +303,8 @@ function renderRelatedFlowers(product) {
 const sortSelect = document.querySelector(".arrange")
 const flowerTypeSelect = document.getElementById("flower-type")
 const priceFilterSelect = document.getElementById("price-filter")
+const colorFilterSelect = document.getElementById("color-filter")
+const occasionFilterSelect = document.getElementById("occasion-filter")
 const detailPage = document.getElementById("product-detail")
 const productPage = document.querySelector(".product-page")
 const detailQuantity = document.getElementById("detail-quantity")
@@ -650,6 +652,8 @@ function renderProducts() {
   const searchTerm = normalizeSearchText(searchInput.value.trim())
   const flowerType = flowerTypeSelect.value
   const priceFilter = priceFilterSelect.value
+  const colorFilter = colorFilterSelect.value
+  const occasionFilter = occasionFilterSelect.value
   const collator = new Intl.Collator("vi", { sensitivity: "base" })
   let visibleProducts = products.filter((product) => {
     const englishName = normalizeSearchText(product.title)
@@ -658,6 +662,8 @@ function renderProducts() {
       || englishName.includes(searchTerm)
       || vietnameseName.includes(searchTerm)
       || String(product.id).includes(searchTerm)
+      || normalizeSearchText(String(product.description || "")).includes(searchTerm)
+      || normalizeSearchText(String(product.category || "")).includes(searchTerm)
     const matchesFlowerType = !flowerType
       || normalizeSearchText(String(product.category || "")) === normalizeSearchText(flowerType.slice("category:".length))
     const matchesCategory = FlowerProductCategories.matchesCategory(product, initialCategoryKey)
@@ -673,7 +679,11 @@ function renderProducts() {
       matchesPrice = priceInVnd >= 2000000
     }
 
-    return matchesSearch && matchesFlowerType && matchesCategory && matchesPrice
+    const description = normalizeSearchText(`${product.title || ""} ${product.description || ""}`)
+    const matchesColor = !colorFilter || description.includes(normalizeSearchText(colorFilter))
+    const matchesOccasion = !occasionFilter || description.includes(normalizeSearchText(occasionFilter))
+
+    return matchesSearch && matchesFlowerType && matchesCategory && matchesPrice && matchesColor && matchesOccasion
   })
 
   switch (sortSelect.value) {
@@ -682,6 +692,15 @@ function renderProducts() {
       break
     case "dsc-p":
       visibleProducts.sort((first, second) => second.price - first.price)
+      break
+    case "newest":
+      visibleProducts.sort((first, second) => {
+        const firstDateValue = first.createdAt || first.updatedAt
+        const secondDateValue = second.createdAt || second.updatedAt
+        const firstDate = firstDateValue ? Date.parse(firstDateValue) : Number(first.id) || 0
+        const secondDate = secondDateValue ? Date.parse(secondDateValue) : Number(second.id) || 0
+        return secondDate - firstDate
+      })
       break
     case "str-i":
       visibleProducts.sort((first, second) => collator.compare(
@@ -724,6 +743,8 @@ flowerTypeSelect.addEventListener("change", () => {
   renderProducts()
 })
 priceFilterSelect.addEventListener("change", renderProducts)
+colorFilterSelect.addEventListener("change", renderProducts)
+occasionFilterSelect.addEventListener("change", renderProducts)
 searchButton.addEventListener("click", renderProducts)
 searchInput.addEventListener("input", renderProducts)
 searchInput.addEventListener("keydown", (event) => {

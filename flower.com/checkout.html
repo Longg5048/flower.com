@@ -197,28 +197,46 @@
     });
   }
 
+  // The promotion that saves the customer the most on the current cart, or "" when none applies.
+  function getBestPromotionId(availablePromotions) {
+    let bestId = "";
+    let bestSavings = 0;
+    availablePromotions.forEach((promotion) => {
+      const { savings } = calculateCartTotals(Cart, promotion.id);
+      if (savings > bestSavings) {
+        bestSavings = savings;
+        bestId = String(promotion.id);
+      }
+    });
+    return bestId;
+  }
+
   function renderPromotionOptions() {
     const availablePromotions = getAvailableCartPromotions(Cart);
-    const selectedPromotionId = FlowerSafeStorage.readText("flowerSelectedPromotion", "") || "";
+    // Only one promotion applies per order: always start from the one that saves the most.
+    // The customer can still pick another one until the cart changes.
+    const bestPromotionId = getBestPromotionId(availablePromotions);
     promotionSelect.replaceChildren(new Option("Không áp dụng ưu đãi", ""));
 
     availablePromotions.forEach((promotion) => {
+      const isBest = String(promotion.id) === bestPromotionId;
       promotionSelect.add(new Option(
-        `${promotion.name} · Giảm ${Number(promotion.discountPercent)}%${promotionAppliesToAllProducts(promotion) ? " · Tất cả hoa" : ""}`,
+        `${promotion.name} · Giảm ${Number(promotion.discountPercent)}%${promotionAppliesToAllProducts(promotion) ? " · Tất cả hoa" : ""}${isBest ? " · Tiết kiệm nhất" : ""}`,
         String(promotion.id)
       ));
     });
 
-    const selectionIsAvailable = availablePromotions.some(
-      (promotion) => String(promotion.id) === selectedPromotionId
-    );
-    promotionSelect.value = selectionIsAvailable ? selectedPromotionId : "";
-    if (!selectionIsAvailable && selectedPromotionId) {
+    promotionSelect.value = bestPromotionId;
+    if (bestPromotionId) {
+      FlowerSafeStorage.writeText("flowerSelectedPromotion", bestPromotionId);
+    } else {
       FlowerSafeStorage.remove("flowerSelectedPromotion");
     }
-    promotionMessage.textContent = availablePromotions.length
-      ? "Ưu đãi chỉ áp dụng cho những sản phẩm được chọn trong chương trình."
-      : "Hiện không có ưu đãi đang áp dụng cho sản phẩm trong giỏ hàng.";
+    promotionMessage.textContent = bestPromotionId
+      ? "Đã tự áp dụng ưu đãi giảm nhiều nhất cho giỏ hàng của bạn. Mỗi đơn áp dụng một ưu đãi."
+      : availablePromotions.length
+        ? "Ưu đãi chỉ áp dụng cho những sản phẩm được chọn trong chương trình."
+        : "Hiện không có ưu đãi đang áp dụng cho sản phẩm trong giỏ hàng.";
   }
 
   promotionSelect.addEventListener("change", () => {

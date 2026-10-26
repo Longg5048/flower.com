@@ -537,7 +537,7 @@ function renderOffersTab() {
        <section class="panel-wrap">
            <div class="panel">
                <h2>Thêm ưu đãi</h2>
-               <p class="category-help">Chọn sản phẩm và phần trăm giảm giá. Tiền giảm = giá × số lượng × phần trăm giảm. Nếu một sản phẩm có nhiều ưu đãi đang bật, chỉ ưu đãi cao nhất được áp dụng.</p>
+               <p class="category-help">Chọn sản phẩm và phần trăm giảm giá. Tiền giảm = giá × số lượng × phần trăm giảm. Mỗi đơn chỉ áp dụng một ưu đãi; trang thanh toán tự chọn ưu đãi giúp khách giảm được nhiều tiền nhất.</p>
                <form id="add-offer-form" class="offer-form">
                    <label>
                        <span class="field-label">Tên ưu đãi</span>

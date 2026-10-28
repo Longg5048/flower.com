@@ -1,6 +1,7 @@
 (() => {
     const PRODUCT_KEY = "flowerInventory";
     const CATEGORY_KEY = "flowerCategories";
+    const LEGACY_USD_TO_VND = 25949.123093;
     let initialization;
     let synchronization;
     let firebaseApiPromise;
@@ -18,13 +19,20 @@
         }
     }
 
+    // Prices are whole VND. Products saved before v0.2 still hold a USD price (e.g. 73.99) until
+    // `npm run setup-firestore` migrates them; read those the same way the migration converts them.
+    function toVndPrice(value) {
+        const price = Number(value);
+        if (!Number.isFinite(price) || price < 0) return 0;
+        return price > 0 && price < 1000
+            ? Math.round((price * LEGACY_USD_TO_VND) / 1000) * 1000
+            : Math.round(price);
+    }
+
     function normalizeProduct(product = {}) {
         const rawId = product.id ?? product._id;
         const numericId = Number(rawId);
-        const rawPrice = Number(product.price ?? 0);
-        const price = rawPrice > 10000
-            ? (typeof usdFromVnd === "function" ? usdFromVnd(rawPrice) : rawPrice / 25949.123093)
-            : rawPrice;
+        const price = toVndPrice(product.price ?? 0);
         const title = String(product.title ?? "Sản phẩm").trim();
         const description = String(product.description ?? "").trim();
         return {
@@ -504,6 +512,7 @@
         saveProducts,
         mergeCatalogProducts,
         normalizeProduct,
+        toVndPrice,
         getCategories,
         readCategories,
         initializeCategories,

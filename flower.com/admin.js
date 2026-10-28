@@ -482,7 +482,7 @@ function renderProductTab() {
                        <option value="">Chưa phân loại</option>
                        ${categories.map((category) => `<option value="${escapeHtml(category)}" ${editingProduct?.category === category ? "selected" : ""}>${escapeHtml(category)}</option>`).join("")}
                    </select>
-                   <input type="number" id="product-price" placeholder="Giá (VND)" value="${editingProduct ? toVndAmount(editingProduct.price) : ""}" min="1" step="1" required>
+                   <input type="number" id="product-price" placeholder="Giá (VND)" value="${editingProduct ? escapeHtml(editingProduct.price) : ""}" min="1000" step="1000" required>
                    <input type="number" id="product-quantity" placeholder="Số lượng" value="${editingProduct ? Number(editingProduct.quantity) || 0 : ""}" data-shown-value="${editingProduct ? Number(editingProduct.quantity) || 0 : ""}" min="0" step="1" required>
                    <textarea id="product-description" placeholder="Mô tả sản phẩm" required maxlength="1000">${escapeHtml(editingProduct?.description || "")}</textarea>
                    <div class="product-form-actions">
@@ -1165,13 +1165,17 @@ async function addNewProduct(event) {
        alert("Vui lòng nhập đầy đủ thông tin.");
        return;
    }
+   if (!Number.isSafeInteger(priceInVnd) || priceInVnd < 1000) {
+       alert("Giá phải là số nguyên VND từ 1.000 trở lên (ví dụ 450000).");
+       return;
+   }
    if (quantity === null) {
        alert("Số lượng phải là số nguyên từ 0 trở lên (ví dụ 0, 5, 12).");
        return;
    }
 
    const products = getProducts();
-    const productData = { title, image: safeImageUrl, price: usdFromVnd(priceInVnd), quantity, description, category };
+    const productData = { title, image: safeImageUrl, price: priceInVnd, quantity, description, category };
    const isEditing = editingProductId !== null;
    // Keep the live stock if the admin did not touch the quantity: orders may have changed it
    // since the form was opened.

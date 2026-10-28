@@ -158,7 +158,7 @@
     </form>
   </main>
   <script src="./store-footer.js?v=2"></script>
-  <script src="./currency.js?v=9"></script>
+  <script src="./currency.js?v=10"></script>
   <script src="./order-store.js?v=14"></script>
   <script src="./product-names.js?v=2"></script>
   <script>
@@ -217,7 +217,7 @@
     imageUrl.searchParams.set("addInfo", paymentReference);
     imageUrl.searchParams.set("accountName", "DO BA THAI");
     paymentQrImage.src = imageUrl.toString();
-    paymentQrAmount.textContent = `Số tiền: ${formatVnd(usdFromVnd(total))} · Nội dung: ${paymentReference}`;
+    paymentQrAmount.textContent = `Số tiền: ${formatVnd(total)} · Nội dung: ${paymentReference}`;
   }
 
   checkoutForm.querySelectorAll('input[name="paymentMethod"]').forEach((input) => {
@@ -416,7 +416,7 @@
       quote.items.forEach((quotedItem) => {
         const cartItem = Cart.find((item) => String(item.id) === String(quotedItem.id));
         if (cartItem) {
-          cartItem.price = usdFromVnd(quotedItem.price);
+          cartItem.price = quotedItem.price;
           cartItem.title = quotedItem.title;
           cartItem.image = quotedItem.image;
           if (Number.isInteger(quotedItem.stock)) cartItem.stockQuantity = quotedItem.stock;
@@ -424,10 +424,10 @@
       });
       FlowerSafeStorage.writeJson("cart", Cart);
       const totals = quote.totals;
-      document.getElementById("originalprice").textContent = formatVnd(usdFromVnd(totals.subtotal));
-      document.getElementById("savings").textContent = formatVnd(usdFromVnd(totals.savings));
+      document.getElementById("originalprice").textContent = formatVnd(totals.subtotal);
+      document.getElementById("savings").textContent = formatVnd(totals.savings);
       document.getElementById("deliveryCharge").textContent = "Miễn phí";
-      document.getElementById("total").textContent = formatVnd(usdFromVnd(totals.total));
+      document.getElementById("total").textContent = formatVnd(totals.total);
       Cart.forEach((item, index) => {
         const card = CartContainer.children[index];
         if (!card) return;

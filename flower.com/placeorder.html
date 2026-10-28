@@ -30,7 +30,7 @@
   </main>
 
   <script src="./store-footer.js?v=2"></script>
-  <script src="./currency.js?v=9"></script>
+  <script src="./currency.js?v=10"></script>
   <script src="./product-names.js?v=2"></script>
   <script src="./order-store.js?v=14"></script>
   <script>
@@ -157,7 +157,7 @@
           if (!cartItem) return;
           cartItem.title = quotedItem.title;
           cartItem.image = quotedItem.image;
-          cartItem.price = usdFromVnd(quotedItem.price);
+          cartItem.price = quotedItem.price;
         });
         reviewTotals.textContent = `Tiền hàng ${formatVnd(serverQuote.totals.subtotal)} · Giảm ${formatVnd(serverQuote.totals.savings)} · Giao hàng miễn phí · Tổng thanh toán ${formatVnd(serverQuote.totals.total)}`;
         DisplayProduct();
@@ -170,7 +170,7 @@
           paymentButton.disabled = true;
           return;
         }
-        const amountText = formatVnd(usdFromVnd(serverQuote.totals.total));
+        const amountText = formatVnd(serverQuote.totals.total);
         paymentNote.textContent = checkoutData?.paymentMethod === "qr"
           ? `Số tiền đã xác minh: ${amountText} · STK 1063118243 · DO BA THAI · Nội dung: ${checkoutData.paymentReference || "mã đơn của bạn"}. Cửa hàng sẽ đối chiếu giao dịch trước khi xác nhận thanh toán.`
           : `Giá và tồn kho đã xác minh từ cửa hàng · Tổng tiền: ${amountText}`;

@@ -47,7 +47,7 @@ flowchart LR
 | Thanh toán | `checkout.html`, `placeorder.html` | Thông tin giao hàng, áp dụng ưu đãi, mã QR chuyển khoản, tạo đơn |
 | Theo dõi đơn | `tracking.html`, `tracking.js`, `order-status.js` | Tra cứu theo mã đơn và số điện thoại; liệt kê đơn của tài khoản đang đăng nhập |
 | Tài khoản | `login.*`, `account.*`, `forgot-password.*` | Đăng ký, đăng nhập, khôi phục mật khẩu, hồ sơ |
-| Tiền tệ | `currency.js` | Định dạng giá sang VND (catalog lưu giá theo USD) |
+| Tiền tệ | `currency.js` | Định dạng giá VND; mọi giá lưu là số nguyên VND (ví dụ `450000`) |
 | Liên hệ | `contact-tools.js/.css` | Thanh liên hệ Facebook và Zalo (ẩn trên trang quản trị) |
 | Quản trị | `admin.html`, `admin.js`, `admin.css` | Sản phẩm, danh mục, ưu đãi, đơn hàng, xác minh thanh toán QR, doanh thu, đánh giá, lời nhắn, người dùng. Dữ liệu khách gửi được escape trước khi hiển thị để chống XSS |
 | Owner | `owner.html`, `owner.js` | Cấp hoặc gỡ quyền admin |

@@ -18,12 +18,10 @@ assert.strictEqual(merged.length, 3);
 assert.strictEqual(merged.find((item) => item.id === 1).title, 'Hoa hồng cập nhật');
 assert.strictEqual(merged.find((item) => item.id === 1).quantity, 10);
 assert.strictEqual(merged.find((item) => item.id === 2).title, 'Hoa cúc');
-assert.strictEqual(normalizeProduct({ id: '7', title: '  Hoa tulip  ', price: '750.99', quantity: '9', image: 'tulip.jpg' }).price, 750.99);
-assert.strictEqual(
-  Math.round(normalizeProduct({ id: 8, title: 'Hoa cẩm chướng', price: 739900 }).price * 25949.123093),
-  739900
-);
-assert.strictEqual(normalizeProduct({ id: 9, title: 'Giỏ hoa', price: 73.99 }).price, 73.99);
+// Prices are whole VND; old USD prices (below 1.000) are converted and rounded to 1.000 ₫.
+assert.strictEqual(normalizeProduct({ id: '7', title: '  Hoa tulip  ', price: '750000', quantity: '9', image: 'tulip.jpg' }).price, 750000);
+assert.strictEqual(normalizeProduct({ id: 8, title: 'Hoa cẩm chướng', price: 739900 }).price, 739900);
+assert.strictEqual(normalizeProduct({ id: 9, title: 'Giỏ hoa', price: 73.99 }).price, 1920000);
 assert.deepStrictEqual(
   normalizeProduct({
     id: 10,

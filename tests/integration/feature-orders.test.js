@@ -14,8 +14,8 @@ test.beforeEach(async () => {
 test("báo giá trả tổng tiền, giá từng sản phẩm và tồn kho", async () => {
     const quote = await h.callApi("orders", { body: { action: "quote", items: [{ id: "1", quantity: 2 }] } });
     assert.equal(quote.status, 200);
-    // Totals are rounded once on the whole cart, so they may differ from the line prices by 1đ.
-    assert.ok(Math.abs(quote.body.totals.subtotal - quote.body.items[0].price * 2) <= 1);
+    assert.equal(quote.body.items[0].price, h.catalog.find((item) => item.id === 1).price);
+    assert.equal(quote.body.totals.subtotal, quote.body.items[0].price * 2);
     assert.equal(quote.body.totals.total, quote.body.totals.subtotal);
     assert.equal(quote.body.items[0].stock, 10);
 });
@@ -66,6 +66,13 @@ test("ghi chú quá 500 ký tự bị từ chối, không bị cắt", async () 
     const result = await h.placeOrder({ overrides: { orderNote: "a".repeat(501) } });
     assert.equal(result.status, 400);
     assert.equal(result.body.code, "note-too-long");
+});
+
+test("sản phẩm chưa đổi giá (còn lưu USD) vẫn được tính đúng bằng VND", async () => {
+    await h.db().doc("products/1").update({ price: 73.99 });
+    const quote = await h.callApi("orders", { body: { action: "quote", items: [{ id: "1", quantity: 1 }] } });
+    assert.equal(quote.body.items[0].price, 1920000);
+    assert.equal(quote.body.totals.total, 1920000);
 });
 
 test("ưu đãi: máy chủ tính giảm giá và lưu vào đơn", async () => {

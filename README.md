@@ -6,7 +6,7 @@
 
 **Website cửa hàng hoa tươi trực tuyến: danh mục sản phẩm, giỏ hàng, thanh toán QR và trang quản trị.**
 
-[Xem bản demo](https://flower-com-six.vercel.app) · [Kiến trúc kỹ thuật](flower.com/README.md) · [Cấu hình quản trị](ADMIN-SETUP.md) · [Ghi chú phát hành](RELEASE_NOTES_v0.1.0.md)
+[Xem bản demo](https://flower-com-six.vercel.app) · [Kiến trúc kỹ thuật](flower.com/README.md) · [Cấu hình quản trị](ADMIN-SETUP.md) · [Ghi chú phát hành](RELEASE_NOTES_v0.2.0.md)
 
 ![HTML5](https://img.shields.io/badge/HTML5-E34F26?logo=html5&logoColor=white)
 ![CSS3](https://img.shields.io/badge/CSS3-1572B6?logo=css3&logoColor=white)
@@ -107,9 +107,10 @@ FlowerFlow là website bán hoa gồm ba lớp:
 │   ├── store-header.js, store-footer.js   # Header/footer dùng chung
 │   ├── *.html, *.css, *.js     # Các trang: chủ, sản phẩm, giỏ hàng, thanh toán, quản trị...
 │   └── package.json
-├── tests/                      # Bộ kiểm thử đơn vị
+├── tests/                      # Unit test; tests/integration: test trên Firebase Emulator
 ├── ADMIN-SETUP.md              # Hướng dẫn cấu hình quản trị trên Vercel
-└── RELEASE_NOTES_v0.1.0.md
+├── RELEASE-CHECKLIST.md
+└── RELEASE_NOTES_v0.2.0.md
 ```
 
 Mô tả chi tiết kiến trúc và luồng dữ liệu nằm trong [`flower.com/README.md`](flower.com/README.md).
@@ -201,21 +202,14 @@ Hướng dẫn từng bước, bao gồm cách gán quyền Owner bằng Applica
 
 ## Kiểm thử
 
-```sh
-cd flower.com
-npm test
-```
+| Loại | Lệnh | Nội dung |
+| --- | --- | --- |
+| Unit test | `cd flower.com && npm test` | Tính giá, ưu đãi, dữ liệu đơn hàng, trạng thái đơn, giỏ hàng, danh mục, sản phẩm |
+| Coverage | `cd flower.com && npm run test:coverage` | Như trên, kèm tỉ lệ dòng/nhánh/hàm được test |
+| Feature, system, security | `cd tests && npm ci && npm run integration` | Đặt hàng, đăng nhập, quản lý, luồng xuyên hệ thống và Security Rules trên Firebase Emulator (cần Java 11+) |
+| Smoke test sau deploy | `cd flower.com && SMOKE_URL=https://... npm run smoke` | Trang và API còn chạy, không đổi dữ liệu |
 
-Bộ kiểm thử dùng `node:assert` có sẵn, không cần cài thư viện:
-
-| File | Phạm vi |
-| --- | --- |
-| `product-page.test.js` | Hiển thị và tương tác trang sản phẩm |
-| `product-related.test.js` | Gợi ý sản phẩm liên quan, loại bỏ trùng lặp |
-| `product-categories.test.js` | Phân loại sản phẩm theo danh mục |
-| `product-store-sync.test.js` | Gộp catalog từ Firestore với dữ liệu mặc định |
-| `shopping-store.test.js` | Giỏ hàng, yêu thích, giới hạn tồn kho |
-| `store-footer.test.js` | Footer dùng chung |
+CI trên GitHub Actions chạy unit test và test tích hợp cho mọi Pull Request và mỗi lần push lên `main`; báo cáo coverage nằm trong trang kết quả của từng lần chạy. Chi tiết: [`tests/README.md`](tests/README.md). Trước mỗi lần phát hành làm theo [`RELEASE-CHECKLIST.md`](RELEASE-CHECKLIST.md).
 
 ## Phân quyền
 
@@ -244,7 +238,7 @@ Dự án đang ở giai đoạn **v0.1.0 (chưa phát hành)**. Trước khi v�
 - [x] Chuyển đơn hàng, ưu đãi, phân loại, lời nhắn và trang quản lý đánh giá lên Firestore
 - [x] Xác minh thanh toán QR thủ công trong trang quản trị
 - [ ] Tích hợp xác nhận thanh toán tự động (webhook ngân hàng hoặc cổng thanh toán)
-- [ ] Thiết lập CI chạy `npm test` trên GitHub Actions
+- [x] Thiết lập CI chạy unit test và test tích hợp trên GitHub Actions, kèm coverage
 - [ ] Tách `admin.js` thành các module theo chức năng
 
 ## Đóng góp

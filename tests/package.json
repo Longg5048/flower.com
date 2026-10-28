@@ -3,7 +3,7 @@
   "private": true,
   "description": "Test tools for FlowerFlow. The site itself only depends on flower.com/package.json.",
   "scripts": {
-    "integration": "firebase emulators:exec --only auth,firestore --project demo-flowerflow --config ../flower.com/firebase.json \"node --test --test-concurrency=1 integration/*.test.js\""
+    "integration": "firebase emulators:exec --only auth,firestore --project demo-flowerflow --config ../flower.com/firebase.json \"node --test --test-concurrency=1 --experimental-test-coverage --test-coverage-include=../flower.com/** --test-coverage-exclude=../flower.com/node_modules/** --test-reporter=spec --test-reporter-destination=stdout --test-reporter=lcov --test-reporter-destination=coverage/lcov.info integration/*.test.js\""
   },
   "devDependencies": {
     "@firebase/rules-unit-testing": "^4.0.1",

@@ -10,6 +10,9 @@ serviceAccountKey.json
 *.service-account.json
 *-firebase-adminsdk-*.json
 
+# Test coverage reports
+coverage/
+
 # Logs
 *.log
 npm-debug.log*

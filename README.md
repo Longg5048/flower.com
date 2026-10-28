@@ -201,6 +201,8 @@ Hướng dẫn từng bước, bao gồm cách gán quyền Owner bằng Applica
 
 ## Kiểm thử
 
+Hướng dẫn chi tiết cho thành viên dự án nằm trong [`tests/README.md`](tests/README.md). Sau mỗi đợt kiểm thử, tạo báo cáo từ [mẫu báo cáo](docs/test-reports/TEMPLATE.md) trong `docs/test-reports/` và ghi rõ lệnh, kết quả, lỗi cùng cách tái hiện. [Báo cáo ngày 2026-10-28](docs/test-reports/2026-10-28.md) là ví dụ từ lần chạy gần nhất.
+
 ```sh
 cd flower.com
 npm test

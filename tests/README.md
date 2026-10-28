@@ -3,22 +3,27 @@
 ## Yêu cầu
 
 - Node.js 24.x (kiểm tra bằng `node --version`).
-- Không cần cài thư viện riêng cho bộ test; các test dùng `node:assert` và Node.js Test Runner.
+- Unit test không cần cài thư viện riêng; các test dùng `node:assert` và Node.js Test Runner.
+- Test tích hợp (feature, system, security) cần thêm Java 11+ cho Firebase Emulator và `npm ci` trong thư mục `tests`.
 
 ## Chạy kiểm thử
 
-Từ thư mục gốc của repository, chạy toàn bộ test:
+| Loại | Lệnh | Nội dung |
+|---|---|---|
+| Unit test | `cd flower.com && npm test` | Tính giá, ưu đãi, dữ liệu đơn hàng, trạng thái đơn, giỏ hàng, danh mục, sản phẩm |
+| Unit test + coverage | `cd flower.com && npm run test:coverage` | Như trên, kèm tỉ lệ dòng/nhánh/hàm được test |
+| Feature, system, security | `cd tests && npm ci && npm run integration` | Đặt hàng, đăng nhập, quản lý, luồng xuyên hệ thống, Firestore rules và quyền API |
+| Smoke test sau khi deploy | `cd flower.com && SMOKE_URL=https://... npm run smoke` | Trang và API còn chạy, không tạo đơn, không đổi dữ liệu |
 
-```sh
-cd flower.com
-npm test
-```
+Trên Windows, nếu PowerShell chặn `npm` (execution policy), dùng `npm.cmd` thay cho `npm`.
 
 Để chạy một file test, dùng Node.js Test Runner từ thư mục `flower.com`:
 
 ```sh
 node --test ../tests/product-page.test.js
 ```
+
+Test tích hợp chạy API thật (`flower.com/api/*.js`) và `firestore.rules` thật trên **Firebase Emulator** với project `demo-flowerflow`, nên không đụng tới dữ liệu thật. CI trên GitHub Actions chạy cả unit test và test tích hợp cho mọi Pull Request.
 
 ## Các phạm vi đang được kiểm thử
 
@@ -30,6 +35,17 @@ node --test ../tests/product-page.test.js
 | `product-store-sync.test.js` | Gộp catalog từ Firestore với dữ liệu mặc định |
 | `shopping-store.test.js` | Giỏ hàng, yêu thích, giới hạn tồn kho |
 | `store-footer.test.js` | Footer dùng chung |
+| `order-pricing.test.js` | Tính giá, ưu đãi, làm tròn VND, giá trình duyệt khớp giá máy chủ |
+| `order-validation.test.js` | Dữ liệu đơn hàng hợp lệ/không hợp lệ, tra cứu công khai không lộ thông tin |
+| `order-status.test.js` | Trạng thái đơn và trạng thái cũ |
+| `integration/feature-orders.test.js` | Báo giá, tạo đơn, trừ kho, chống đặt trùng, ưu đãi, đơn hết hạn, tra cứu |
+| `integration/feature-accounts.test.js` | Đơn gắn tài khoản, token giả/thu hồi, đánh giá của chủ đơn |
+| `integration/feature-admin.test.js` | API quản trị: danh sách tài khoản, cấp/thu quyền, khôi phục sản phẩm |
+| `integration/system.test.js` | Đặt hàng → admin giao → khách theo dõi, đánh giá → trang sản phẩm |
+| `integration/security-rules.test.js` | Firestore Security Rules cho từng loại dữ liệu |
+| `integration/security-api.test.js` | API khi thiếu/sai xác thực hoặc không đủ quyền |
+
+Mỗi tính năng mới viết test trước (xem `CONTRIBUTING.md`).
 
 ## Báo cáo kết quả
 

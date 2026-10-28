@@ -271,6 +271,41 @@ function validateQuote(body = {}) {
     return { items, promotionId };
 }
 
+// The active promotion a checkout asked for, or null when it asked for none. Throws
+// "invalid-promotion" for an unknown, inactive or malformed one.
+function findPromotion(promotions, promotionId) {
+    if (!promotionId) return null;
+    const promotion = (Array.isArray(promotions) ? promotions : [])
+        .find((item) => String(item.id) === String(promotionId) && item.active === true);
+    if (!promotion) {
+        const error = new Error("Ưu đãi đã hết hạn hoặc không hợp lệ. Hãy tải lại trang thanh toán.");
+        error.code = "invalid-promotion";
+        throw error;
+    }
+    const discountPercent = Number(promotion.discountPercent);
+    if (!Number.isFinite(discountPercent) || discountPercent <= 0 || discountPercent > 100) {
+        const error = new Error("Ưu đãi hiện không hợp lệ.");
+        error.code = "invalid-promotion";
+        throw error;
+    }
+    return promotion;
+}
+
+// Totals in VND for items priced in USD ({ id, price, quantity }), shared by the quote and the
+// order so both always agree.
+function priceCart(items, promotion) {
+    const discountPercent = promotion ? Number(promotion.discountPercent) : 0;
+    const eligibleIds = new Set(Array.isArray(promotion?.productIds) ? promotion.productIds.map(String) : []);
+    const appliesToAll = promotion?.allProducts === true;
+    const subtotalUsd = items.reduce((sum, item) => sum + item.price * item.quantity, 0);
+    const savingsUsd = items.reduce((sum, item) => sum + (promotion && (appliesToAll || eligibleIds.has(String(item.id)))
+        ? item.price * item.quantity * discountPercent / 100
+        : 0), 0);
+    const subtotal = vnd(subtotalUsd);
+    const savings = Math.min(subtotal, vnd(savingsUsd));
+    return { subtotal, savings, tax: 0, total: subtotal - savings };
+}
+
 async function quoteOrder(req, res) {
     const quote = validateQuote(req.body);
     if (!quote) return sendError(res, 400, "invalid-checkout", "Danh sách sản phẩm không hợp lệ.");
@@ -310,28 +345,7 @@ async function quoteOrder(req, res) {
             });
         }
         const promotions = Array.isArray(promotionsSnapshot.data()?.items) ? promotionsSnapshot.data().items : [];
-        const promotion = quote.promotionId
-            ? promotions.find((item) => String(item.id) === quote.promotionId && item.active === true)
-            : null;
-        if (quote.promotionId && !promotion) {
-            const error = new Error("Ưu đãi đã hết hạn hoặc không hợp lệ. Hãy tải lại trang thanh toán.");
-            error.code = "invalid-promotion";
-            throw error;
-        }
-        const discountPercent = promotion ? Number(promotion.discountPercent) : 0;
-        if (promotion && (!Number.isFinite(discountPercent) || discountPercent <= 0 || discountPercent > 100)) {
-            const error = new Error("Ưu đãi hiện không hợp lệ.");
-            error.code = "invalid-promotion";
-            throw error;
-        }
-        const eligibleIds = new Set(Array.isArray(promotion?.productIds) ? promotion.productIds.map(String) : []);
-        const appliesToAll = promotion?.allProducts === true;
-        const subtotalUsd = cart.reduce((sum, item) => sum + item.price * item.quantity, 0);
-        const savingsUsd = cart.reduce((sum, item) => sum + (promotion && (appliesToAll || eligibleIds.has(item.id))
-            ? item.price * item.quantity * discountPercent / 100
-            : 0), 0);
-        const subtotal = vnd(subtotalUsd);
-        const savings = Math.min(subtotal, vnd(savingsUsd));
+        const { subtotal, savings } = priceCart(cart, findPromotion(promotions, quote.promotionId));
         return res.status(200).json({
             totals: { subtotal, savings, tax: 0, total: subtotal - savings },
             items: cart.map((item) => ({
@@ -425,31 +439,8 @@ async function createOrder(req, res) {
             const promotions = Array.isArray(promotionSnapshot.data()?.items)
                 ? promotionSnapshot.data().items
                 : [];
-            const promotion = checkout.promotionId
-                ? promotions.find((item) => String(item.id) === checkout.promotionId && item.active === true)
-                : null;
-            if (checkout.promotionId && !promotion) {
-                const error = new Error("Ưu đãi đã hết hạn hoặc không hợp lệ. Hãy tải lại trang thanh toán.");
-                error.code = "invalid-promotion";
-                throw error;
-            }
-
-            const discountPercent = promotion ? Number(promotion.discountPercent) : 0;
-            if (promotion && (!Number.isFinite(discountPercent) || discountPercent <= 0 || discountPercent > 100)) {
-                const error = new Error("Ưu đãi hiện không hợp lệ.");
-                error.code = "invalid-promotion";
-                throw error;
-            }
-            const eligibleIds = new Set(Array.isArray(promotion?.productIds) ? promotion.productIds.map(String) : []);
-            const appliesToAll = promotion?.allProducts === true;
-            const subtotalUsd = products.reduce((sum, item) => sum + item.price * item.quantity, 0);
-            const savingsUsd = products.reduce((sum, item) => (
-                sum + (promotion && (appliesToAll || eligibleIds.has(item.id))
-                    ? item.price * item.quantity * discountPercent / 100
-                    : 0)
-            ), 0);
-            const subtotal = vnd(subtotalUsd);
-            const savings = Math.min(subtotal, vnd(savingsUsd));
+            const promotion = findPromotion(promotions, checkout.promotionId);
+            const { subtotal, savings } = priceCart(products, promotion);
             const total = subtotal - savings;
             if (checkout.expectedTotals.subtotal !== subtotal
                 || checkout.expectedTotals.savings !== savings
@@ -676,4 +667,19 @@ module.exports = async function handler(req, res) {
     }
 
     return sendError(res, 405, "method-not-allowed", "Tra cứu đơn hàng cần dùng phương thức POST.");
+};
+
+// Pure helpers, exported for unit tests.
+module.exports.internals = {
+    normalizePhone,
+    vnd,
+    priceInUsd,
+    aggregateItems,
+    findPromotion,
+    priceCart,
+    validateCheckout,
+    validateQuote,
+    publicTrackingOrder,
+    reviewIdForOrder,
+    MAX_ORDER_NOTE_LENGTH
 };

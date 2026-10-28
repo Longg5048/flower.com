@@ -209,7 +209,7 @@ Hướng dẫn từng bước, bao gồm cách gán quyền Owner bằng Applica
 | Feature, system, security | `cd tests && npm ci && npm run integration` | Đặt hàng, đăng nhập, quản lý, luồng xuyên hệ thống và Security Rules trên Firebase Emulator (cần Java 11+) |
 | Smoke test sau deploy | `cd flower.com && SMOKE_URL=https://... npm run smoke` | Trang và API còn chạy, không đổi dữ liệu |
 
-CI trên GitHub Actions chạy unit test và test tích hợp cho mọi Pull Request và mỗi lần push lên `main`; báo cáo coverage nằm trong trang kết quả của từng lần chạy. Chi tiết: [`tests/README.md`](tests/README.md). Trước mỗi lần phát hành làm theo [`RELEASE-CHECKLIST.md`](RELEASE-CHECKLIST.md).
+CI trên GitHub Actions chạy unit test và test tích hợp cho mọi Pull Request và mỗi lần push lên `main`; báo cáo coverage nằm trong trang kết quả của từng lần chạy. Chi tiết: [`tests/README.md`](tests/README.md). Sau mỗi đợt kiểm thử, tạo báo cáo từ [mẫu báo cáo](docs/test-reports/TEMPLATE.md) trong `docs/test-reports/` ([ví dụ ngày 2026-10-28](docs/test-reports/2026-10-28.md)). Trước mỗi lần phát hành làm theo [`RELEASE-CHECKLIST.md`](RELEASE-CHECKLIST.md).
 
 ## Phân quyền
 

@@ -4,7 +4,7 @@
   async function getFirebase() {
     if (!firebasePromise) {
       firebasePromise = (async () => {
-        const [{ firebaseConfig }, appSdk, authSdk, firestoreSdk] = await Promise.all([
+        const [configModule, appSdk, authSdk, firestoreSdk] = await Promise.all([
           import("./firebase-config.js"),
           import("https://www.gstatic.com/firebasejs/11.6.0/firebase-app.js"),
           import("https://www.gstatic.com/firebasejs/11.6.0/firebase-auth.js"),
@@ -12,10 +12,13 @@
         ]);
         const app = appSdk.getApps().length
           ? appSdk.getApp()
-          : appSdk.initializeApp(firebaseConfig);
+          : appSdk.initializeApp(configModule.firebaseConfig);
+        const auth = authSdk.getAuth(app);
+        const db = firestoreSdk.getFirestore(app);
+        configModule.connectFirebaseEmulators(app, auth, db, authSdk, firestoreSdk);
         return {
-          auth: authSdk.getAuth(app),
-          db: firestoreSdk.getFirestore(app),
+          auth,
+          db,
           firestoreSdk
         };
       })().catch((error) => {

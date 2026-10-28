@@ -119,10 +119,13 @@
                 const app = appSdk.getApps().length
                     ? appSdk.getApp()
                     : appSdk.initializeApp(configModule.firebaseConfig);
+                const auth = authSdk.getAuth(app);
+                const db = firestoreSdk.getFirestore(app);
+                configModule.connectFirebaseEmulators(app, auth, db, authSdk, firestoreSdk);
                 return {
                     app,
-                    auth: authSdk.getAuth(app),
-                    db: firestoreSdk.getFirestore(app),
+                    auth,
+                    db,
                     firestoreSdk
                 };
             })().catch((error) => {

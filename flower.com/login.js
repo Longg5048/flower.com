@@ -1,4 +1,4 @@
-import { firebaseConfig, isFirebaseConfigured } from "./firebase-config.js";
+import { firebaseConfig, isFirebaseConfigured, connectFirebaseEmulators } from "./firebase-config.js";
 
 const signUpButton = document.getElementById("signup");
 const signInButton = document.getElementById("signin");
@@ -36,6 +36,7 @@ async function getFirebaseAuthApi() {
         ]).then(([appSdk, authSdk]) => {
             const app = appSdk.initializeApp(firebaseConfig);
             const auth = authSdk.getAuth(app);
+            connectFirebaseEmulators(app, auth, null, authSdk);
             return authSdk.setPersistence(auth, authSdk.browserLocalPersistence).then(() => ({
                 auth,
                 ...authSdk

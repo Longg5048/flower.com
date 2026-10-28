@@ -52,3 +52,16 @@ Mỗi tính năng mới viết test trước (xem `CONTRIBUTING.md`).
 Sau mỗi đợt chạy test, sao chép `docs/test-reports/TEMPLATE.md` thành `docs/test-reports/YYYY-MM-DD.md` (nếu cùng ngày đã có báo cáo, thêm hậu tố như `-ci` hoặc `-2`). Ghi lại commit/nhánh nếu biết, môi trường, từng lệnh đã chạy, kết quả đạt/trượt, thông báo lỗi và các bước tái hiện tối thiểu. Nếu không có test nào trượt, ghi rõ `Không có` ở mục lỗi và tái hiện. Không đưa token, mật khẩu, thông tin khách hàng hoặc bí mật môi trường vào báo cáo.
 
 Khi một test thất bại, giữ nguyên đầu ra lỗi liên quan, xác định test/file bị ảnh hưởng và mô tả các bước cần thiết để chạy lại. Không đánh dấu đợt kiểm thử là đạt nếu có test bị bỏ qua hoặc không chạy; hãy nêu rõ trạng thái thực tế.
+
+## Kiểm thử giao diện trên trình duyệt
+
+Các kịch bản Playwright nằm trong `flower.com/e2e/`. Chúng chạy trên Firebase Auth và Firestore Emulator, đồng thời mock API tạo đơn để kiểm thử không ghi dữ liệu lên cửa hàng thật. Cài Java 21 và Chromium cho Playwright, sau đó chạy:
+
+```sh
+cd flower.com
+npm ci
+npx playwright install chromium
+npm run test:e2e:emulator
+```
+
+Kịch bản mua hàng chạy ở 1280×800 và 390×844, chụp ảnh tại từng bước và đánh trượt nếu có lỗi console hoặc request bị lỗi. Ảnh, trace khi thất bại và báo cáo HTML được lưu trong `test-results/` và `flower.com/playwright-report/`. CI chạy các kịch bản này cùng Firebase Emulator và lưu artifact của lần chạy.

@@ -243,10 +243,7 @@ Dự án đang ở giai đoạn **v0.1.0 (chưa phát hành)**. Trước khi v�
 
 ## Đóng góp
 
-1. Tạo nhánh mới từ `main`: `git checkout -b feature/ten-tinh-nang`.
-2. Commit với thông điệp rõ ràng, mô tả thay đổi.
-3. Chạy `npm test` trong `flower.com` và đảm bảo tất cả đều đạt.
-4. Mở Pull Request mô tả thay đổi và cách kiểm tra.
+Mọi thay đổi đi qua Pull Request, viết test trước (Red → Green → Refactor), CI xanh và có ít nhất 1 người review mới được gộp vào `main`. Chi tiết trong [`CONTRIBUTING.md`](CONTRIBUTING.md).
 
 ---
 

@@ -165,13 +165,14 @@ async function verifyStoredSession() {
     if (!getCurrentAccount()) return;
     let auth;
     try {
-        const [{ firebaseConfig }, appSdk, authSdk] = await Promise.all([
-            import("./firebase-config.js"),
+        const [{ firebaseConfig, connectFirebaseEmulators }, appSdk, authSdk] = await Promise.all([
+            import("./firebase-config.js?v=2"),
             import("https://www.gstatic.com/firebasejs/11.6.0/firebase-app.js"),
             import("https://www.gstatic.com/firebasejs/11.6.0/firebase-auth.js")
         ]);
         const app = appSdk.getApps().length ? appSdk.getApp() : appSdk.initializeApp(firebaseConfig);
         auth = authSdk.getAuth(app);
+        connectFirebaseEmulators(app, auth, null, authSdk);
         await auth.authStateReady();
     } catch (error) {
         console.warn("Chưa kiểm tra được phiên đăng nhập:", error);

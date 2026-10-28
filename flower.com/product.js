@@ -668,7 +668,7 @@ function renderProducts() {
       || normalizeSearchText(String(product.category || "")) === normalizeSearchText(flowerType.slice("category:".length))
     const matchesCategory = FlowerProductCategories.matchesCategory(product, initialCategoryKey)
       && (!activeFlowerType || productHasFlowerType(product, activeFlowerType))
-    const priceInVnd = toVndAmount(product.price)
+    const priceInVnd = Number(product.price) || 0
     let matchesPrice = true
 
     if (priceFilter === "price-under-1500000") {

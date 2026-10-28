@@ -1,4 +1,4 @@
-const USD_TO_VND = 25949.123093;
+// Every price is a whole number of VND (450000 = 450.000 ₫).
 const VND_FORMATTER = new Intl.NumberFormat("vi-VN", {
   style: "currency",
   currency: "VND",
@@ -6,17 +6,34 @@ const VND_FORMATTER = new Intl.NumberFormat("vi-VN", {
 });
 let trustedPromotions = [];
 
-function formatVnd(amountInUsd) {
-  return VND_FORMATTER.format(Number(amountInUsd) * USD_TO_VND);
+function formatVnd(amount) {
+  return VND_FORMATTER.format(Math.round(Number(amount) || 0));
 }
 
-function toVndAmount(amountInUsd) {
-  return Math.round(Number(amountInUsd) * USD_TO_VND);
+// Before v0.2 prices were stored in USD (for example 73.99). A cart or wishlist saved back then
+// still holds those numbers: convert them once, rounded to 1.000 ₫ like the catalog migration.
+// No flower costs less than 1.000 ₫, so any smaller price can only be an old USD price.
+const LEGACY_USD_TO_VND = 25949.123093;
+
+function toVndPrice(value) {
+  const price = Number(value);
+  if (!Number.isFinite(price) || price < 0) return NaN;
+  return price > 0 && price < 1000
+    ? Math.round((price * LEGACY_USD_TO_VND) / 1000) * 1000
+    : Math.round(price);
 }
 
-function usdFromVnd(amountInVnd) {
-  return Number((Number(amountInVnd) / USD_TO_VND).toFixed(6));
-}
+(function convertSavedPricesToVnd() {
+  const storage = typeof window !== "undefined" ? window.FlowerSafeStorage : null;
+  if (!storage?.readJson) return;
+  ["cart", "wish"].forEach((key) => {
+    const items = storage.readJson(key, { fallback: null, validate: Array.isArray });
+    if (!Array.isArray(items) || !items.some((item) => Number(item?.price) > 0 && Number(item.price) < 1000)) return;
+    storage.writeJson(key, items.map((item) => (item && typeof item === "object"
+      ? { ...item, price: toVndPrice(item.price) }
+      : item)));
+  });
+})();
 
 function promotionAppliesToAllProducts(promotion) {
   return promotion.allProducts === true;
@@ -52,12 +69,12 @@ function calculateCartTotals(cart, promotionId = window.FlowerSafeStorage.readTe
     const quantity = Math.max(1, Number(product.quantity) || 1);
     return sum + Number(product.price || 0) * quantity;
   }, 0);
-  const savings = cart.reduce((sum, product) => {
+  const savings = Math.min(subtotal, Math.round(cart.reduce((sum, product) => {
     if (!selectedPromotion
       || (!appliesToAllProducts && !eligibleProductIds.has(String(product.id)))) return sum;
     const quantity = Math.max(1, Number(product.quantity) || 1);
     return sum + Number(product.price || 0) * quantity * Number(selectedPromotion.discountPercent) / 100;
-  }, 0);
+  }, 0)));
   return {
     subtotal,
     savings,

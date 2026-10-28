@@ -9,6 +9,7 @@ Ngày phát hành: chưa phát hành
 - Thanh toán QR: trang theo dõi đơn hiện lại mã QR, số tiền, nội dung chuyển khoản và hạn chuyển; admin xác nhận tiền hoặc ghi nhận tiền chuyển trễ.
 - Thông tin người nhận, ngày giờ giao, thiệp và gói quà.
 - Ưu đãi tự áp dụng mức giảm cao nhất.
+- Giá lưu và hiển thị bằng số nguyên VND, làm tròn tới 1.000 ₫; tổng giỏ đúng bằng tổng từng dòng (#40).
 - Đánh giá chỉ dành cho chủ đơn đã giao, mỗi đơn một lần; phản hồi của cửa hàng hiện cho khách.
 - Phân quyền Owner/Admin bằng custom claims và `adminRoles` (thu hồi quyền có hiệu lực ngay).
 
@@ -25,7 +26,7 @@ Ngày phát hành: chưa phát hành
 
 ## Cần làm tay khi nâng cấp
 
-- Chạy `npm run setup-firestore` để cập nhật Security Rules, index và `adminRoles`.
+- Chạy `npm run setup-firestore` để cập nhật Security Rules, index, `adminRoles` và đổi giá sản phẩm cũ từ USD sang VND.
 - Đặt biến môi trường `CRON_SECRET` trên Vercel cho cron dọn đơn hết hạn.
 
 ## Hạn chế đã biết

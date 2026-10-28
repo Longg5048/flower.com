@@ -1,8 +1,9 @@
 const { createHash, createHmac } = require("node:crypto");
 const { FieldValue, Timestamp } = require("firebase-admin/firestore");
 const { getAdminAuth, getAdminFirestore, sendError } = require("../lib/firebase-admin");
+// Same price reading as the shop pages (whole VND, old USD prices converted), so both agree.
+const { toVndPrice } = require("../product-store.js");
 
-const VND_PER_USD = 25949.123093;
 const MAX_QUANTITY_PER_PRODUCT = 50;
 const QR_RESERVATION_MS = 30 * 60 * 1000;
 const COD_RESERVATION_MS = 24 * 60 * 60 * 1000;
@@ -11,15 +12,6 @@ const ORDER_LOOKUP_MAX_ATTEMPTS = 20;
 
 function normalizePhone(value) {
     return String(value || "").replace(/\D/g, "");
-}
-
-function vnd(value) {
-    return Math.round(Number(value) * VND_PER_USD);
-}
-
-function priceInUsd(value) {
-    const price = Number(value);
-    return price > 10000 ? price / VND_PER_USD : price;
 }
 
 function aggregateItems(items) {
@@ -291,18 +283,17 @@ function findPromotion(promotions, promotionId) {
     return promotion;
 }
 
-// Totals in VND for items priced in USD ({ id, price, quantity }), shared by the quote and the
-// order so both always agree.
+// Totals in whole VND for items { id, price (VND), quantity }, shared by the quote and the order
+// (and mirrored by calculateCartTotals in currency.js) so all three always agree. The subtotal is
+// exactly the sum of the lines; the discount is rounded once, to the nearest đồng.
 function priceCart(items, promotion) {
     const discountPercent = promotion ? Number(promotion.discountPercent) : 0;
     const eligibleIds = new Set(Array.isArray(promotion?.productIds) ? promotion.productIds.map(String) : []);
     const appliesToAll = promotion?.allProducts === true;
-    const subtotalUsd = items.reduce((sum, item) => sum + item.price * item.quantity, 0);
-    const savingsUsd = items.reduce((sum, item) => sum + (promotion && (appliesToAll || eligibleIds.has(String(item.id)))
+    const subtotal = items.reduce((sum, item) => sum + item.price * item.quantity, 0);
+    const savings = Math.min(subtotal, Math.round(items.reduce((sum, item) => sum + (promotion && (appliesToAll || eligibleIds.has(String(item.id)))
         ? item.price * item.quantity * discountPercent / 100
-        : 0), 0);
-    const subtotal = vnd(subtotalUsd);
-    const savings = Math.min(subtotal, vnd(savingsUsd));
+        : 0), 0)));
     return { subtotal, savings, tax: 0, total: subtotal - savings };
 }
 
@@ -323,7 +314,7 @@ async function quoteOrder(req, res) {
         const cart = quote.items.map((item, index) => {
             const snapshot = products[index];
             const data = snapshot.exists ? snapshot.data() : {};
-            const price = priceInUsd(data.price);
+            const price = toVndPrice(data.price);
             const stock = Number(data.quantity);
             if (!snapshot.exists || !Number.isFinite(price) || price <= 0 || !Number.isInteger(stock) || stock < item.quantity) {
                 shortages.push({
@@ -353,7 +344,7 @@ async function quoteOrder(req, res) {
                 title: String(item.data.title || "Sản phẩm").slice(0, 120),
                 image: String(item.data.image || "").slice(0, 1000),
                 quantity: item.quantity,
-                price: vnd(item.price),
+                price: item.price,
                 stock: item.stock
             }))
         });
@@ -426,7 +417,7 @@ async function createOrder(req, res) {
                     throw error;
                 }
                 const data = snapshot.data();
-                const price = priceInUsd(data.price);
+                const price = toVndPrice(data.price);
                 const stock = Number(data.quantity);
                 if (!Number.isFinite(price) || price <= 0 || !Number.isInteger(stock) || stock < item.quantity) {
                     const error = new Error("Sản phẩm không đủ tồn kho hoặc có giá chưa hợp lệ.");
@@ -457,7 +448,7 @@ async function createOrder(req, res) {
                 title: String(item.data.title || "Sản phẩm").slice(0, 120),
                 image: String(item.data.image || "").slice(0, 1000),
                 quantity: item.quantity,
-                price: vnd(item.price),
+                price: item.price,
                 stock: item.stock
             }));
             const initialStatus = "Chờ xác nhận";
@@ -672,8 +663,6 @@ module.exports = async function handler(req, res) {
 // Pure helpers, exported for unit tests.
 module.exports.internals = {
     normalizePhone,
-    vnd,
-    priceInUsd,
     aggregateItems,
     findPromotion,
     priceCart,

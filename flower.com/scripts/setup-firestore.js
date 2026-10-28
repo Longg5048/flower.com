@@ -1,6 +1,7 @@
 // One command to set up (or repair) the Firestore database of the shop:
 //   1. adminRoles/{uid} for every admin/owner account (needed by firestore.rules)
-//   2. products from flower.json that are missing (existing products are not touched)
+//   2. products from flower.json that are missing (existing products are not touched), and
+//      prices still stored in USD converted to whole VND
 //   3. firestore.rules deployed (Firebase Rules API)
 //   4. the composite index and TTL policy from firestore.indexes.json
 // Safe to run again. Uses Application Default Credentials of a project owner:
@@ -12,6 +13,7 @@ const { applicationDefault, initializeApp } = require("firebase-admin/app");
 const { getAuth } = require("firebase-admin/auth");
 const { getFirestore } = require("firebase-admin/firestore");
 const { syncAdminRoles } = require("../lib/admin-roles");
+const { toVndPrice } = require("../product-store");
 
 const projectId = process.env.GOOGLE_CLOUD_PROJECT || "web-ban-hoa-9fe0b";
 const root = path.join(__dirname, "..");
@@ -138,6 +140,21 @@ async function createIndexes() {
         batch.set(db.collection("metadata").doc("productCatalog"), { catalogSeeded: true }, { merge: true });
         await batch.commit();
         return `xong (thêm ${missing.length}, giữ nguyên ${existing.size} sản phẩm đã có)`;
+    }));
+
+    // Prices used to be stored in USD (e.g. 73.99); they are whole VND now (#40).
+    results.push(await step("Đổi giá sản phẩm cũ từ USD sang VND", async () => {
+        const snapshot = await db.collection("products").get();
+        const legacy = snapshot.docs.filter((doc) => {
+            const price = Number(doc.get("price"));
+            return price > 0 && price < 1000;
+        });
+        for (let index = 0; index < legacy.length; index += 400) {
+            const batch = db.batch();
+            legacy.slice(index, index + 400).forEach((doc) => batch.update(doc.ref, { price: toVndPrice(doc.get("price")) }));
+            await batch.commit();
+        }
+        return `xong (đổi ${legacy.length}, giữ nguyên ${snapshot.size - legacy.length} sản phẩm đã là VND)`;
     }));
 
     results.push(await step("Bật Firebase Rules API", enableRulesApi));

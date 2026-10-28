@@ -1,4 +1,4 @@
-import { firebaseConfig } from "./firebase-config.js";
+import { firebaseConfig } from "./firebase-config.js?v=2";
 import { ORDER_STATUSES, normalizeOrderStatus } from "./order-status.js";
 
 let productPage = document.getElementById("product_page");

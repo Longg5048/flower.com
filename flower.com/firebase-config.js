@@ -12,6 +12,9 @@ export const isFirebaseConfigured = Object.values(firebaseConfig).every(
     (value) => typeof value === "string" && value.trim().length > 0
 );
 
+const connectedAuthEmulators = new WeakSet();
+const connectedFirestoreEmulators = new WeakSet();
+
 export function connectFirebaseEmulators(app, auth, firestore, authSdk, firestoreSdk) {
     const isLocalHost = typeof window !== "undefined"
         && ["localhost", "127.0.0.1"].includes(window.location.hostname);
@@ -20,18 +23,22 @@ export function connectFirebaseEmulators(app, auth, firestore, authSdk, firestor
             || new URLSearchParams(window.location.search).has("e2e"));
     if (!useEmulators) return;
 
-    if (auth && authSdk?.connectAuthEmulator) {
+    if (auth && authSdk?.connectAuthEmulator && !connectedAuthEmulators.has(auth)) {
         try {
             authSdk.connectAuthEmulator(auth, "http://127.0.0.1:9099", { disableWarnings: true });
+            connectedAuthEmulators.add(auth);
         } catch (error) {
             if (!String(error?.message || "").includes("already been initialized")) throw error;
+            connectedAuthEmulators.add(auth);
         }
     }
-    if (firestore && firestoreSdk?.connectFirestoreEmulator) {
+    if (firestore && firestoreSdk?.connectFirestoreEmulator && !connectedFirestoreEmulators.has(firestore)) {
         try {
             firestoreSdk.connectFirestoreEmulator(firestore, "127.0.0.1", 8080);
+            connectedFirestoreEmulators.add(firestore);
         } catch (error) {
             if (!String(error?.message || "").includes("already been initialized")) throw error;
+            connectedFirestoreEmulators.add(firestore);
         }
     }
 }

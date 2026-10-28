@@ -21,12 +21,16 @@ const firestore = getFirestore(firebaseApp);
 test("customer can browse, add a flower, sign in, and place an order", async ({ page, request }, testInfo) => {
   const consoleErrors = [];
   const failedRequests = [];
+  const failedResponses = [];
   page.on("console", (message) => {
     if (message.type() === "error") consoleErrors.push(message.text());
   });
   page.on("pageerror", (error) => consoleErrors.push(error.message));
   page.on("requestfailed", (requestEvent) => {
     failedRequests.push(`${requestEvent.method()} ${requestEvent.url()}: ${requestEvent.failure()?.errorText}`);
+  });
+  page.on("response", (response) => {
+    if (response.status() >= 400) failedResponses.push(`${response.status()} ${response.url()}`);
   });
   await page.addInitScript(() => sessionStorage.setItem("flowerflowE2e", "true"));
 
@@ -94,5 +98,6 @@ test("customer can browse, add a flower, sign in, and place an order", async ({ 
   await expect(page).toHaveURL(/tracking\.html\?id=E2E-ORDER-67/);
 
   expect(failedRequests, `Failed browser requests:\n${failedRequests.join("\n")}`).toEqual([]);
+  expect(failedResponses, `Failed HTTP responses:\n${failedResponses.join("\n")}`).toEqual([]);
   expect(consoleErrors, `Browser console errors:\n${consoleErrors.join("\n")}`).toEqual([]);
 });

@@ -1,8 +1,22 @@
 import { test, expect } from "@playwright/test";
+import { generateKeyPairSync } from "node:crypto";
+import { cert, getApps, initializeApp } from "firebase-admin/app";
+import { getFirestore } from "firebase-admin/firestore";
 
 const email = `e2e-${Date.now()}-${Math.random().toString(16).slice(2)}@example.test`;
 const password = "FlowerFlow-E2E-Password-1!";
 const totals = { subtotal: 250000, savings: 0, tax: 0, total: 250000 };
+const projectId = "web-ban-hoa-9fe0b";
+const { privateKey } = generateKeyPairSync("rsa", { modulusLength: 2048 });
+const firebaseApp = getApps().find((app) => app.options.projectId === projectId) || initializeApp({
+  credential: cert({
+    projectId,
+    clientEmail: `e2e@${projectId}.iam.gserviceaccount.com`,
+    privateKey: privateKey.export({ type: "pkcs8", format: "pem" })
+  }),
+  projectId
+});
+const firestore = getFirestore(firebaseApp);
 
 test("customer can browse, add a flower, sign in, and place an order", async ({ page, request }, testInfo) => {
   const consoleErrors = [];
@@ -21,6 +35,14 @@ test("customer can browse, add a flower, sign in, and place an order", async ({ 
     { data: { email, password, returnSecureToken: true } }
   );
   expect(signup.ok(), `Firebase Auth Emulator account setup failed: ${await signup.text()}`).toBeTruthy();
+
+  await firestore.collection("products").doc("1").set({
+    title: "Bó hoa xuân dịu dàng",
+    price: 250000,
+    quantity: 10,
+    image: "./images/flower-01.webp",
+    description: "Bó hoa dùng cho kiểm thử luồng mua hàng."
+  });
 
   await page.route("**/api/orders", async (route) => {
     const body = route.request().postDataJSON();

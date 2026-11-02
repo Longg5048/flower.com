@@ -6,7 +6,7 @@ const siteRoot = path.join(__dirname, "..", "flower.com");
 const siteUrl = "https://flower-com-six.vercel.app";
 const htmlFiles = fs.readdirSync(siteRoot).filter((file) => file.endsWith(".html"));
 const publicPages = new Set(["index.html", "product.html"]);
-const informationPages = new Set(["about.html", "contact.html", "delivery.html", "returns.html", "privacy.html", "terms.html", "ordering.html", "faq.html"]);
+const informationPages = new Set(["about.html", "contact.html", "delivery.html", "returns.html", "privacy.html", "terms.html", "ordering.html", "faq.html", "payment.html"]);
 const productIds = require("../flower.com/flower.json").flower.map((product) => String(product.id));
 const titles = new Set();
 const descriptions = new Set();

@@ -201,6 +201,18 @@ firebase deploy --only firestore:rules
 
 Hướng dẫn từng bước, bao gồm cách gán quyền Owner bằng Application Default Credentials mà không cần tải key, có trong [`docs/ADMIN-SETUP.md`](docs/ADMIN-SETUP.md).
 
+### Gán ảnh sản phẩm theo tên hoa
+
+Mỗi tên hoa có một ảnh riêng trong `flower.com/images/products/` (danh sách ở `flower.com/lib/product-images.json`). Để gán ảnh này cho các sản phẩm đang có trên Firestore, đăng nhập Google Cloud một lần (`gcloud auth application-default login`) rồi chạy:
+
+```powershell
+cd flower.com
+npm run product-images            # chỉ liệt kê sản phẩm sẽ đổi ảnh, chưa ghi gì
+npm run product-images -- --dong-y  # ghi đường dẫn ảnh mới vào Firestore
+```
+
+Sản phẩm có tên không nằm trong danh sách (ví dụ sản phẩm tự thêm, ảnh tự tải lên) được giữ nguyên.
+
 ## Kiểm thử
 
 | Loại | Lệnh | Nội dung |

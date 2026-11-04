@@ -14,6 +14,7 @@
                     "smoke": "node scripts/smoke-test.js",
                     "backup": "node scripts/backup-firestore.js",
                     "restore": "node scripts/restore-firestore.js",
+                    "product-images": "node scripts/set-product-images.js",
                     "test:e2e": "playwright test",
                     "test:e2e:emulator": "firebase emulators:exec --project web-ban-hoa-9fe0b --only auth,firestore \"npm run test:e2e\""
                 },

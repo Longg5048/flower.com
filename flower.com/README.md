@@ -23,6 +23,10 @@ flowchart LR
     Admin["admin.js"] <-->|Đọc/cập nhật đơn| Orders
     Tracking["tracking.js"] -->|Đơn tài khoản| Orders
     Tracking -->|Mã đơn + số điện thoại| OrderAPI --> Orders
+    Checkout -->|Tạo đơn, giá do server tính| Payments["/api/payments"]
+    Payments -->|Link có chữ ký| VNPay[VNPay]
+    VNPay -->|IPN đã ký| IPN["/api/vnpay-ipn"] --> Orders
+    Browser -->|Trạng thái chỉ đọc| Payments
     Checkout --> VietQR[VietQR]
     Admin["admin.js"] -->|Cập nhật sản phẩm| Store
     Admin <-->|Đơn, ưu đãi, phân loại, đánh giá| Firestore
@@ -46,14 +50,14 @@ flowchart LR
 | Danh mục và chi tiết | `product.html`, `product.js`, `product-categories.js`, `related-products.js` | Tìm kiếm, lọc, sắp xếp; trang chi tiết, thư viện ảnh, gợi ý sản phẩm liên quan |
 | Đánh giá | `review-store.js` | Đọc đánh giá công khai và gửi đánh giá mới (yêu cầu đăng nhập) lên Firestore |
 | Giỏ hàng và yêu thích | `shopping-store.js`, `cart.html`, `wish.html`, `wish.js` | Dùng chung khóa `cart`/`wish`, gộp dòng trùng, kiểm tra tồn kho |
-| Thanh toán | `checkout.html`, `placeorder.html` | Người gửi/người nhận, lịch giao giờ Việt Nam, khu vực và phí giao do máy chủ báo giá, ưu đãi, QR, tạo đơn |
+| Thanh toán | `checkout.html`, `payment-result.html`, `api/payments.js`, `api/vnpay-ipn.js`, `lib/vnpay.js` | COD, VNPay link/retry/status; chỉ IPN ký hợp lệ xác nhận thanh toán; VietQR vẫn cần xác minh thủ công |
 | Theo dõi đơn | `tracking.html`, `tracking.js`, `order-status.js` | Tra cứu công khai giới hạn thông tin; đơn tài khoản hiển thị chi tiết người gửi/nhận và phí |
 | Tài khoản | `login.*`, `account.*`, `forgot-password.*` | Đăng ký, đăng nhập, khôi phục mật khẩu, hồ sơ |
 | Tiền tệ | `currency.js` | Định dạng giá VND; mọi giá lưu là số nguyên VND (ví dụ `450000`) |
 | Liên hệ | `contact-tools.js/.css` | Thanh liên hệ Facebook và Zalo (ẩn trên trang quản trị) |
 | Quản trị | `admin.html`, `admin.js`, `admin.css` | Sản phẩm, danh mục, ưu đãi, cấu hình khu vực/phí giao, đơn hàng, xác minh QR, doanh thu, đánh giá, lời nhắn, người dùng |
 | Owner | `owner.html`, `owner.js` | Cấp hoặc gỡ quyền admin |
-| API | `api/admin/users.js`, `api/owner/users.js`, `api/delivery-zones.js`, `api/orders.js`, `lib/firebase-admin.js` | Quản lý khu vực bằng quyền admin, báo giá/tạo đơn authoritative, tra cứu đơn khách bằng mã và số điện thoại |
+| API | `api/admin/users.js`, `api/owner/users.js`, `api/delivery-zones.js`, `api/orders.js`, `api/payments.js`, `api/vnpay-ipn.js`, `lib/firebase-admin.js`, `lib/vnpay.js` | Quản lý khu vực bằng quyền admin, báo giá/tạo đơn authoritative, tra cứu đơn, tạo thanh toán VNPay và xử lý IPN |
 
 ## Dữ liệu
 
@@ -67,6 +71,7 @@ flowchart LR
 | Tài khoản Firebase, vai trò | Firebase Authentication (custom claims) | ✅ |
 | Giỏ hàng, yêu thích | `localStorage.cart`, `localStorage.wish` | ❌ |
 | Đơn hàng mới | `/api/orders` xác minh rồi ghi Firestore `orders` | ✅ |
+| Giao dịch VNPay | `/api/payments` tạo giao dịch; `/api/vnpay-ipn` cập nhật sau khi xác minh chữ ký và số tiền | ✅ |
 | Đánh giá trong trang quản trị (phản hồi, hoàn thành) | Firestore `reviews` | ✅ |
 | Lời nhắn của khách và câu trả lời | Trường `orderNote`, `orderNoteReply`, `orderNoteCompletedAt` của đơn trong `orders` | ✅ |
 | Phản hồi cũ trên trình duyệt | Firestore `messages` (chuyển khi quản trị đăng nhập) | ✅ |

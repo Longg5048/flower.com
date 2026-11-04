@@ -134,8 +134,14 @@ assert.ok(headerRules.some((rule) => rule.headers.some(
   (header) => header.key === "Cache-Control" && header.value.includes("immutable")
 )));
 
+// images/ holds files, plus one level of folders (images/products/) that hold only files.
 for (const image of fs.readdirSync(path.join(siteRoot, "images"))) {
-  assert.ok(fs.statSync(path.join(siteRoot, "images", image)).isFile());
+  const entry = path.join(siteRoot, "images", image);
+  if (fs.statSync(entry).isDirectory()) {
+    for (const nested of fs.readdirSync(entry)) assert.ok(fs.statSync(path.join(entry, nested)).isFile());
+  } else {
+    assert.ok(fs.statSync(entry).isFile());
+  }
 }
 
 assert.doesNotMatch(productPage, /sweetalert|cdn\.jsdelivr/i);

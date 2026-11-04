@@ -588,7 +588,7 @@
 
             let catalog = [];
             try {
-                const response = await fetch("./flower.json?v=2");
+                const response = await fetch("./flower.json?v=3");
                 if (response.ok) {
                     const data = await response.json();
                     // Starting stock, used only when an admin seeds an empty catalog.

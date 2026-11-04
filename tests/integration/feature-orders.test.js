@@ -20,6 +20,19 @@ test("báo giá trả tổng tiền, giá từng sản phẩm và tồn kho", as
     assert.equal(quote.body.items[0].stock, 10);
 });
 
+test("sản phẩm tạm ẩn không được báo giá hoặc đặt hàng", async () => {
+    await h.db().doc("products/1").update({ status: "hidden" });
+    const quote = await h.callApi("orders", { body: { action: "quote", items: [{ id: "1", quantity: 1 }] } });
+    assert.equal(quote.status, 409);
+    assert.equal(quote.body.code, "product-unavailable");
+    assert.match(quote.body.error, /tạm ẩn/);
+
+    const result = await h.placeOrder({ items: [{ id: "1", quantity: 1 }] });
+    assert.equal(result.status, 409);
+    assert.equal(result.body.code, "product-unavailable");
+    assert.equal(await h.stockOf("1"), 10);
+});
+
 test("đặt đơn COD: lưu đơn, trừ kho, trạng thái chờ xác nhận", async () => {
     const result = await h.placeOrder({ items: [{ id: "1", quantity: 3 }] });
     assert.equal(result.status, 201, JSON.stringify(result.body));
@@ -28,6 +41,9 @@ test("đặt đơn COD: lưu đơn, trừ kho, trạng thái chờ xác nhận",
     assert.equal(order.paymentMethod, "cod");
     assert.equal(order.inventoryState, "reserved");
     assert.equal(order.total, result.quote.body.totals.total);
+    assert.equal(order.shippingFee, 0);
+    assert.equal(order.deliveryProvince, "Test Province");
+    assert.equal(order.deliveryDistrict, "Test District");
     assert.equal(order.uid, "");
     assert.equal(await h.stockOf("1"), 7);
 });
@@ -36,7 +52,7 @@ test("gửi lại cùng một yêu cầu đặt hàng không tạo đơn thứ h
     const quote = await h.callApi("orders", { body: { action: "quote", items: [{ id: "2", quantity: 1 }] } });
     const body = {
         customerName: "Khách", phone: "0908123456", address: "1 Lê Lợi", deliveryDate: h.deliveryDate(),
-        deliveryTime: "12:00–16:00", paymentMethod: "cod", idempotencyKey: randomUUID(),
+        deliveryTime: "11:00–14:00", deliveryZoneId: "test-zone", paymentMethod: "cod", idempotencyKey: randomUUID(),
         expectedTotals: quote.body.totals, items: [{ id: "2", quantity: 1 }]
     };
     const first = await h.callApi("orders", { body });
@@ -48,10 +64,42 @@ test("gửi lại cùng một yêu cầu đặt hàng không tạo đơn thứ h
 });
 
 test("giá thay đổi sau khi báo giá thì không đặt được đơn", async () => {
-    const result = await h.placeOrder({ overrides: { expectedTotals: { subtotal: 1, savings: 0, tax: 0, total: 1 } } });
+    const result = await h.placeOrder({ overrides: { expectedTotals: { subtotal: 1, savings: 0, tax: 0, shippingFee: 0, total: 1 } } });
     assert.equal(result.status, 409);
     assert.equal(result.body.code, "price-changed");
     assert.equal(await h.stockOf("1"), 10);
+});
+
+test("hai yêu cầu đồng thời cùng mã chỉ lưu một đơn; đổi nội dung bị từ chối", async () => {
+    const quote = await h.callApi("orders", { body: { action: "quote", items: [{ id: "2", quantity: 1 }] } });
+    const body = {
+        customerName: "Khách", phone: "0908123456", address: "1 Lê Lợi", deliveryDate: h.deliveryDate(),
+        deliveryTime: "11:00–14:00", deliveryZoneId: "test-zone", paymentMethod: "cod", idempotencyKey: randomUUID(),
+        expectedTotals: quote.body.totals, items: [{ id: "2", quantity: 1 }]
+    };
+    const results = await Promise.all([h.callApi("orders", { body }), h.callApi("orders", { body })]);
+    results.forEach((result) => assert.equal(result.status, 201, JSON.stringify(result.body)));
+    assert.equal(results[0].body.order.id, results[1].body.order.id);
+    assert.equal((await h.db().collection("orders").get()).size, 1);
+    assert.equal(await h.stockOf("2"), 9);
+    const changed = await h.callApi("orders", { body: { ...body, address: "Địa chỉ khác" } });
+    assert.equal(changed.status, 409);
+    assert.equal(changed.body.code, "idempotency-conflict");
+});
+
+test("hai khách tranh sản phẩm cuối cùng: chỉ một đơn giữ được hàng", async () => {
+    await h.db().doc("products/2").update({ quantity: 1 });
+    const quote = await h.callApi("orders", { body: { action: "quote", items: [{ id: "2", quantity: 1 }] } });
+    const body = {
+        customerName: "Khách", phone: "0908123456", address: "1 Lê Lợi", deliveryDate: h.deliveryDate(),
+        deliveryTime: "11:00–14:00", deliveryZoneId: "test-zone", paymentMethod: "cod", expectedTotals: quote.body.totals,
+        items: [{ id: "2", quantity: 1 }]
+    };
+    const results = await Promise.all([1, 2].map(() => h.callApi("orders", { body: { ...body, idempotencyKey: randomUUID() } })));
+    assert.deepEqual(results.map((result) => result.status).sort(), [201, 409]);
+    assert.equal(results.find((result) => result.status === 409).body.code, "insufficient-stock");
+    assert.equal(await h.stockOf("2"), 0);
+    assert.equal((await h.db().collection("orders").get()).size, 1);
 });
 
 test("thiếu hàng: báo rõ sản phẩm nào còn bao nhiêu", async () => {
@@ -60,6 +108,29 @@ test("thiếu hàng: báo rõ sản phẩm nào còn bao nhiêu", async () => {
     assert.equal(quote.status, 409);
     assert.equal(quote.body.code, "insufficient-stock");
     assert.deepEqual(quote.body.items.map(({ id, available }) => ({ id, available })), [{ id: "6", available: 1 }]);
+});
+
+test("các cấu hình cùng sản phẩm: giá server, lưu thiệp riêng, trừ và hoàn kho gộp", async () => {
+    const items = [
+        { id: "line-a", productId: "1", size: "large", color: "pink", cardMessage: "Tặng mẹ", personalNote: "Giấy kraft", quantity: 2 },
+        { id: "line-b", productId: "1", size: "premium", color: "white", cardMessage: "Cảm ơn", personalNote: "", quantity: 1 }
+    ];
+    const result = await h.placeOrder({ items, paymentMethod: "qr" });
+    assert.equal(result.status, 201, JSON.stringify(result.body));
+    const orderRef = h.db().doc(`orders/${result.body.order.id}`);
+    const order = (await orderRef.get()).data();
+    assert.equal(order.items[0].cardMessage, "Tặng mẹ");
+    assert.equal(order.items[1].size, "premium");
+    assert.equal(order.items[0].personalNote, "Giấy kraft");
+    assert.equal(order.items[0].price, Math.round((await h.db().doc("products/1").get()).data().price * 1.3));
+    assert.equal(await h.stockOf("1"), 7);
+    await orderRef.update({ reservationExpiresAt: Timestamp.fromMillis(Date.now() - 1000) });
+    await h.callApi("orders", { method: "GET", query: { action: "expire" }, headers: { authorization: "Bearer test-cron-secret" } });
+    assert.equal(await h.stockOf("1"), 10);
+    await h.db().doc("products/1").update({ quantity: 2 });
+    const shortage = await h.callApi("orders", { body: { action: "quote", items } });
+    assert.equal(shortage.status, 409);
+    assert.equal(shortage.body.items.length, 2);
 });
 
 test("ghi chú quá 500 ký tự bị từ chối, không bị cắt", async () => {
@@ -118,4 +189,22 @@ test("tra cứu bằng mã đơn và số điện thoại", async () => {
     assert.equal(found.body.order.total, result.quote.body.totals.total);
     const wrongPhone = await h.callApi("orders", { body: { action: "lookup", id, phone: "0999999999" } });
     assert.equal(wrongPhone.status, 404);
+});
+
+test("không đặt được nội dung chuyển khoản trùng với đơn của người khác (F42)", async () => {
+    const first = await h.placeOrder({ paymentMethod: "qr" });
+    const firstReference = (await h.db().doc(`orders/${first.body.order.id}`).get()).data().paymentReference;
+    const copy = await h.placeOrder({ paymentMethod: "qr", overrides: { paymentReference: firstReference } });
+    assert.equal(copy.status, 201);
+    const copyReference = (await h.db().doc(`orders/${copy.body.order.id}`).get()).data().paymentReference;
+    assert.notEqual(copyReference, firstReference);
+    assert.equal(copy.body.order.paymentReference, copyReference);
+});
+
+test("đặt quá 50 sản phẩm một loại: báo rõ giới hạn thay vì 'không hợp lệ' (F46)", async () => {
+    await h.db().doc("products/3").update({ quantity: 100 });
+    const quote = await h.callApi("orders", { body: { action: "quote", items: [{ id: "3", quantity: 60 }] } });
+    assert.equal(quote.status, 400);
+    assert.equal(quote.body.code, "quantity-limit");
+    assert.match(quote.body.error, /50/);
 });

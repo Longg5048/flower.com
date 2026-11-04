@@ -3,20 +3,21 @@
 
 <head>
   <meta charset="UTF-8">
-  <script src="./safe-storage.js"></script>
+  <script src="./js/core/safe-storage.js?v=2"></script>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="robots" content="noindex, nofollow">
+  <meta name="description" content="Nhập thông tin nhận hoa và xác nhận thanh toán đơn hàng Flowerflow.">
+  <link rel="icon" type="image/svg+xml" href="./favicon.svg">
   <title>Thanh toán</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Playfair+Display:wght@500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="./store-header.css?v=2">
-  <link rel="stylesheet" href="./checkout.css?v=3">
-  <link rel="stylesheet" href="./store-footer.css?v=2">
-<link rel="stylesheet" href="./contact-tools.css?v=2">
+  <link rel="stylesheet" href="./css/core/store-header.css?v=3">
+  <link rel="stylesheet" href="./css/order/checkout.css?v=6">
+  <link rel="stylesheet" href="./css/core/accessibility.css?v=1">
+  <link rel="stylesheet" href="./css/core/store-footer.css?v=3">
+<link rel="stylesheet" href="./css/core/contact-tools.css?v=3">
 </head>
 
 <body>
-  <script src="./store-header.js?v=4"></script>
+  <script src="./js/core/store-header.js?v=6"></script>
 
   <main class="checkout-page">
     <header class="checkout-heading">
@@ -38,47 +39,83 @@
           <div class="checkout-section-heading">
             <span class="checkout-step">01</span>
             <div>
-              <h2 id="customer-heading">Thông tin nhận hàng</h2>
-              <p>Thông tin liên hệ và địa chỉ giao hoa</p>
+              <h2 id="customer-heading">Người gửi & người nhận</h2>
+              <p>Thông tin liên hệ, địa chỉ và lịch giao hoa</p>
             </div>
           </div>
 
           <div class="checkout-fields">
             <label class="checkout-field">
               <span>Họ và tên</span>
-              <input type="text" name="customerName" autocomplete="name" placeholder="Nguyễn Thị Hoa" required>
+              <input type="text" name="customerName" autocomplete="name" maxlength="100" placeholder="Nguyễn Thị Hoa" required>
             </label>
             <label class="checkout-field">
               <span>Số điện thoại</span>
-              <input type="tel" name="phone" inputmode="tel" autocomplete="tel" pattern="\+?[0-9]{8,15}" placeholder="0912345678" required>
+              <input type="tel" name="phone" inputmode="tel" autocomplete="tel" maxlength="20" placeholder="0912 345 678" required>
             </label>
             <label class="checkout-field checkout-field-wide">
-              <span>Địa chỉ</span>
-              <textarea name="address" autocomplete="street-address" rows="3" placeholder="Số nhà, tên đường, phường/xã, quận/huyện, tỉnh/thành phố" required></textarea>
+              <span>Số nhà, tên đường, phường / xã</span>
+              <textarea name="address" autocomplete="street-address" rows="3" maxlength="500" placeholder="Số nhà, tên đường, phường / xã" required></textarea>
+            </label>
+            <fieldset class="checkout-field checkout-field-wide checkout-recipient">
+              <legend>Thông tin người nhận</legend>
+              <label class="checkout-checkbox">
+                <input type="checkbox" name="customerIsRecipient" id="customer-is-recipient">
+                <span>Tôi là người nhận</span>
+              </label>
+              <div id="recipient-fields" class="checkout-fields checkout-recipient-fields">
+                <label class="checkout-field">
+                  <span>Tên người nhận</span>
+                  <input type="text" name="recipientName" autocomplete="off" maxlength="120" placeholder="Tên người nhận hoa">
+                </label>
+                <label class="checkout-field">
+                  <span>Số điện thoại người nhận</span>
+                  <input type="tel" name="recipientPhone" inputmode="tel" pattern="\+?[0-9]{8,15}" placeholder="Số điện thoại người nhận">
+                </label>
+              </div>
+            </fieldset>
+            <label class="checkout-field">
+              <span>Tỉnh / thành phố giao hàng</span>
+              <select name="deliveryProvince" id="delivery-province" required>
+                <option value="">Đang tải khu vực…</option>
+              </select>
             </label>
             <label class="checkout-field">
-              <span>Tên người nhận <small>(để trống nếu là người đặt)</small></span>
-              <input type="text" name="recipientName" autocomplete="off" maxlength="120" placeholder="Tên người nhận hoa">
+              <span>Quận / huyện giao hàng</span>
+              <select name="deliveryDistrict" id="delivery-district" required disabled>
+                <option value="">Chọn tỉnh / thành phố trước</option>
+              </select>
             </label>
-            <label class="checkout-field">
-              <span>Số điện thoại người nhận</span>
-              <input type="tel" name="recipientPhone" inputmode="tel" pattern="\+?[0-9]{8,15}" placeholder="Để trống nếu dùng số người đặt">
-            </label>
+            <p id="delivery-zone-message" class="checkout-field-wide checkout-zone-message" role="status" aria-live="polite"></p>
             <label class="checkout-field">
               <span>Ngày giao mong muốn</span>
               <input type="date" name="deliveryDate" id="delivery-date" required>
             </label>
-            <label class="checkout-field">
+            <label class="checkout-field" for="delivery-time">
               <span>Khung giờ giao</span>
-              <select name="deliveryTime" required>
+              <select name="deliveryTime" id="delivery-time" required>
                 <option value="">Chọn khung giờ</option>
-                <option>08:00–12:00</option><option>12:00–16:00</option><option>16:00–20:00</option>
+                <option>08:00–11:00</option><option>11:00–14:00</option><option>14:00–17:00</option><option>17:00–20:00</option>
               </select>
             </label>
-            <label class="checkout-field checkout-field-wide">
-              <span>Lời chúc trên thiệp <small>(không bắt buộc)</small></span>
-              <textarea name="greetingCard" rows="2" maxlength="300" placeholder="Nhập lời chúc ngắn gửi kèm bó hoa"></textarea>
-            </label>
+            <p id="delivery-schedule-message" class="checkout-field-wide checkout-schedule-message" role="status" aria-live="polite">Đơn giao trong ngày cần được đặt trước 15:00 (giờ Việt Nam).</p>
+            <div class="checkout-field checkout-field-wide">
+              <label for="greeting-template">Lời chúc trên thiệp <small>(không bắt buộc)</small></label>
+              <select name="greetingTemplate" id="greeting-template" aria-label="Chọn lời chúc gợi ý">
+                <option value="">Chọn lời chúc gợi ý hoặc tự viết bên dưới</option>
+                <option value="Chúc mừng sinh nhật! Chúc bạn luôn rạng rỡ và hạnh phúc.">Chúc mừng sinh nhật</option>
+                <option value="Chúc mừng ngày đặc biệt của chúng mình. Mong yêu thương luôn nở hoa.">Chúc mừng kỷ niệm</option>
+                <option value="Chúc bạn luôn bình an, mạnh khỏe và ngập tràn niềm vui.">Chúc bình an và hạnh phúc</option>
+                <option value="Cảm ơn bạn vì luôn ở bên và mang đến thật nhiều yêu thương.">Lời cảm ơn</option>
+              </select>
+              <label for="greeting-card">Nội dung thiệp</label>
+              <textarea name="greetingCard" id="greeting-card" rows="2" maxlength="300" aria-describedby="greeting-card-counter" placeholder="Nhập lời chúc ngắn gửi kèm bó hoa"></textarea>
+              <small class="checkout-note-counter" id="greeting-card-counter" aria-live="polite">0/300 ký tự</small>
+              <label class="checkout-checkbox">
+                <input type="checkbox" name="anonymousGreetingCard" id="anonymous-greeting-card">
+                <span>Ẩn tên người gửi trên thiệp</span>
+              </label>
+            </div>
             <label class="checkout-field checkout-field-wide">
               <span>Gói quà / ruy băng <small>(không bắt buộc)</small></span>
               <select name="giftWrap">
@@ -110,17 +147,15 @@
               <span><strong>Thanh toán khi nhận hàng</strong><small>Thanh toán trực tiếp khi nhận hoa</small></span>
             </label>
             <label class="payment-option">
-              <input type="radio" name="paymentMethod" value="qr" checked>
-              <span class="payment-option-icon" aria-hidden="true">▦</span>
-              <span><strong>Quét mã QR Vietcombank</strong><small>Chuyển khoản nhanh qua ứng dụng ngân hàng</small></span>
+              <input type="radio" name="paymentMethod" value="vnpay" checked>
+              <span class="payment-option-icon" aria-hidden="true">↗</span>
+              <span><strong>Thanh toán online qua VNPay</strong><small>Chuyển đến cổng thanh toán bảo mật của VNPay</small></span>
             </label>
           </div>
-          <div id="payment-qr-panel" class="payment-qr-panel" hidden>
-            <p>Quét mã bằng ứng dụng ngân hàng. Nội dung chuyển khoản gồm mã đơn tạm thời.</p>
-            <img id="payment-qr-image" alt="Mã QR chuyển khoản Vietcombank" width="220" height="220">
-            <p id="payment-qr-amount" class="payment-qr-amount"></p>
-            <p class="payment-qr-note">Mã QR chỉ hướng dẫn chuyển khoản. Đơn hàng chờ cửa hàng đối chiếu giao dịch; thao tác gửi đơn không xác nhận đã nhận tiền.</p>
-            <p class="payment-qr-note"><strong>Hàng được giữ 30 phút sau khi gửi đơn.</strong> Quá hạn mà cửa hàng chưa nhận được tiền, đơn sẽ tự hủy. Bạn có thể xem lại mã QR và nội dung chuyển khoản ở trang Theo dõi đơn hàng.</p>
+          <div id="payment-online-panel" class="payment-online-panel" hidden>
+            <p>Đơn sẽ được tạo với tổng tiền do máy chủ xác nhận, sau đó bạn được chuyển đến VNPay để thanh toán.</p>
+            <p class="payment-online-note">Đơn chưa được coi là đã thanh toán khi bạn quay lại trang này. Cửa hàng chỉ xác nhận tiền sau khi nhận IPN hợp lệ từ VNPay.</p>
+            <p class="payment-online-note"><strong>Hàng được giữ trong 15 phút.</strong> Nếu thanh toán chưa hoàn tất đúng hạn, đơn sẽ tự hủy và tồn kho được hoàn lại.</p>
           </div>
         </section>
       </div>
@@ -149,32 +184,77 @@
           <dl class="checkout-totals">
             <div><dt>Giá gốc</dt><dd id="originalprice">0 ₫</dd></div>
             <div><dt>Tiền giảm</dt><dd id="savings">0 ₫</dd></div>
-            <div><dt>Phí giao hàng</dt><dd id="deliveryCharge">Miễn phí</dd></div>
-            <div class="checkout-grand-total"><dt>Tổng tiền</dt><dd id="total">0 ₫</dd></div>
+            <div><dt>Phí giao hàng</dt><dd id="deliveryCharge">Chọn khu vực</dd></div>
+            <div class="checkout-grand-total"><dt>Tổng tiền <small>(đã gồm VAT)</small></dt><dd id="total">0 ₫</dd></div>
           </dl>
 
           <button class="checkout-submit" type="submit">Đặt hàng</button>
           <a class="continue-shopping" href="./product.html">Tiếp tục chọn hoa</a>
+          <button type="button" id="retry-quote" hidden>Thử lại kiểm tra giá và tồn kho</button>
           <p id="checkout-message" class="checkout-message" role="status" aria-live="polite"></p>
         </section>
       </aside>
     </form>
   </main>
-  <script src="./store-footer.js?v=2"></script>
-  <script src="./currency.js?v=10"></script>
-  <script src="./order-store.js?v=14"></script>
-  <script src="./product-names.js?v=2"></script>
+  <script src="./js/core/store-footer.js?v=4"></script>
+  <script src="./js/catalog/bouquet-options.js?v=1"></script>
+  <script src="./js/core/currency.js?v=11"></script>
+  <script src="./js/order/order-store.js?v=18"></script>
+  <script src="./js/core/product-names.js?v=2"></script>
   <script>
   const CartContainer = document.getElementById("product-container");
   const checkoutForm = document.getElementById("checkout-form");
   const checkoutMessage = document.getElementById("checkout-message");
   const orderNoteInput = checkoutForm.querySelector('textarea[name="orderNote"]');
   const orderNoteCounter = document.getElementById("order-note-counter");
+  const greetingCardInput = document.getElementById("greeting-card");
+  const greetingTemplateInput = document.getElementById("greeting-template");
+  const greetingCardCounter = document.getElementById("greeting-card-counter");
+  const selfRecipientInput = document.getElementById("customer-is-recipient");
+  const recipientFields = document.getElementById("recipient-fields");
+  const recipientNameInput = checkoutForm.querySelector('input[name="recipientName"]');
+  const recipientPhoneInput = checkoutForm.querySelector('input[name="recipientPhone"]');
+  const deliveryProvinceInput = document.getElementById("delivery-province");
+  const deliveryDistrictInput = document.getElementById("delivery-district");
+  const deliveryZoneMessage = document.getElementById("delivery-zone-message");
+  const deliveryScheduleMessage = document.getElementById("delivery-schedule-message");
+  const deliveryTimeInput = document.getElementById("delivery-time");
+  let deliveryZones = [];
+  let selectedDeliveryZoneId = "";
+  let deliveryZonesConfigured = false;
+  let deliveryZonesLoaded = false;
   function updateOrderNoteCounter() {
     const length = orderNoteInput.value.length;
     orderNoteCounter.textContent = length >= 500 ? "500/500 ký tự · Đã đạt giới hạn" : `${length}/500 ký tự`;
   }
   orderNoteInput.addEventListener("input", updateOrderNoteCounter);
+  greetingCardInput.addEventListener("input", () => {
+    greetingCardCounter.textContent = `${greetingCardInput.value.length}/300 ký tự`;
+    greetingTemplateInput.value = "";
+  });
+  greetingTemplateInput.addEventListener("change", () => {
+    if (!greetingTemplateInput.value) return;
+    greetingCardInput.value = greetingTemplateInput.value;
+    greetingCardCounter.textContent = `${greetingCardInput.value.length}/300 ký tự`;
+  });
+  function syncRecipientFields() {
+    const isSelfRecipient = selfRecipientInput.checked;
+    recipientFields.hidden = isSelfRecipient;
+    recipientNameInput.required = false;
+    recipientPhoneInput.required = false;
+    if (isSelfRecipient) {
+      recipientNameInput.value = checkoutForm.elements.customerName.value;
+      recipientPhoneInput.value = checkoutForm.elements.phone.value;
+    }
+  }
+  selfRecipientInput.addEventListener("change", syncRecipientFields);
+  syncRecipientFields();
+  checkoutForm.elements.customerName.addEventListener("input", () => {
+    if (selfRecipientInput.checked) recipientNameInput.value = checkoutForm.elements.customerName.value;
+  });
+  checkoutForm.elements.phone.addEventListener("input", () => {
+    if (selfRecipientInput.checked) recipientPhoneInput.value = checkoutForm.elements.phone.value;
+  });
   const promotionSelect = document.getElementById("promotion-select");
   const promotionMessage = document.getElementById("promotion-message");
   let Cart = FlowerSafeStorage.readJson("cart", {
@@ -182,11 +262,11 @@
     validate: (value) => Array.isArray(value)
       && value.every((item) => item && typeof item === "object" && !Array.isArray(item) && item.id !== undefined)
   });
+  // Same limit as the order API (api/orders.js MAX_QUANTITY_PER_PRODUCT).
+  const MAX_QUANTITY_PER_PRODUCT = 50;
   let serverQuote = null;
   let quoteRequestId = 0;
-  const paymentQrPanel = document.getElementById("payment-qr-panel");
-  const paymentQrImage = document.getElementById("payment-qr-image");
-  const paymentQrAmount = document.getElementById("payment-qr-amount");
+  const paymentOnlinePanel = document.getElementById("payment-online-panel");
   function createOrderRequestId() {
     if (!window.crypto?.getRandomValues) {
       throw new Error("Trình duyệt không hỗ trợ tạo mã đặt hàng an toàn. Hãy dùng HTTPS hoặc localhost.");
@@ -199,39 +279,121 @@
     return `${hex.slice(0, 8)}-${hex.slice(8, 12)}-${hex.slice(12, 16)}-${hex.slice(16, 20)}-${hex.slice(20)}`;
   }
 
+  const pendingOrder = FlowerSafeStorage.readJson("flowerPendingOrder", { fallback: null });
+  if (pendingOrder?.order?.idempotencyKey) window.location.replace("./placeorder.html");
   const orderRequestId = createOrderRequestId();
   const paymentReference = `FF${orderRequestId.replaceAll("-", "").slice(0, 12).toUpperCase()}`;
   const deliveryDateInput = document.getElementById("delivery-date");
-  const today = new Date();
-  deliveryDateInput.min = new Date(today.getTime() - today.getTimezoneOffset() * 60000).toISOString().slice(0, 10);
-
-  function updatePaymentQr() {
-    const isQrPayment = checkoutForm.querySelector('input[name="paymentMethod"]:checked')?.value === "qr";
-    paymentQrPanel.hidden = !isQrPayment;
-    if (!isQrPayment) return;
-    if (!serverQuote) {
-      paymentQrImage.removeAttribute("src");
-      paymentQrAmount.textContent = "Đang xác minh giá và tồn kho từ cửa hàng...";
-      return;
+  const vnClock = new Intl.DateTimeFormat("en-CA", {
+    timeZone: "Asia/Ho_Chi_Minh",
+    year: "numeric", month: "2-digit", day: "2-digit",
+    hour: "2-digit", minute: "2-digit", hourCycle: "h23"
+  });
+  function getVietnamTime() {
+    const values = Object.fromEntries(vnClock.formatToParts(new Date()).map((part) => [part.type, part.value]));
+    return {
+      date: `${values.year}-${values.month}-${values.day}`,
+      hour: Number(values.hour),
+      minute: Number(values.minute)
+    };
+  }
+  function addDateDays(value, days) {
+    const date = new Date(`${value}T00:00:00Z`);
+    date.setUTCDate(date.getUTCDate() + days);
+    return date.toISOString().slice(0, 10);
+  }
+  function updateDeliveryAvailability() {
+    const now = getVietnamTime();
+    const minimumDate = now.hour >= 15 ? addDateDays(now.date, 1) : now.date;
+    deliveryDateInput.min = minimumDate;
+    if (!deliveryDateInput.value || deliveryDateInput.value < minimumDate) {
+      deliveryDateInput.value = minimumDate;
     }
-    const total = serverQuote.totals.total;
-    const imageUrl = new URL(`https://img.vietqr.io/image/VCB-1063118243-compact2.png`);
-    imageUrl.searchParams.set("amount", String(total));
-    imageUrl.searchParams.set("addInfo", paymentReference);
-    imageUrl.searchParams.set("accountName", "DO BA THAI");
-    paymentQrImage.src = imageUrl.toString();
-    paymentQrAmount.textContent = `Số tiền: ${formatVnd(total)} · Nội dung: ${paymentReference}`;
+    let remaining = 0;
+    [...deliveryTimeInput.options].slice(1).forEach((option) => {
+      const startHour = Number(option.value.slice(0, 2));
+      const hasStarted = deliveryDateInput.value === now.date && startHour <= now.hour;
+      option.hidden = hasStarted;
+      option.disabled = hasStarted;
+      if (!hasStarted) remaining += 1;
+    });
+    if (deliveryTimeInput.selectedOptions[0]?.disabled) deliveryTimeInput.value = "";
+    deliveryScheduleMessage.textContent = now.hour >= 15 && deliveryDateInput.value === minimumDate
+      ? "Đã qua 15:00 tại Việt Nam; ngày giao trong ngày không còn khả dụng."
+      : deliveryDateInput.value === now.date
+        ? "Đơn giao trong ngày cần được đặt trước 15:00 (giờ Việt Nam). Khung giờ đã bắt đầu sẽ không thể chọn."
+        : "Ngày giao phải từ hôm nay trở đi. Đơn giao trong ngày cần được đặt trước 15:00 (giờ Việt Nam).";
+    return remaining;
+  }
+  deliveryDateInput.addEventListener("change", updateDeliveryAvailability);
+  updateDeliveryAvailability();
+  window.setInterval(updateDeliveryAvailability, 60000);
+
+  function renderProvinceOptions() {
+    const previousProvince = deliveryProvinceInput.value;
+    const previousZoneId = selectedDeliveryZoneId || deliveryDistrictInput.value;
+    const provinces = [...new Set(deliveryZones.map((zone) => zone.province))]
+      .sort((left, right) => left.localeCompare(right, "vi"));
+    deliveryProvinceInput.replaceChildren(new Option(
+      provinces.length ? "Chọn tỉnh / thành phố" : "Chưa có khu vực giao hàng",
+      ""
+    ));
+    provinces.forEach((province) => deliveryProvinceInput.add(new Option(province, province)));
+    deliveryProvinceInput.disabled = provinces.length === 0;
+    deliveryDistrictInput.replaceChildren(new Option("Chọn tỉnh / thành phố trước", ""));
+    deliveryDistrictInput.disabled = true;
+    selectedDeliveryZoneId = "";
+    if (provinces.includes(previousProvince)) {
+      deliveryProvinceInput.value = previousProvince;
+      const districts = deliveryZones.filter((zone) => zone.province === previousProvince)
+        .sort((left, right) => left.district.localeCompare(right.district, "vi"));
+      deliveryDistrictInput.replaceChildren(new Option("Chọn quận / huyện", ""));
+      districts.forEach((zone) => deliveryDistrictInput.add(new Option(zone.district, zone.id)));
+      deliveryDistrictInput.disabled = false;
+      if (districts.some((zone) => zone.id === previousZoneId)) {
+        deliveryDistrictInput.value = previousZoneId;
+        selectedDeliveryZoneId = previousZoneId;
+      }
+    }
+
+    if (!deliveryZonesLoaded) {
+      deliveryZoneMessage.textContent = "Đang tải khu vực giao hàng…";
+    } else if (!deliveryZonesConfigured) {
+      deliveryZoneMessage.textContent = "Cửa hàng chưa cấu hình khu vực giao hàng. Vui lòng liên hệ cửa hàng; quản trị viên cần thêm tỉnh/thành, quận/huyện và phí trong mục “Giao hàng” trước khi nhận đơn.";
+    } else {
+      deliveryZoneMessage.textContent = "Chọn khu vực đã được cửa hàng cấu hình. Phí giao hàng sẽ được xác nhận từ hệ thống.";
+    }
+  }
+  deliveryProvinceInput.addEventListener("change", () => {
+    const districts = deliveryZones.filter((zone) => zone.province === deliveryProvinceInput.value);
+    deliveryDistrictInput.replaceChildren(new Option(
+      districts.length ? "Chọn quận / huyện" : "Chọn tỉnh / thành phố trước",
+      ""
+    ));
+    districts.sort((left, right) => left.district.localeCompare(right.district, "vi"))
+      .forEach((zone) => deliveryDistrictInput.add(new Option(zone.district, zone.id)));
+    deliveryDistrictInput.disabled = districts.length === 0;
+    selectedDeliveryZoneId = "";
+    void refreshServerQuote();
+  });
+  deliveryDistrictInput.addEventListener("change", () => {
+    selectedDeliveryZoneId = deliveryDistrictInput.value;
+    void refreshServerQuote();
+  });
+
+  function updatePaymentOnlinePanel() {
+    paymentOnlinePanel.hidden = checkoutForm.querySelector('input[name="paymentMethod"]:checked')?.value !== "vnpay";
   }
 
   checkoutForm.querySelectorAll('input[name="paymentMethod"]').forEach((input) => {
-    input.addEventListener("change", updatePaymentQr);
+    input.addEventListener("change", updatePaymentOnlinePanel);
   });
 
   function hasOverstockItem() {
     return Cart.some((product) => {
       const stock = Number(product.stockQuantity);
       return Number.isFinite(stock) && stock >= 0
-        && Math.max(1, Number(product.quantity) || 1) > stock;
+        && FlowerBouquetOptions.demand(Cart, product.productId ?? product.id) > stock;
     });
   }
 
@@ -319,7 +481,8 @@
       const remove = document.createElement("button");
       const stock = Number(product.stockQuantity);
       const hasStockLimit = Number.isFinite(stock) && stock >= 0;
-      const exceedsStock = hasStockLimit && itemQuantity > stock;
+      const requestedStock = FlowerBouquetOptions.demand(Cart, product.productId ?? product.id);
+      const exceedsStock = hasStockLimit && requestedStock > stock;
 
       card.className = "checkout-item";
       image.src = product.image || "";
@@ -340,7 +503,7 @@
       increase.className = "quantity-button";
       increase.textContent = "+";
       increase.setAttribute("aria-label", `Tăng số lượng ${name.textContent}`);
-      increase.disabled = hasStockLimit && itemQuantity >= stock;
+      increase.disabled = itemQuantity >= MAX_QUANTITY_PER_PRODUCT || (hasStockLimit && requestedStock >= stock);
       lineTotal.className = "checkout-item-total";
       lineTotal.textContent = formatVnd(Number(product.price) * itemQuantity);
       remove.type = "button";
@@ -353,7 +516,11 @@
           : item));
       });
       increase.addEventListener("click", () => {
-        if (hasStockLimit && itemQuantity >= stock) {
+        if (itemQuantity >= MAX_QUANTITY_PER_PRODUCT) {
+          checkoutMessage.textContent = `Mỗi lựa chọn bó hoa đặt tối đa ${MAX_QUANTITY_PER_PRODUCT} bó.`;
+          return;
+        }
+        if (hasStockLimit && requestedStock >= stock) {
           checkoutMessage.textContent = `Chỉ còn ${stock} sản phẩm trong kho.`;
           return;
         }
@@ -367,6 +534,10 @@
 
       controls.append(decrease, quantity, increase, remove);
       details.append(name, unitPrice);
+      const selectionSummary = document.createElement("p");
+      selectionSummary.className = "bouquet-line-summary";
+      selectionSummary.textContent = FlowerBouquetOptions.summary(product);
+      details.append(selectionSummary);
       if (hasStockLimit) {
         const stockMessage = document.createElement("p");
         stockMessage.className = "checkout-stock";
@@ -391,16 +562,18 @@
       checkoutMessage.textContent = "";
     }
     renderCartSummary(Cart);
-    updatePaymentQr();
+    updatePaymentOnlinePanel();
     const cartTotal = document.getElementById("cartTotal");
     if (cartTotal) cartTotal.textContent = Cart.length;
     if (refreshQuote) void refreshServerQuote();
   }
 
+  document.getElementById("retry-quote").addEventListener("click", refreshServerQuote);
   async function refreshServerQuote() {
+    document.getElementById("retry-quote").hidden = true;
     const requestId = ++quoteRequestId;
     serverQuote = null;
-    updatePaymentQr();
+    updatePaymentOnlinePanel();
     const submitButton = checkoutForm.querySelector(".checkout-submit");
     submitButton.disabled = true;
     if (!Cart.length) {
@@ -411,8 +584,9 @@
 
     try {
       const quote = await window.FlowerOrderStore.quote(
-        Cart.map((item) => ({ id: item.id, quantity: Math.max(1, Number(item.quantity) || 1) })),
-        promotionSelect.value
+        Cart.map((item) => ({ id: item.id, productId: item.productId, size: item.size, color: item.color, cardMessage: item.cardMessage, personalNote: item.personalNote, quantity: Math.max(1, Number(item.quantity) || 1) })),
+        promotionSelect.value,
+        selectedDeliveryZoneId
       );
       if (requestId !== quoteRequestId) return;
       serverQuote = quote;
@@ -429,7 +603,9 @@
       const totals = quote.totals;
       document.getElementById("originalprice").textContent = formatVnd(totals.subtotal);
       document.getElementById("savings").textContent = formatVnd(totals.savings);
-      document.getElementById("deliveryCharge").textContent = "Miễn phí";
+      document.getElementById("deliveryCharge").textContent = quote.deliveryZone
+        ? formatVnd(totals.shippingFee || 0)
+        : "Chọn khu vực";
       document.getElementById("total").textContent = formatVnd(totals.total);
       Cart.forEach((item, index) => {
         const card = CartContainer.children[index];
@@ -447,10 +623,11 @@
         if (stockMessage && Number.isInteger(item.stockQuantity)) stockMessage.textContent = `Tồn kho: ${item.stockQuantity}`;
       });
       checkoutMessage.textContent = "Giá, ưu đãi và tồn kho đã được xác minh từ cửa hàng.";
-      submitButton.disabled = false;
-      updatePaymentQr();
+      submitButton.disabled = !selectedDeliveryZoneId || !deliveryZonesLoaded || !deliveryZonesConfigured;
+      updatePaymentOnlinePanel();
     } catch (error) {
       if (requestId !== quoteRequestId) return;
+      document.getElementById("retry-quote").hidden = false;
       if (error.code === "insufficient-stock" && error.items?.length) {
         // Show the real stock on each line so the customer sees which product to reduce.
         error.items.forEach((shortage) => {
@@ -462,24 +639,81 @@
       }
       checkoutMessage.textContent = error.message || "Không thể xác minh giá và tồn kho. Vui lòng thử lại.";
       renderCartSummary(Cart);
-      updatePaymentQr();
+      updatePaymentOnlinePanel();
     }
   }
 
+  // Zones and promotions load together and the page is drawn once, so a customer who fills the
+  // form quickly (or lets the browser autofill it) keeps what they chose. The form is marked
+  // data-ready when this is done (browser tests wait for it).
   async function initializeCheckout() {
-    try {
-      const promotions = await window.FlowerOrderStore.getPromotions();
-      setTrustedPromotions(promotions);
-    } catch (error) {
-      console.error("Không thể tải ưu đãi từ Firestore:", error);
+    const [zonesResult, promotionsResult] = await Promise.allSettled([
+      window.FlowerOrderStore.getDeliveryZones(),
+      window.FlowerOrderStore.getPromotions()
+    ]);
+    if (zonesResult.status === "fulfilled") {
+      const result = zonesResult.value;
+      deliveryZones = Array.isArray(result.zones) ? result.zones.filter((zone) => zone?.enabled === true) : [];
+      deliveryZonesConfigured = result.configured === true && deliveryZones.length > 0;
+      deliveryZonesLoaded = true;
+      renderProvinceOptions();
+    } else {
+      deliveryZones = [];
+      deliveryZonesConfigured = false;
+      deliveryZonesLoaded = true;
+      renderProvinceOptions();
+      deliveryZoneMessage.textContent = zonesResult.reason?.message || "Chưa thể tải khu vực giao hàng. Vui lòng thử lại sau.";
+      console.error("Không thể tải khu vực giao hàng:", zonesResult.reason);
+    }
+    if (promotionsResult.status === "fulfilled") {
+      setTrustedPromotions(promotionsResult.value);
+    } else {
+      console.error("Không thể tải ưu đãi từ Firestore:", promotionsResult.reason);
       setTrustedPromotions([]);
     }
     renderPromotionOptions();
     DisplayProduct();
+    checkoutForm.dataset.ready = "true";
   }
+
+  // Checks what the server will check, but next to the field and in Vietnamese, so the customer
+  // does not learn about a too-long name or an all-spaces address only on the next page.
+  const PHONE_ALLOWED = /^\+?[0-9 .-]+$/;
+  function phoneError(value, required) {
+    const text = value.trim();
+    if (!text) return required ? "Vui lòng nhập số điện thoại." : "";
+    const digits = text.replace(/\D/g, "");
+    if (!PHONE_ALLOWED.test(text) || digits.length < 8 || digits.length > 15) {
+      return "Số điện thoại gồm 8–15 chữ số, có thể có dấu cách hoặc dấu chấm (ví dụ 0912 345 678).";
+    }
+    return "";
+  }
+
+  function validateCheckoutFields() {
+    const field = (name) => checkoutForm.elements[name];
+    const checks = [
+      [field("customerName"), field("customerName").value.trim() ? "" : "Vui lòng nhập họ và tên."],
+      [field("phone"), phoneError(field("phone").value, true)],
+      [field("address"), field("address").value.trim() ? "" : "Vui lòng nhập địa chỉ giao hàng."],
+      [field("recipientPhone"), phoneError(field("recipientPhone").value, false)]
+    ];
+    checks.forEach(([input, message]) => input.setCustomValidity(message));
+    const firstInvalid = checks.find(([, message]) => message);
+    if (firstInvalid) {
+      firstInvalid[0].reportValidity();
+      checkoutMessage.textContent = firstInvalid[1];
+      return false;
+    }
+    return true;
+  }
+
+  ["customerName", "phone", "address", "recipientPhone"].forEach((name) => {
+    checkoutForm.elements[name].addEventListener("input", (event) => event.target.setCustomValidity(""));
+  });
 
   checkoutForm.addEventListener("submit", (event) => {
     event.preventDefault();
+    updateDeliveryAvailability();
     if (!Cart.length) {
       checkoutMessage.textContent = "Giỏ hàng đang trống. Hãy chọn hoa trước khi đặt hàng.";
       return;
@@ -492,6 +726,23 @@
       checkoutMessage.textContent = "Chờ xác minh giá và tồn kho từ cửa hàng trước khi đặt hàng.";
       return;
     }
+    if (!deliveryZonesLoaded || !deliveryZonesConfigured || !selectedDeliveryZoneId) {
+      checkoutMessage.textContent = "Chọn khu vực giao hàng đã được cửa hàng cấu hình trước khi đặt hàng.";
+      deliveryProvinceInput.focus();
+      return;
+    }
+    if (deliveryDistrictInput.selectedOptions[0]?.disabled
+      || serverQuote.deliveryZone?.id !== selectedDeliveryZoneId) {
+      checkoutMessage.textContent = "Hãy chọn lại khu vực để xác nhận phí giao hàng từ cửa hàng.";
+      return;
+    }
+    if (!deliveryTimeInput.value || deliveryTimeInput.selectedOptions[0]?.disabled) {
+      checkoutMessage.textContent = "Khung giờ giao đã bắt đầu hoặc không còn khả dụng. Hãy chọn lại.";
+      deliveryTimeInput.focus();
+      return;
+    }
+
+    if (!validateCheckoutFields()) return;
 
     const formData = new FormData(event.currentTarget);
     const checkout = {
@@ -505,9 +756,14 @@
       quotedTotals: serverQuote.totals,
       recipientName: String(formData.get("recipientName") || "").trim(),
       recipientPhone: String(formData.get("recipientPhone") || "").trim(),
+      customerIsRecipient: formData.get("customerIsRecipient") === "on",
       deliveryDate: String(formData.get("deliveryDate") || ""),
       deliveryTime: String(formData.get("deliveryTime") || ""),
+      deliveryZoneId: selectedDeliveryZoneId,
+      deliveryProvince: deliveryProvinceInput.value,
+      deliveryDistrict: deliveryDistrictInput.selectedOptions[0]?.textContent || "",
       greetingCard: String(formData.get("greetingCard") || "").trim(),
+      anonymousGreetingCard: formData.get("anonymousGreetingCard") === "on",
       giftWrap: String(formData.get("giftWrap") || "none"),
       orderNote: String(formData.get("orderNote") || "").trim()
     };
@@ -534,6 +790,6 @@
   });
   void initializeCheckout();
 </script>
-<script src="./contact-tools.js?v=1"></script>
+<script src="./js/core/contact-tools.js?v=1"></script>
 </body>
 </html>

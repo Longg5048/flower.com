@@ -15,6 +15,7 @@ test("API quản trị từ chối khi không có hoặc sai mã đăng nhập",
         assert.equal((await h.callApi(name, { token: "gia-mao", body: { action: "list" } })).status, 401, name);
     }
     assert.equal((await h.callApi("products", { body: { action: "restore-catalog" } })).status, 401);
+    assert.equal((await h.callApi("products", { method: "GET", query: { manage: "1" } })).status, 401);
 });
 
 test("khách thường không dùng được API quản trị", async () => {
@@ -22,6 +23,7 @@ test("khách thường không dùng được API quản trị", async () => {
     assert.equal((await h.callApi("adminUsers", { token: customer.token, body: {} })).status, 403);
     assert.equal((await h.callApi("ownerUsers", { token: customer.token, body: { action: "list" } })).status, 403);
     assert.equal((await h.callApi("products", { token: customer.token, body: { action: "restore-catalog" } })).status, 403);
+    assert.equal((await h.callApi("products", { method: "GET", query: { manage: "1" }, token: customer.token })).status, 403);
     assert.equal((await h.callApi("orders", { method: "GET", query: { action: "expire" }, token: customer.token })).status, 401);
 });
 
@@ -55,6 +57,6 @@ test("khách không tự đặt giá hay số lượng bất thường", async (
     for (const items of [[{ id: "1", quantity: -5 }], [{ id: "1", quantity: 1000 }], [{ id: "../adminRoles/x", quantity: 1 }]]) {
         assert.equal((await h.callApi("orders", { body: { action: "quote", items } })).status, 400, JSON.stringify(items));
     }
-    const cheap = await h.placeOrder({ overrides: { expectedTotals: { subtotal: 0, savings: 0, tax: 0, total: 0 } } });
+    const cheap = await h.placeOrder({ overrides: { expectedTotals: { subtotal: 0, savings: 0, tax: 0, shippingFee: 0, total: 0 } } });
     assert.equal(cheap.status, 409);
 });

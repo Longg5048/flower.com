@@ -2,20 +2,24 @@
 <html lang="vi">
 <head>
     <meta charset="UTF-8">
-    <script src="./safe-storage.js"></script>
+    <script src="./js/core/safe-storage.js?v=2"></script>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="theme-color" content="#fbf8f3">
+    <meta name="robots" content="noindex, nofollow">
+    <meta name="description" content="Tra cứu trạng thái và hành trình giao hoa cho đơn hàng Flowerflow.">
+    <link rel="icon" type="image/svg+xml" href="./favicon.svg">
     <title>Theo dõi đơn hàng | Flowerflow</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Playfair+Display:wght@500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="./store-header.css?v=2">
-    <link rel="stylesheet" href="./tracking.css?v=7">
-    <link rel="stylesheet" href="./store-footer.css?v=2">
-<link rel="stylesheet" href="./contact-tools.css?v=2">
+    <link rel="stylesheet" href="./css/core/store-header.css?v=3">
+    <link rel="stylesheet" href="./css/order/tracking.css?v=9">
+    <link rel="stylesheet" href="./css/core/accessibility.css?v=1">
+    <link rel="stylesheet" href="./css/core/store-footer.css?v=3">
+<link rel="stylesheet" href="./css/core/contact-tools.css?v=3">
 </head>
 <body>
-    <script src="./store-header.js?v=4"></script>
+    <script src="./js/core/store-header.js?v=6"></script>
 
     <main class="tracking-main">
         <section class="tracking-heading">
@@ -74,23 +78,36 @@
                 <img id="tracking-payment-qr" alt="Mã QR chuyển khoản Vietcombank" width="200" height="200">
             </section>
 
+            <section class="tracking-panel order-progress-panel" aria-labelledby="order-progress-title">
+                <h2 id="order-progress-title">Tiến độ đơn hàng</h2>
+                <p id="order-cancelled-note" role="status" hidden>Đơn hàng đã hủy. Các bước tiếp theo sẽ không được thực hiện.</p>
+                <ol id="order-progress" class="order-progress" aria-label="Các bước xử lý đơn hàng"></ol>
+            </section>
+
             <p class="tracking-privacy-note" id="tracking-privacy-note" hidden>Để bảo vệ thông tin cá nhân, tra cứu bằng mã đơn và số điện thoại chỉ hiển thị tiến độ. Đăng nhập đúng tài khoản để xem thông tin nhận hàng và sản phẩm.</p>
 
             <div class="tracking-details">
                 <section class="tracking-panel">
-                    <h2>Lịch trình vận chuyển</h2>
+                    <h2>Lịch sử cập nhật đơn hàng</h2>
                     <ol class="tracking-timeline" id="tracking-timeline"></ol>
                 </section>
                 <section class="tracking-panel order-details">
                     <h2>Thông tin nhận hàng</h2>
                     <dl>
+                        <div><dt>Người đặt</dt><dd id="result-sender"></dd></div>
+                        <div><dt>Số điện thoại người đặt</dt><dd id="result-sender-phone"></dd></div>
                         <div><dt>Người nhận</dt><dd id="result-customer"></dd></div>
+                        <div><dt>Người đặt cũng là người nhận</dt><dd id="result-self-recipient"></dd></div>
                         <div><dt>Số điện thoại</dt><dd id="result-phone"></dd></div>
                         <div><dt>Địa chỉ</dt><dd id="result-address"></dd></div>
+                        <div><dt>Khu vực giao hàng</dt><dd id="result-delivery-zone"></dd></div>
                         <div><dt>Ngày giao</dt><dd id="result-delivery-date"></dd></div>
                         <div><dt>Khung giờ</dt><dd id="result-delivery-time"></dd></div>
                         <div><dt>Thiệp chúc mừng</dt><dd id="result-greeting-card"></dd></div>
+                        <div><dt>Ẩn tên người gửi trên thiệp</dt><dd id="result-anonymous-greeting"></dd></div>
                         <div><dt>Gói quà</dt><dd id="result-gift-wrap"></dd></div>
+                        <div><dt>Phí giao hàng</dt><dd id="result-shipping-fee"></dd></div>
+                        <div><dt>Tổng tiền</dt><dd id="result-total"></dd></div>
                         <div><dt>Ghi chú</dt><dd id="result-order-note"></dd></div>
                         <div><dt>Thanh toán</dt><dd id="result-payment-status"></dd></div>
                         <div id="result-note-row" hidden><dt>Lời nhắn của bạn</dt><dd id="result-note"></dd></div>
@@ -116,18 +133,26 @@
                     </fieldset>
                     <label class="review-comment-label" for="review-comment">Nhận xét của bạn</label>
                     <textarea id="review-comment" name="comment" maxlength="1000" placeholder="Chia sẻ cảm nhận về đơn hàng..." required></textarea>
+                    <label class="review-comment-label" for="review-photos">Ảnh sau khi nhận hoa (không bắt buộc)</label>
+                    <input id="review-photos" type="file" accept="image/jpeg,image/png,image/webp" multiple aria-describedby="review-photo-help">
+                    <p id="review-photo-help">Tối đa 3 ảnh JPG, PNG hoặc WebP, mỗi ảnh gốc không quá 5 MB. Ảnh được thu nhỏ và bỏ metadata trước khi gửi.</p>
+                    <div id="review-photo-preview" class="review-photos"></div>
+                    <button id="review-clear-photos" type="button" hidden>Bỏ các ảnh đã chọn</button>
+                    <p>Đánh giá và ảnh chỉ hiển thị trên sản phẩm sau khi được duyệt. Cửa hàng có thể trả lời hoặc ẩn, không được sửa nội dung của bạn.</p>
                     <button class="review-submit" type="submit">Gửi đánh giá</button>
                 </form>
+                <div id="existing-review-photos" class="review-photos"></div>
                 <p class="review-feedback" id="review-feedback" role="status" aria-live="polite"></p>
             </section>
         </section>
     </main>
 
-    <script src="./review-store.js?v=5"></script>
-    <script src="./product-names.js?v=2"></script>
-    <script src="./order-store.js?v=14"></script>
-    <script type="module" src="./tracking.js?v=14"></script>
-    <script src="./store-footer.js?v=2"></script>
-<script src="./contact-tools.js?v=1"></script>
+    <script src="./js/review/review-store.js?v=6"></script>
+    <script src="./js/core/product-names.js?v=2"></script>
+    <script src="./js/order/order-store.js?v=18"></script>
+    <script src="./js/catalog/bouquet-options.js?v=1"></script>
+    <script type="module" src="./js/order/tracking.js?v=20"></script>
+    <script src="./js/core/store-footer.js?v=4"></script>
+<script src="./js/core/contact-tools.js?v=1"></script>
 </body>
 </html>

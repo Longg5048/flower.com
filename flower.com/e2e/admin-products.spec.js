@@ -4,8 +4,8 @@ import { createRequire } from "node:module";
 const { findDuplicateProductImages } = createRequire(__filename)("../js/catalog/product-store.js");
 
 const products = [
-  { id: 1, title: "Hoa hồng sắp hết", description: "Bó hoa đỏ", image: "./images/flower-01.webp", images: [], category: "Hoa sinh nhật", price: 250000, quantity: 3, status: "active" },
-  { id: 2, title: "Hoa cúc hết hàng", description: "Bó hoa vàng", image: "./images/flower-01.webp", images: [], category: "Hoa khai trương", price: 180000, quantity: 0, status: "active" },
+  { id: 1, title: "Hoa hồng sắp hết", description: "Bó hoa đỏ", image: "./images/products/product-flower-01.webp", images: [], category: "Hoa sinh nhật", price: 250000, quantity: 3, status: "active" },
+  { id: 2, title: "Hoa cúc hết hàng", description: "Bó hoa vàng", image: "./images/products/product-flower-01.webp", images: [], category: "Hoa khai trương", price: 180000, quantity: 0, status: "active" },
   { id: 3, title: "Hoa lan đang ẩn", description: "Bó hoa tím", image: "", images: [], category: "Hoa sinh nhật", price: 420000, quantity: 8, status: "hidden" }
 ];
 
@@ -128,8 +128,8 @@ test("admin filters product status, validates form, previews images and reports 
   await page.locator("#product-image").fill("https://cdn.example.test/broken.webp");
   await expect(page.locator(".product-image-preview")).toContainText("Không tải được ảnh");
   await page.locator("#product-title").fill("Hoa mới");
-  await page.locator("#product-image").fill("./images/flower-04.webp");
-  await page.locator("#product-images").fill("./images/flower-05.webp\n./images/flower-06.webp");
+  await page.locator("#product-image").fill("./images/products/product-flower-04.webp");
+  await page.locator("#product-images").fill("./images/products/product-flower-05.webp\n./images/products/product-flower-06.webp");
   await expect(page.locator(".product-image-preview")).toHaveCount(3);
   await page.locator("#product-price").fill("550000");
   await page.locator("#product-quantity").fill("4");
@@ -198,12 +198,12 @@ test("admin uploads a product photo from the computer and the field gets its add
   await page.route("**/api/product-images", async (route) => {
     const request = route.request();
     uploads.push({ auth: request.headers().authorization, photo: request.postDataJSON().photo });
-    await route.fulfill({ status: 201, contentType: "application/json", body: JSON.stringify({ url: "/images/flower-02.webp" }) });
+    await route.fulfill({ status: 201, contentType: "application/json", body: JSON.stringify({ url: "/images/products/product-flower-02.webp" }) });
   });
   await setupAdmin(page);
 
   await page.locator("#product-image-file").setInputFiles(`${__dirname}/../images/start.jpeg`);
-  await expect(page.locator("#product-image")).toHaveValue("/images/flower-02.webp");
+  await expect(page.locator("#product-image")).toHaveValue("/images/products/product-flower-02.webp");
   await expect(page.locator("#product-image-upload-status")).toContainText("Đã tải ảnh lên");
   await expect(page.locator("#product-image-previews img").first()).toBeVisible();
   expect(uploads).toHaveLength(1);

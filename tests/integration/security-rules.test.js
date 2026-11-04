@@ -130,6 +130,7 @@ test("giỏ và yêu thích đồng bộ riêng tư theo tài khoản, giới h�
     await assertSucceeds(getDoc(aliceCart));
     await assertFails(getDoc(doc(alice(), "shoppingCarts/bob")));
     await assertFails(getDoc(doc(guest(), "shoppingCarts/alice")));
+    await assertFails(getDoc(doc(admin(), "shoppingCarts/alice")));
     await assertSucceeds(setDoc(aliceCart, {
         cart: [{ id: "line-1", productId: "1", quantity: 2 }],
         wish: [{ id: "1" }]

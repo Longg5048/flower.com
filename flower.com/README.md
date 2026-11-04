@@ -9,7 +9,7 @@ FlowerFlow là ứng dụng frontend tĩnh (HTML, CSS, JavaScript thuần, khôn
 - **Firebase Authentication** để đăng nhập khách hàng và quản trị viên.
 - **Cloud Firestore** để lưu catalog, đánh giá và đơn hàng dùng chung giữa các thiết bị.
 - **Vercel Functions** (`api/`) để chạy các thao tác cần Firebase Admin SDK.
-- **`localStorage`** để cache catalog và lưu giỏ hàng, danh sách yêu thích trên trình duyệt.
+- **`localStorage`** để cache catalog, duy trì giỏ hàng cục bộ và làm bản lưu ngoại tuyến.
 
 ```mermaid
 flowchart LR
@@ -19,6 +19,7 @@ flowchart LR
     Store <--> Firestore[(Cloud Firestore<br/>products)]
     Store <--> Cache[(localStorage)]
     Pages --> Shopping["shopping-store.js<br/>(cart, wish)"] <--> Cache
+    Shopping <--> ShoppingCloud[(Firestore shoppingCarts<br/>theo UID, giới hạn 100 dòng)]
     Checkout["checkout.html"] -->|Mã sản phẩm, số lượng| OrderAPI["/api/orders"] -->|Tính giá, kiểm kho, tạo đơn| Orders[(Cloud Firestore<br/>orders)]
     Admin["admin.js"] <-->|Đọc/cập nhật đơn| Orders
     Tracking["tracking.js"] -->|Đơn tài khoản| Orders
@@ -45,7 +46,7 @@ flowchart LR
 | Catalog | `product-store.js`, `flower.json` | Tải catalog mặc định, đồng bộ hai chiều với Firestore, cache vào `localStorage`, lắng nghe thay đổi theo thời gian thực |
 | Danh mục và chi tiết | `product.html`, `product.js`, `product-categories.js`, `related-products.js` | Tìm kiếm, lọc, sắp xếp; trang chi tiết, thư viện ảnh, gợi ý sản phẩm liên quan |
 | Đánh giá | `review-store.js` | Đọc đánh giá công khai và gửi đánh giá mới (yêu cầu đăng nhập) lên Firestore |
-| Giỏ hàng và yêu thích | `shopping-store.js`, `cart.html`, `wish.html`, `wish.js` | Dùng chung khóa `cart`/`wish`, gộp dòng trùng, kiểm tra tồn kho |
+| Giỏ hàng và yêu thích | `shopping-store.js`, `shopping-sync.js`, `cart.html`, `wish.html` | Lưu ngoại tuyến, đồng bộ Firestore theo UID khi đăng nhập; giá/tồn kho vẫn do API đặt hàng xác minh |
 | Thanh toán | `checkout.html`, `placeorder.html` | Người gửi/người nhận, lịch giao giờ Việt Nam, khu vực và phí giao do máy chủ báo giá, ưu đãi, QR, tạo đơn |
 | Theo dõi đơn | `tracking.html`, `tracking.js`, `order-status.js` | Tra cứu công khai giới hạn thông tin; đơn tài khoản hiển thị chi tiết người gửi/nhận và phí |
 | Tài khoản | `login.*`, `account.*`, `forgot-password.*` | Đăng ký, đăng nhập, khôi phục mật khẩu, hồ sơ |
@@ -65,7 +66,7 @@ flowchart LR
 | Trạng thái khởi tạo catalog | Firestore `metadata/productCatalog` | ✅ |
 | Đánh giá trên trang sản phẩm | Firestore `reviews` | ✅ |
 | Tài khoản Firebase, vai trò | Firebase Authentication (custom claims) | ✅ |
-| Giỏ hàng, yêu thích | `localStorage.cart`, `localStorage.wish` | ❌ |
+| Giỏ hàng, yêu thích | `localStorage` (bản cục bộ) và Firestore `shoppingCarts/{uid}` (tài khoản đăng nhập) | ✅ với tài khoản |
 | Đơn hàng mới | `/api/orders` xác minh rồi ghi Firestore `orders` | ✅ |
 | Đánh giá trong trang quản trị (phản hồi, hoàn thành) | Firestore `reviews` | ✅ |
 | Lời nhắn của khách và câu trả lời | Trường `orderNote`, `orderNoteReply`, `orderNoteCompletedAt` của đơn trong `orders` | ✅ |
@@ -76,7 +77,7 @@ flowchart LR
 | Ảnh sản phẩm tải lên | Firestore `productImages`, tải lên và xem qua `/api/product-images` (chỉ admin được tải lên; ảnh được thu nhỏ còn ≤ 120 KB ngay trên trình duyệt) | ✅ |
 | Phiên đăng nhập | `localStorage.loggedUser` | ❌ |
 
-Trang quản trị không còn tự điền dữ liệu demo cho đánh giá và lời nhắn; cả hai đều đọc từ Firestore.
+Trang quản trị không còn tự điền dữ liệu demo cho đánh giá và lời nhắn; cả hai đều đọc từ Firestore. Giỏ hàng và yêu thích được lưu trong tài liệu riêng theo UID, chỉ chủ tài khoản được đọc/ghi; khách chưa đăng nhập chỉ lưu cục bộ. Lần đồng bộ đầu gộp giỏ cũ theo mã dòng (lấy số lượng lớn hơn, tránh cộng trùng) và hợp nhất yêu thích; thay đổi tiếp theo dùng trạng thái mới nhất. Mỗi danh sách giới hạn 100 dòng. Nếu mất mạng, dữ liệu cục bộ không bị xóa và giao diện báo đồng bộ thất bại. Khi phát hành thay đổi Security Rules, triển khai riêng bằng `firebase deploy --only firestore:rules` sau khi test và có phê duyệt; thao tác này không nằm trong deploy Vercel.
 
 Phản hồi cũ trong `localStorage.flowerMessages` được chuyển sang Firestore `messages` khi quản trị đăng nhập. Đánh giá cũ được hợp nhất một lần với Firestore; bản cache đánh giá cục bộ của khách vẫn được giữ để tránh gửi trùng trên cùng trình duyệt.
 
@@ -116,6 +117,7 @@ Quy tắc nằm trong `firestore.rules` (khai báo trong `firebase.json`). Tóm 
 - `reviews`: ai cũng đọc được; người dùng đã đăng nhập được tạo đánh giá đúng schema (`productIds`, `productName`, `customerName`, `rating` 1–5, `comment` tối đa 1000 ký tự, `createdAt` là thời điểm server); chỉ admin được sửa hoặc xóa.
 - `metadata`: chỉ admin, ngoại trừ đọc tài liệu `activePromotions` để hiển thị ưu đãi công khai.
 - `orders`: không cho client tạo trực tiếp; API backend tạo đơn sau khi tính giá và xác minh tồn kho. Khách đã đăng nhập chỉ đọc đơn của UID mình; chỉ admin được đọc toàn bộ, cập nhật hoặc xóa.
+- `shoppingCarts/{uid}`: chỉ chủ UID được đọc/ghi tài liệu giỏ hàng và yêu thích; mỗi danh sách tối đa 100 dòng. Nội dung chỉ là bản tiện ích của khách, không phải nguồn giá, tồn kho hay dữ liệu đơn hàng.
 - Các collection khác, bao gồm `orderRequests` và `orderLookupLimits`, bị từ chối bởi quy tắc mặc định; chỉ backend dùng Firebase Admin SDK mới truy cập được.
 - Mọi đường dẫn khác bị từ chối.
 

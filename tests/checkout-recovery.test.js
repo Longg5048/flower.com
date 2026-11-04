@@ -18,7 +18,8 @@ function review(storage, store) {
     FlowerSafeStorage: {
       readJson: (key, options) => storage[key] ?? options.fallback,
       writeJson: (key, value) => { storage[key] = JSON.parse(JSON.stringify(value)); },
-      remove: (key) => { delete storage[key]; return true; }
+      remove: (key) => { delete storage[key]; return true; },
+      countCartUnits: (cart) => cart.reduce((total, item) => total + Number(item.quantity || 1), 0)
     },
     window: { FlowerOrderStore: store, location: { assign() {} } },
     alert() {}, console: { error() {} },

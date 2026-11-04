@@ -66,7 +66,7 @@ function updateProductStructuredData(product, productName, productDescription) {
 }
 
 function updateShoppingCounts() {
-  Total.textContent = cart.length
+  Total.textContent = FlowerSafeStorage.countCartUnits(cart)
   if (WishTotal) WishTotal.textContent = wish.length
   document.querySelectorAll(".favorite-count").forEach((count) => {
     count.textContent = String(wish.length)
@@ -970,6 +970,19 @@ window.addEventListener("storage", (event) => {
     } catch (error) {
       showShoppingError(error)
     }
+  }
+})
+
+window.addEventListener("flowerstoragechange", (event) => {
+  if (event.detail?.source !== "sync" || !["cart", "wish"].includes(event.detail.key)) return
+  try {
+    cart = FlowerShoppingStore.readCart()
+    wish = FlowerShoppingStore.readWishlist()
+    updateShoppingCounts()
+    refreshWishlistButtons()
+    if (selectedProduct) renderProductDetail(selectedProduct)
+  } catch (error) {
+    showShoppingError(error)
   }
 })
 

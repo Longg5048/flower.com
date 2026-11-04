@@ -103,6 +103,7 @@
     }
     try {
       root.localStorage.setItem(key, serialized);
+      dispatchShoppingChange(key);
       return true;
     } catch (cause) {
       return failWrite(key, cause, required);
@@ -133,6 +134,7 @@
     const { required = false } = options;
     try {
       root.localStorage.removeItem(key);
+      dispatchShoppingChange(key);
       return true;
     } catch (cause) {
       return failWrite(key, cause, required, "remove");
@@ -151,7 +153,20 @@
     return false;
   }
 
-  root.FlowerSafeStorage = { readJson, readText, writeJson, writeText, remove };
+  function countCartUnits(cart) {
+    if (!Array.isArray(cart)) return 0;
+    return cart.reduce((total, item) => {
+      const quantity = Number(item?.quantity ?? 1);
+      return total + (Number.isSafeInteger(quantity) && quantity > 0 ? quantity : 1);
+    }, 0);
+  }
+
+  function dispatchShoppingChange(key) {
+    if (!["cart", "wish"].includes(key) || typeof root.dispatchEvent !== "function" || typeof root.CustomEvent !== "function") return;
+    root.dispatchEvent(new root.CustomEvent("flowerstoragechange", { detail: { key } }));
+  }
+
+  root.FlowerSafeStorage = { readJson, readText, writeJson, writeText, remove, countCartUnits };
 
   // Each account keeps its own cart and wishlist on a shared browser (F48). The active lists stay
   // in "cart"/"wish"; when the signed-in account changes, the old account's lists are put away

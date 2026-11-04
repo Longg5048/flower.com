@@ -79,6 +79,25 @@ service cloud.firestore {
       allow update, delete: if isAdmin();
     }
 
+    // Each customer can access only their own bounded, non-authoritative shopping snapshot.
+    match /shoppingCarts/{userId} {
+      function isOwner() {
+        return request.auth != null && request.auth.uid == userId;
+      }
+      function validShoppingData() {
+        return request.resource.data.keys().hasOnly(['cart', 'wish'])
+          && request.resource.data.keys().hasAll(['cart', 'wish'])
+          && request.resource.data.cart is list
+          && request.resource.data.cart.size() <= 100
+          && request.resource.data.wish is list
+          && request.resource.data.wish.size() <= 100;
+      }
+      allow get: if isOwner();
+      allow list: if false;
+      allow create, update: if isOwner() && validShoppingData();
+      allow delete: if isOwner();
+    }
+
     match /{document=**} {
       allow read, write: if false;
     }

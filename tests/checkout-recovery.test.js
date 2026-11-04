@@ -113,7 +113,7 @@ test("bấm xác nhận liên tiếp chỉ gửi một yêu cầu", async () => 
 });
 
 test("trang xác nhận hướng dẫn quay lại checkout khi chưa có đơn hàng", () => {
-  const page = review({ cart: [] }, {
+  const page = review({ sessionStorage: {}, cart: [] }, {
     quote: async () => { throw new Error("no checkout data"); },
     create: async () => "unexpected-order"
   });

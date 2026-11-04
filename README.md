@@ -51,7 +51,7 @@ FlowerFlow là website bán hoa gồm ba lớp:
 | Danh mục sản phẩm | Duyệt, tìm kiếm, lọc theo danh mục, sắp xếp; hỗ trợ sản phẩm giao trong ngày và đang giảm giá |
 | Chi tiết sản phẩm | Thư viện ảnh, giá VND, tồn kho, chọn số lượng, gợi ý sản phẩm liên quan |
 | Đánh giá sản phẩm | Khách đã đăng nhập gửi đánh giá 1–5 sao; đánh giá hiển thị công khai trên trang sản phẩm |
-| Giỏ hàng và yêu thích | Đồng bộ giữa các trang, gộp sản phẩm trùng, giới hạn theo tồn kho |
+| Giỏ hàng và yêu thích | Đồng bộ giữa các trang và thiết bị khi đăng nhập, gộp dữ liệu cũ, giới hạn theo tồn kho |
 | Ưu đãi | Chọn chương trình khuyến mãi áp dụng cho các sản phẩm phù hợp khi thanh toán |
 | Đặt hàng | Server báo giá, kiểm tra tồn kho và giữ hàng (QR 30 phút, COD 24 giờ); đơn hết hạn tự hủy và hoàn kho |
 | Thanh toán | Thanh toán khi nhận hàng hoặc mã QR chuyển khoản Vietcombank (VietQR) |
@@ -230,7 +230,7 @@ Dự án đang ở giai đoạn **v0.1.0 (chưa phát hành)**. Trước khi v�
 - **Thanh toán QR chưa có bước đối soát tự động.** Admin cần tự kiểm tra sao kê ngân hàng rồi bấm “Xác nhận đã nhận tiền” trước khi đơn hết thời gian giữ hàng (30 phút).
 - Dữ liệu cũ chỉ lưu trong `localStorage` (đơn hàng, đánh giá, lời nhắn trước khi có backend) không được chuyển lên Firestore. Phân loại cũ được tải lên ở lần đầu admin mở trang quản trị.
 - **Chế độ tài khoản demo** (dùng khi Firebase chưa bật Email/Password) lưu mật khẩu không mã hóa trong `localStorage`. Không dùng mật khẩu thật ở chế độ này.
-- Giỏ hàng và danh sách yêu thích chỉ lưu cục bộ theo trình duyệt.
+- Khách chưa đăng nhập chỉ lưu giỏ hàng và yêu thích trên thiết bị hiện tại. Tài khoản đăng nhập được đồng bộ hai danh sách qua Firestore; khi ngoại tuyến, bản cục bộ vẫn dùng được và sẽ báo nếu đồng bộ thất bại.
 
 ## Lộ trình
 

@@ -3,6 +3,7 @@ import { defineConfig, devices } from "@playwright/test";
 export default defineConfig({
   testDir: "./e2e",
   fullyParallel: false,
+  workers: process.env.CI ? 1 : undefined,
   forbidOnly: Boolean(process.env.CI),
   retries: process.env.CI ? 1 : 0,
   reporter: process.env.CI ? [["list"], ["html", { outputFolder: "playwright-report", open: "never" }]] : "list",
@@ -18,7 +19,7 @@ export default defineConfig({
     { name: "mobile-chromium", use: { ...devices["Pixel 7"], viewport: { width: 390, height: 844 } } }
   ],
   webServer: {
-    command: "python -m http.server 4173 --bind 127.0.0.1",
+    command: "python scripts/test-server.py",
     url: "http://127.0.0.1:4173/product.html",
     reuseExistingServer: !process.env.CI,
     timeout: 15_000

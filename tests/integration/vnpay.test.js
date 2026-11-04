@@ -88,6 +88,34 @@ test("VNPay IPN rejects a correctly signed amount mismatch", async () => {
     assert.equal((await h.db().doc(`orders/${orderId}`).get()).data().paymentVerified, false);
 });
 
+test("a signed declined or cancelled IPN marks payment failed without confirming the order", async () => {
+    const placed = await h.placeOrder({ paymentMethod: "vnpay" });
+    const orderId = placed.body.order.id;
+    const orderRef = h.db().doc(`orders/${orderId}`);
+    const order = (await orderRef.get()).data();
+    const created = await h.callApi("payments", {
+        body: { action: "create", orderId, paymentReference: order.paymentReference }
+    });
+    const txnRef = new URL(created.body.paymentUrl).searchParams.get("vnp_TxnRef");
+
+    const cancelled = await h.callApi("vnpayIpn", {
+        method: "GET",
+        query: signCallback({
+            txnRef,
+            amount: order.total * 100,
+            responseCode: "24",
+            transactionStatus: "02"
+        })
+    });
+
+    assert.equal(cancelled.body.RspCode, "00");
+    const payment = (await h.db().doc(`paymentTransactions/${txnRef}`).get()).data();
+    assert.equal(payment.status, "failed");
+    const failedOrder = (await orderRef.get()).data();
+    assert.equal(failedOrder.paymentStatus, "that_bai");
+    assert.equal(failedOrder.paymentVerified, false);
+});
+
 test("retry reuses a live VNPay attempt and a paid order cannot get another link", async () => {
     const placed = await h.placeOrder({ paymentMethod: "vnpay" });
     const orderId = placed.body.order.id;

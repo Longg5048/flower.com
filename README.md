@@ -54,7 +54,7 @@ FlowerFlow là website bán hoa gồm ba lớp:
 | Giỏ hàng và yêu thích | Đồng bộ giữa các trang, gộp sản phẩm trùng, giới hạn theo tồn kho |
 | Ưu đãi | Chọn chương trình khuyến mãi áp dụng cho các sản phẩm phù hợp khi thanh toán |
 | Đặt hàng | Server báo giá, kiểm tra tồn kho và giữ hàng (QR 30 phút, COD 24 giờ); đơn hết hạn tự hủy và hoàn kho |
-| Thanh toán | Thanh toán khi nhận hàng hoặc mã QR chuyển khoản Vietcombank (VietQR) |
+| Thanh toán | VNPay (xác nhận qua IPN ký HMAC-SHA512), COD và VietQR cần cửa hàng xác minh thủ công |
 | Theo dõi đơn | Tra cứu bằng mã đơn và số điện thoại; tự hiển thị đơn của tài khoản đang đăng nhập |
 | Tài khoản | Đăng ký, đăng nhập bằng email/mật khẩu hoặc Google, quên mật khẩu, trang hồ sơ |
 | Liên hệ | Thanh liên hệ nhanh qua Facebook và Zalo |
@@ -80,7 +80,7 @@ FlowerFlow là website bán hoa gồm ba lớp:
 | Xác thực | Firebase Authentication (Email/Password, Google) |
 | Backend | Vercel Functions (Node.js 24), `firebase-admin`, Vercel Cron |
 | Cơ sở dữ liệu | Cloud Firestore (Security Rules, chỉ mục trong `firestore.indexes.json`) |
-| Thanh toán | VietQR (mã QR chuyển khoản ngân hàng) |
+| Thanh toán | VNPay (IPN ký HMAC-SHA512), VietQR (đối soát thủ công) |
 | Kiểm thử | `node:assert` có sẵn của Node.js, không cần thư viện ngoài |
 | Hosting | Vercel |
 
@@ -91,9 +91,11 @@ FlowerFlow là website bán hoa gồm ba lớp:
 ├── flower.com/                 # Gốc dự án Vercel (Root Directory)
 │   ├── api/                    # Backend: Vercel Functions
 │   │   ├── orders.js           # Báo giá, tạo đơn, tra cứu đơn, dọn đơn hết hạn
+│   │   ├── payments.js         # Tạo link VNPay, retry và tra trạng thái server
+│   │   ├── vnpay-ipn.js        # Xác minh IPN và cập nhật trạng thái thanh toán
 │   │   ├── admin/users.js      # API liệt kê người dùng (yêu cầu quyền admin)
 │   │   └── owner/users.js      # API cấp/gỡ quyền admin (yêu cầu quyền owner)
-│   ├── lib/firebase-admin.js   # Khởi tạo Firebase Admin, xác minh ID token
+│   ├── lib/                    # Firebase Admin và ký/xác minh VNPay
 │   ├── scripts/                # Script gán quyền owner/admin lần đầu
 │   ├── images/                 # Ảnh sản phẩm và giao diện
 │   ├── *.html                  # Các trang web (giữ ở gốc để địa chỉ như /product.html không đổi)
@@ -207,11 +209,13 @@ Hướng dẫn từng bước, bao gồm cách gán quyền Owner bằng Applica
 | --- | --- | --- |
 | Unit test | `cd flower.com && npm test` | Tính giá, ưu đãi, dữ liệu đơn hàng, trạng thái đơn, giỏ hàng, danh mục, sản phẩm |
 | Coverage | `cd flower.com && npm run test:coverage` | Như trên, kèm tỉ lệ dòng/nhánh/hàm được test |
-| Feature, system, security | `cd tests && npm ci && npm run integration` | Đặt hàng, đăng nhập, quản lý, luồng xuyên hệ thống và Security Rules trên Firebase Emulator (cần Java 11+) |
+| Feature, system, security | `cd tests && npm ci && npm run integration` | Đặt hàng, VNPay/IPN, đăng nhập, quản lý và Security Rules trên Firebase Emulator (cần Java 21+) |
 | Browser E2E | `cd flower.com && npm run test:e2e:emulator` | Xem sản phẩm, giỏ hàng, đăng nhập, đặt hàng trên desktop/mobile; Firebase Emulator và Playwright |
 | Smoke test sau deploy | `cd flower.com && SMOKE_URL=https://... npm run smoke` | Trang và API còn chạy, không đổi dữ liệu |
 
 CI trên GitHub Actions chạy unit test, test tích hợp và browser E2E cho mọi Pull Request và mỗi lần push lên `main`; báo cáo coverage và ảnh/trace trình duyệt được lưu trong kết quả chạy. Chi tiết: [`tests/README.md`](tests/README.md). Sau mỗi đợt kiểm thử, tạo báo cáo từ [mẫu báo cáo](docs/test-reports/TEMPLATE.md) trong `docs/test-reports/` ([ví dụ ngày 2026-10-28](docs/test-reports/2026-10-28.md)). Trước mỗi lần phát hành làm theo [`docs/RELEASE-CHECKLIST.md`](docs/RELEASE-CHECKLIST.md).
+
+Để cấu hình VNPay sandbox và kiểm tra giao dịch thật trước khi bật production, xem [`docs/payments-vnpay.md`](docs/payments-vnpay.md). Không commit merchant secrets; chỉ bật VNPay sau khi đã cấu hình Vercel Environment Variables và xác nhận luồng IPN trên sandbox.
 
 ## Phân quyền
 
@@ -228,6 +232,7 @@ Mỗi lần đổi vai trò, refresh token của người dùng bị thu hồi �
 Dự án đang ở giai đoạn **v0.1.0 (chưa phát hành)**. Trước khi vận hành thật, cần lưu ý:
 
 - **Thanh toán QR chưa có bước đối soát tự động.** Admin cần tự kiểm tra sao kê ngân hàng rồi bấm “Xác nhận đã nhận tiền” trước khi đơn hết thời gian giữ hàng (30 phút).
+- **VNPay production chưa được bật mặc định.** Cần cấu hình thông tin merchant trong Vercel và hoàn tất kiểm thử sandbox trước khi chuyển `VNPAY_ENV` sang `production`; xem [`docs/payments-vnpay.md`](docs/payments-vnpay.md).
 - Dữ liệu cũ chỉ lưu trong `localStorage` (đơn hàng, đánh giá, lời nhắn trước khi có backend) không được chuyển lên Firestore. Phân loại cũ được tải lên ở lần đầu admin mở trang quản trị.
 - **Chế độ tài khoản demo** (dùng khi Firebase chưa bật Email/Password) lưu mật khẩu không mã hóa trong `localStorage`. Không dùng mật khẩu thật ở chế độ này.
 - Giỏ hàng và danh sách yêu thích chỉ lưu cục bộ theo trình duyệt.
@@ -239,7 +244,8 @@ Dự án đang ở giai đoạn **v0.1.0 (chưa phát hành)**. Trước khi v�
 - [x] Backend tạo đơn: báo giá, kiểm tra tồn kho, giữ hàng và tự hủy đơn hết hạn
 - [x] Chuyển đơn hàng, ưu đãi, phân loại, lời nhắn và trang quản lý đánh giá lên Firestore
 - [x] Xác minh thanh toán QR thủ công trong trang quản trị
-- [ ] Tích hợp xác nhận thanh toán tự động (webhook ngân hàng hoặc cổng thanh toán)
+- [x] Tích hợp VNPay sandbox với xác nhận thanh toán qua IPN đã kiểm tra chữ ký
+- [ ] Cấu hình merchant và xác minh giao dịch sandbox trước khi bật VNPay production
 - [x] Thiết lập CI chạy unit test và test tích hợp trên GitHub Actions, kèm coverage
 - [ ] Tách `admin.js` thành các module theo chức năng
 

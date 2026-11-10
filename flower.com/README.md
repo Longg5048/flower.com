@@ -93,7 +93,7 @@ Phản hồi cũ trong `localStorage.flowerMessages` được chuyển sang Fire
 
 ### Cơ chế bán hoa và giá
 
-`flower.json` hiện rỗng; website không tự thêm lại sản phẩm đã xóa. Chủ cửa hàng tạo dữ liệu trong **Quản trị → Sản phẩm**:
+`flower.json` chứa 30 sản phẩm hoa mẫu tiếng Việt. Website không tự nạp hoặc thêm lại sản phẩm đã xóa; trong **Quản trị → Sản phẩm**, quản trị viên có thể chủ động xác nhận thêm các sản phẩm mẫu còn thiếu. Thao tác này không ghi đè sản phẩm đang có trong Firestore. Chủ cửa hàng cũng có thể tự tạo sản phẩm trong **Quản trị → Sản phẩm**:
 
 - **Hoa nguyên liệu**: `saleType: "flower"`, giá VND/cành, tồn kho tính theo cành và ngày cập nhật theo múi giờ Việt Nam. Khách chọn số cành của từng loại để tạo một bó tùy chỉnh; backend từ chối báo giá nếu giá chưa được cập nhật trong ngày.
 - **Bó làm sẵn**: `saleType: "ready_made"` (mặc định cho dữ liệu cũ), bán đúng giá niêm yết, không nhân giá theo cỡ.

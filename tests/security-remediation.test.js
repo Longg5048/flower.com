@@ -18,24 +18,24 @@ async function serverFor(t, accounts, resolveApi) {
     return `http://127.0.0.1:${server.address().port}`;
 }
 
-test("weak and repeated security answers are rejected before account creation", t => {
+test("legacy PIN and recovery fields are ignored during local registration", t => {
     const accounts = createLocalAccounts(); t.after(() => accounts.close());
-    for (const answers of [["12", "12", "12"], ["Cáo xanh", "CÁO XANH", "Canh bí"], ["123456", "Canh bí", "Mây tím"], ["password", "Canh bí", "Mây tím"]]) {
-        const input = profile(); input.questions.forEach((q, i) => { q.answer = answers[i]; });
-        assert.throws(() => accounts.register(input), { code: "invalid-security-questions" });
-    }
-    assert.ok(accounts.register(profile()).account.uid);
+    const input = profile({ pin: "1234", confirmPin: "1234", questions: [{ question: "old", answer: "old" }] });
+    const registered = accounts.register(input);
+    assert.ok(registered.account.uid);
+    assert.equal("securityConfigured" in registered.account, false);
 });
 
-test("username-only probes neither expose questions nor consume the PIN budget", t => {
+test("removed recovery methods are not exposed by the local account service", t => {
     const accounts = createLocalAccounts(); t.after(() => accounts.close());
-    const input = profile(); accounts.register(input);
-    assert.deepEqual(accounts.questions({ email: input.email }), accounts.questions({ email: "missing@demo" }));
-    for (let i = 0; i < 10; i++) {
-        assert.equal(accounts.reset({ email: input.email, pin: "0000", newPassword: "Changed-password1" }).code, "invalid-recovery");
-    }
-    assert.equal(accounts.reset({ ...input, pin: "0000", newPassword: "Changed-password1" }).attemptsRemaining, 4);
-    assert.equal(accounts.reset({ ...input, newPassword: "Changed-password1" }).status, 200);
+    assert.equal(accounts.reset, undefined);
+    assert.equal(accounts.questions, undefined);
+    assert.equal(accounts.recoverPin, undefined);
+    assert.equal(accounts.changePin, undefined);
+    assert.equal(accounts.setupSecurity, undefined);
+    const input = profile();
+    assert.ok(accounts.register(input).account.uid);
+    assert.equal(accounts.login(input).status, 200);
 });
 
 test("crypto in the default account worker does not block serving static pages", async t => {

@@ -54,7 +54,7 @@ flowchart LR
 | Giỏ hàng và yêu thích | `shopping-store.js`, `shopping-sync.js`, `cart.html`, `wish.html` | Lưu ngoại tuyến, đồng bộ Firestore theo UID khi đăng nhập; giá/tồn kho vẫn do API đặt hàng xác minh |
 | Thanh toán | `checkout.html`, `placeorder.html` | Người gửi/người nhận, lịch giao giờ Việt Nam, khu vực và phí giao do máy chủ báo giá, ưu đãi, QR, tạo đơn |
 | Theo dõi đơn | `tracking.html`, `tracking.js`, `order-status.js` | Tra cứu công khai giới hạn thông tin; đơn tài khoản hiển thị chi tiết người gửi/nhận và phí |
-| Tài khoản | `login.*`, `account.*`, `forgot-password.*` | Đăng ký, đăng nhập, khôi phục mật khẩu, hồ sơ |
+| Tài khoản | `login.*`, `account.*`, `forgot-password.*` | Đăng ký, đăng nhập, hồ sơ; khôi phục mật khẩu Firebase |
 | Tiền tệ | `currency.js` | Định dạng giá VND; mọi giá lưu là số nguyên VND (ví dụ `450000`) |
 | Liên hệ | `contact-tools.js/.css` | Thanh liên hệ Facebook và Zalo (ẩn trên trang quản trị) |
 | Quản trị | `admin.html`, `admin.js`, `admin.css` | Sản phẩm, danh mục, ưu đãi, cấu hình khu vực/phí giao và bậc phí gói bó hoa, xử lý yêu cầu thiết kế/báo giá, đơn hàng, xác minh QR và xem audit đối soát, doanh thu, đánh giá, lời nhắn, người dùng |
@@ -144,9 +144,9 @@ Triển khai: `firebase deploy --only firestore:rules,firestore:indexes`. Lệnh
 
 ## Xác thực
 
-- Khi chạy `npm run dev`, mặc định **tài khoản tự tạo trên máy**: tên có `@` nhưng không cần email thật, đăng ký/đăng nhập bằng SQLite và cookie phiên. Dùng PIN tự đặt gồm 4–6 chữ số để khôi phục mật khẩu; đổi PIN cần đầy đủ thông tin, mật khẩu và PIN cũ. Quên PIN phải trả lời đúng 3 câu hỏi tự đặt. Các bí mật được băm bằng scrypt. Xem [tài khoản local](docs/local-accounts.md).
+- Khi chạy `npm run dev`, mặc định **tài khoản tự tạo trên máy**: tên có `@` nhưng không cần email thật, đăng ký/đăng nhập bằng SQLite và cookie phiên. Tài khoản local không hỗ trợ tự khôi phục mật khẩu; chức năng gửi liên kết đặt lại mật khẩu chỉ dùng cho tài khoản Firebase. Xem [tài khoản local](docs/local-accounts.md).
 - Chế độ Firebase (`AUTH_MODE=firebase` khi chạy dev, hoặc bản Vercel hiện có) dùng **Email/Password và Google** qua Firebase Authentication. Tài khoản Google luôn được tạo với vai trò khách hàng; khi Firebase chưa sẵn sàng, chế độ này báo lỗi và không chuyển sang một cơ chế xác thực khác.
-- Đăng nhập mật khẩu đi qua `/api/login`, giới hạn theo tài khoản: sai 5 lần khóa 15 phút, sau đó mỗi lần thử sai tăng thời gian khóa lên 30/60/120/240 phút; lần sai thứ 10 bắt buộc hoàn tất đặt lại mật khẩu. Xem [cấu hình key Firebase bắt buộc và kiểm thử](docs/login-protection.md) trước khi triển khai.
+- Đăng nhập Firebase bằng mật khẩu đi qua `/api/login`, giới hạn theo tài khoản: sai 5 lần khóa 15 phút, sau đó mỗi lần thử sai tăng thời gian khóa lên 30/60/120/240 phút; lần sai thứ 10 bắt buộc hoàn tất đặt lại mật khẩu. Xem [cấu hình key Firebase bắt buộc và kiểm thử](docs/login-protection.md) trước khi triển khai.
 - **Quản trị:** trang `admin.html` kiểm tra claim `admin: true` trên ID token; API phía server kiểm tra lại claim này độc lập với giao diện.
 
 ## Rà soát quyền truy cập

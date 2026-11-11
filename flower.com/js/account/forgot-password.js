@@ -1,4 +1,5 @@
 import { firebaseConfig, isFirebaseConfigured, connectFirebaseEmulators } from "../core/firebase-config.js";
+import { logAuthError } from "./auth-logging.js";
 import { isLocalAuth } from "./local-auth-client.js?v=2";
 
 const form = document.getElementById("recovery-form");
@@ -72,7 +73,10 @@ form.addEventListener("submit", async event => {
     } catch (error) {
         if (error.code === "auth/user-not-found") {
             showMessage("Nếu email này đã được đăng ký, bạn sẽ nhận được liên kết đặt lại mật khẩu. Hãy hoàn tất đặt lại mật khẩu để mở lại đăng nhập.", false);
-        } else showMessage(getFirebaseErrorMessage(error));
+        } else {
+            logAuthError("Gửi thư khôi phục mật khẩu thất bại:", error);
+            showMessage(getFirebaseErrorMessage(error));
+        }
     } finally {
         submitButton.disabled = false;
     }

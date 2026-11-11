@@ -1,5 +1,6 @@
 import "../core/password-policy.js?v=1";
 import { firebaseConfig, isFirebaseConfigured, connectFirebaseEmulators } from "../core/firebase-config.js";
+import { logAuthError } from "./auth-logging.js";
 import { getFirebaseErrorMessage } from "./login-errors.js?v=1";
 import { isLocalAuth, localAuthRequest, persistLocalAccount } from "./local-auth-client.js?v=2";
 
@@ -17,7 +18,7 @@ const loginSubmit = signIn.querySelector('[type="submit"]');
 const loginEmail = document.getElementById("email1");
 signUp.inert = true;
 
-document.querySelectorAll(".password-toggle").forEach((button) => {
+const passwordConcealers = Array.from(document.querySelectorAll(".password-toggle"), (button) => {
     const password = document.getElementById(button.getAttribute("aria-controls"));
     const passwordLabel = button.dataset.passwordLabel || "mật khẩu";
     let hideTimer;
@@ -33,6 +34,7 @@ document.querySelectorAll(".password-toggle").forEach((button) => {
             // Selection APIs are not available in every browser.
         }
         password.type = showPassword ? "text" : "password";
+        button.classList.toggle("is-visible", showPassword);
         const label = `${showPassword ? "Ẩn" : "Hiện"} ${passwordLabel}`;
         button.setAttribute("aria-label", label);
         button.title = label;
@@ -65,6 +67,18 @@ document.querySelectorAll(".password-toggle").forEach((button) => {
         resetHideTimer();
     });
     password.addEventListener("input", resetHideTimer);
+    return () => {
+        setPasswordVisibility(false);
+        resetHideTimer();
+    };
+});
+
+function concealAllPasswords() {
+    passwordConcealers.forEach(conceal => conceal());
+}
+
+document.addEventListener("visibilitychange", () => {
+    if (document.hidden) concealAllPasswords();
 });
 
 let firebaseAuthApiPromise;
@@ -253,7 +267,7 @@ async function signInWithGoogle(event) {
         const result = await authApi.signInWithPopup(authApi.auth, provider);
         await saveAuthenticatedSession(result.user, "google");
     } catch (error) {
-        console.error("Đăng nhập Google thất bại:", error);
+        logAuthError("Đăng nhập Google thất bại:", error);
         showFormMessage(button.closest("form")?.querySelector('[role="status"]') || display,
             getFirebaseErrorMessage(error));
     } finally {
@@ -273,13 +287,14 @@ async function completeGoogleRedirect() {
             await saveAuthenticatedSession(result.user, "google");
         }
     } catch (error) {
-        console.error("Không thể hoàn tất đăng nhập Google:", error);
+        logAuthError("Không thể hoàn tất đăng nhập Google:", error);
         showMessage(getFirebaseErrorMessage(error));
     }
 }
 
 if (signUpButton) {
     signUpButton.addEventListener("click", () => {
+        concealAllPasswords();
         container.classList.add("right-panel-active");
         signUp.inert = false;
         signIn.inert = true;
@@ -288,6 +303,7 @@ if (signUpButton) {
 
 if (signInButton) {
     signInButton.addEventListener("click", () => {
+        concealAllPasswords();
         container.classList.remove("right-panel-active");
         signIn.inert = false;
         signUp.inert = true;
@@ -345,7 +361,7 @@ signUp.addEventListener("submit", async (event) => {
             showFormMessage(signupDisplay, "Tạo tài khoản thành công. Đang chuyển vào cửa hàng...", false);
             saveCustomerSession({ ...credential.user, displayName: name, phoneNumber: phone }, "password");
         } catch (error) {
-            console.error("Tạo tài khoản Firebase thất bại:", error);
+            logAuthError("Tạo tài khoản Firebase thất bại:", error);
             showFormMessage(signupDisplay, getFirebaseErrorMessage(error));
         }
         return;
@@ -411,8 +427,10 @@ signIn.addEventListener("submit", async (event) => {
             await saveAuthenticatedSession(credential.user, "password");
         } catch (error) {
             // Do not print request bodies or authentication tokens to the console.
-            if (error.code?.startsWith("auth/")) showMessage(getFirebaseErrorMessage(error));
-            else if (error instanceof TypeError || error instanceof SyntaxError) {
+            if (error.code?.startsWith("auth/")) {
+                logAuthError("Đăng nhập Firebase thất bại:", error);
+                showMessage(getFirebaseErrorMessage(error));
+            } else if (error instanceof TypeError || error instanceof SyntaxError) {
                 showMessage("Không kết nối được dịch vụ đăng nhập. Vui lòng thử lại sau.");
             } else showLoginError(error, email);
         } finally {

@@ -203,42 +203,111 @@ form input:not([type="submit"]):focus {
 
 .password-field {
 	position: relative;
+	min-width: 0;
+	flex-shrink: 0;
 	margin-bottom: 12px;
 }
 
 form .password-field input {
 	margin-bottom: 0;
-	padding-right: 52px;
+	padding-right: 60px;
+	border-radius: 14px;
+	font-size: 14px;
+}
+
+form .password-field input::placeholder {
+	color: #66756d;
+	opacity: 1;
 }
 
 .password-toggle {
 	position: absolute;
 	top: 2px;
-	right: 2px;
+	right: 4px;
 	display: grid;
 	width: 44px;
 	height: 44px;
+	min-width: 44px;
+	min-height: 44px;
 	place-items: center;
 	padding: 0;
 	border: 0;
-	border-radius: 9px;
-	background: transparent;
+	border-radius: 11px;
+	background: #f4f6f1;
 	color: var(--sage);
 	cursor: pointer;
+	touch-action: manipulation;
+	transition: background-color 160ms ease, color 160ms ease, box-shadow 160ms ease;
 }
 
-.password-toggle:hover {
-	background: var(--rose-pale);
-	color: var(--rose-dark);
+.password-toggle svg > path:first-child,
+.password-toggle svg > circle {
+	transform-box: fill-box;
+	transform-origin: center;
+	transition: transform 180ms ease;
+}
+
+.password-toggle .eye-slash {
+	stroke-dasharray: 30;
+	stroke-dashoffset: 0;
+	transform-box: fill-box;
+	transform-origin: center;
+	transition: stroke-dashoffset 220ms ease, opacity 180ms ease, transform 220ms ease;
+}
+
+.password-toggle.is-visible .eye-slash {
+	opacity: 0;
+	stroke-dashoffset: 30;
+	transform: scale(.85);
+}
+
+.password-toggle.is-visible svg > path:first-child {
+	transform: scale(1.04);
+}
+
+.password-toggle.is-visible svg > circle {
+	transform: scale(1.2);
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.password-toggle {
+		transition: none;
+	}
+
+	.password-toggle svg > path:first-child,
+	.password-toggle svg > circle,
+	.password-toggle .eye-slash {
+		transition: none;
+	}
+}
+
+@media (hover: hover) {
+	.password-toggle:hover {
+		background: var(--rose-pale);
+		color: var(--rose-dark);
+	}
 }
 
 .password-toggle:focus-visible {
-	outline: 2px solid var(--rose-dark);
+	outline: 3px solid var(--rose-dark);
 	outline-offset: -3px;
 }
 
 .password-toggle:active {
+	background: #f3e4e7;
 	transform: none;
+}
+
+.password-toggle svg {
+	pointer-events: none;
+	opacity: 0.9;
+	transform: scale(1);
+	transition: opacity 160ms ease, transform 160ms ease;
+}
+
+.password-field:has(input[type="text"]) .password-toggle svg {
+	opacity: 1;
+	transform: scale(0.94);
 }
 
 .forgot-password {
@@ -581,6 +650,10 @@ button:active {
 		margin-bottom: 18px;
 	}
 
+	form .password-field input {
+		font-size: 16px;
+	}
+
 	.overlay-container {
 		position: relative;
 		inset: auto;
@@ -677,6 +750,13 @@ button:active {
 		animation-duration: 0.01ms !important;
 		animation-iteration-count: 1 !important;
 		transition-duration: 0.01ms !important;
+	}
+
+	.password-toggle,
+	.password-toggle svg,
+	.password-toggle [data-password-slash] {
+		animation: none !important;
+		transition: none !important;
 	}
 }
 

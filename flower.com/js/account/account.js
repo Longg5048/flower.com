@@ -1,4 +1,5 @@
-import { firebaseConfig } from "../core/firebase-config.js";
+import { firebaseConfig, connectFirebaseEmulators } from "../core/firebase-config.js";
+import { logAuthError } from "./auth-logging.js";
 import { isLocalAuth, localAuthRequest, persistLocalAccount } from "./local-auth-client.js?v=2";
 import { monitorLocalSession, invalidateLocalSession } from "./session-lifecycle.js?v=1";
 
@@ -26,6 +27,7 @@ async function restoreFirebaseAccount() {
     ]);
     const app = appSdk.getApps().length ? appSdk.getApp() : appSdk.initializeApp(firebaseConfig);
     const auth = authSdk.getAuth(app);
+    connectFirebaseEmulators(app, auth, null, authSdk);
     await auth.authStateReady();
 
     const user = auth.currentUser;
@@ -87,7 +89,7 @@ if (isLocalAuth) {
                 account = null;
             }
         } catch (error) {
-            console.warn("Chưa kiểm tra được phiên đăng nhập:", error);
+            logAuthError("Chưa kiểm tra được phiên đăng nhập:", error);
             account = null;
             sessionUnavailable = true;
             window.FlowerSafeStorage.remove("loggedUser");
@@ -101,7 +103,7 @@ if (isLocalAuth) {
                 window.FlowerSafeStorage.writeJson("loggedUser", account);
             }
         } catch (error) {
-            console.error("Không thể khôi phục phiên Firebase:", error);
+            logAuthError("Không thể khôi phục phiên Firebase:", error);
             document.getElementById("account-message").textContent =
                 "Không thể xác minh phiên đăng nhập. Vui lòng đăng nhập lại.";
         }
@@ -150,7 +152,7 @@ document.getElementById("logout-button").addEventListener("click", async () => {
             const app = appSdk.getApps().length ? appSdk.getApp() : appSdk.initializeApp(firebaseConfig);
             await authSdk.signOut(authSdk.getAuth(app));
         } catch (error) {
-            console.error("Không thể đăng xuất khỏi Firebase:", error);
+            logAuthError("Không thể đăng xuất khỏi Firebase:", error);
             message.textContent = "Chưa thể đăng xuất do lỗi kết nối. Vui lòng thử lại.";
             button.disabled = false;
             return;

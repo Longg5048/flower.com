@@ -33,10 +33,16 @@ test("local signup needs no PIN or security questions and session login still wo
   await page.locator("#signUp .submit").click();
   await expect(page).toHaveURL(/product\.html/, { timeout: 15_000 });
 
+  await page.evaluate(() => {
+    const account = JSON.parse(localStorage.getItem("loggedUser"));
+    localStorage.setItem("loggedUser", JSON.stringify({ ...account, role: "owner", name: "Forged" }));
+  });
   await page.goto("/account.html");
+  await expect(page.locator("#account-name")).toHaveText("Khách thử nghiệm");
   await expect(page.locator("#account-email")).toHaveText(email);
   await expect(page.locator("#account-phone")).toHaveText("0900000000");
   await expect(page.locator("#security-form")).toHaveCount(0);
+  expect(await page.evaluate(() => JSON.parse(localStorage.getItem("loggedUser")).role)).toBe("customer");
   await page.locator("#logout-button").click();
   await expect(page).toHaveURL(/login\.html/);
   await page.locator("#email1").fill(email);

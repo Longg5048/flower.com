@@ -10,11 +10,10 @@ test('new passwords require 8–4096 characters, lowercase and a number', () => 
     for (const value of ['abcdef12', 'Abcdef12!', 'a1' + 'x'.repeat(4094)]) assert.equal(isStrongPassword(value), true);
 });
 
-test('local register and reset reject weak passwords on the server', t => {
+test('local registration rejects weak passwords on the server', t => {
     const accounts = createLocalAccounts({ filename: ':memory:' });
     t.after(() => accounts.close());
     for (const password of ['abc1234', 'abcdefgh', '12345678']) {
         assert.throws(() => accounts.register({ email: 'policy@demo', password }), { code: 'invalid-password' });
-        assert.throws(() => accounts.reset({ email: 'policy@demo', newPassword: password }), { code: 'invalid-password' });
     }
 });

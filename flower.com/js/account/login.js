@@ -3,7 +3,6 @@ import { firebaseConfig, isFirebaseConfigured, connectFirebaseEmulators } from "
 import { logAuthError } from "./auth-logging.js";
 import { getFirebaseErrorMessage } from "./login-errors.js?v=1";
 import { isLocalAuth, localAuthRequest, persistLocalAccount } from "./local-auth-client.js?v=2";
-import { addQuestionFields, readQuestions, restrictPinInputs } from "./recovery-security.js?v=3";
 
 const passwordPolicy = globalThis.FlowerPasswordPolicy;
 passwordPolicy.bindPasswordHint(document.getElementById("password"), document.getElementById("password-policy-hint"));
@@ -90,7 +89,6 @@ let lockTimer;
 let localSignupPending = false;
 
 if (isLocalAuth) {
-    restrictPinInputs();
     signUp.querySelector(".form-intro").textContent = "Tên đăng nhập cần có @, ví dụ ban@demo. Không cần email thật.";
     signIn.querySelector(".form-intro").textContent = "Đăng nhập bằng tài khoản bạn đã tạo trên website chạy thử.";
     for (const id of ["email", "email1"]) {
@@ -102,10 +100,6 @@ if (isLocalAuth) {
     document.querySelectorAll("[data-google-auth], .auth-divider").forEach((element) => { element.hidden = true; });
     container.classList.add("local-accounts");
     document.getElementById("phone").required = true;
-    const security = document.getElementById("signup-security");
-    security.hidden = false;
-    security.disabled = false;
-    addQuestionFields(document.getElementById("signup-questions"), "signup");
 }
 
 function updateLoginWait() {
@@ -316,6 +310,12 @@ if (signInButton) {
     });
 }
 
+if (window.location.hash === "#signup") {
+    container.classList.add("right-panel-active");
+    signUp.inert = false;
+    signIn.inert = true;
+}
+
 document.querySelectorAll("[data-google-auth]").forEach((button) => {
     button.addEventListener("click", signInWithGoogle);
 });
@@ -341,9 +341,7 @@ signUp.addEventListener("submit", async (event) => {
         const submit = signUp.querySelector('[type="submit"]');
         submit.disabled = true;
         try {
-            const result = await localAuthRequest("register", { email, password, name, phone,
-                pin: document.getElementById("signup-pin").value,
-                confirmPin: document.getElementById("signup-confirm-pin").value, questions: readQuestions("signup") });
+            const result = await localAuthRequest("register", { email, password, name, phone });
             persistLocalAccount(result.account);
             window.location.assign("./product.html");
         } catch (error) {

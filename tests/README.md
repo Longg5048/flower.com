@@ -68,8 +68,8 @@ Các test `firebase-admin.test.js`, `delivery-zones-api.test.js`, `design-reques
 | `integration/feature-accounts.test.js` | Đơn gắn tài khoản, token giả/thu hồi, đánh giá của chủ đơn |
 | `login-protection.test.js`, `password-auth.test.js` | Giới hạn theo tài khoản, chu kỳ khóa, đồng thời, lỗi dịch vụ và chặn đường gọi Firebase trực tiếp |
 | `local-server.test.js` | Frontend/API cùng origin, JSON và giới hạn dữ liệu, chặn đọc bí mật/mã nội bộ, kiểm tra Host/Origin, API đăng nhập thật trả lỗi cấu hình có cấu trúc |
-| `local-accounts.test.js`, `local-auth-http.test.js` | Tài khoản tự tạo không cần email thật, scrypt, SQLite, phiên HttpOnly, giới hạn theo tài khoản, PIN, 3 câu hỏi và chuyển dữ liệu cũ |
-| `flower.com/e2e/local-accounts.spec.js` | Đăng ký/đăng nhập/đăng xuất, hồ sơ, đổi PIN, quên PIN bằng 3 câu hỏi, khóa và khôi phục mật khẩu trên desktop/mobile; chạy bằng `npm run test:e2e:local`, không cần emulator |
+| `local-accounts.test.js`, `local-auth-http.test.js` | Tài khoản tự tạo không cần email thật, scrypt, SQLite, phiên HttpOnly, giới hạn đăng nhập theo tài khoản và xóa dữ liệu khôi phục cũ |
+| `flower.com/e2e/local-accounts.spec.js` | Đăng ký/đăng nhập/đăng xuất, hồ sơ và thông báo khôi phục không khả dụng cho tài khoản local; chạy bằng `npm run test:e2e:local`, không cần emulator |
 | `integration/login-protection.test.js` | Đăng nhập và phiên custom token thật, khóa tài khoản, hoàn tất đặt lại mật khẩu trên emulator |
 | `flower.com/e2e/forgot-password.spec.js` | Trang khôi phục trên desktop/mobile: email không hợp lệ, thông báo không tiết lộ tài khoản, lỗi mạng/giới hạn gửi, đặt lại mật khẩu và mở khóa trên emulator |
 | `integration/feature-admin.test.js` | API quản trị: danh sách tài khoản, cấp/thu quyền, khôi phục sản phẩm |

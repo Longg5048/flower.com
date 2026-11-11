@@ -24,23 +24,10 @@ async function main() {
         method: "POST", headers: { "Content-Type": "application/json", Origin: base }, body: JSON.stringify(body)
     });
     try {
-        const known = await request("questions", { email: input.email });
-        const unknown = await request("questions", { email: "missing@demo" });
-        record("account-enumeration", { knownStatus: known.status, unknownStatus: unknown.status,
-            publicQuestionCount: (await known.json()).questions.length });
-
-        const guessed = await request("recover-pin", { email: input.email, answers: ["12", "12", "12"], newPin: "0123", confirmPin: "0123" });
-        const reset = await request("reset", { email: input.email, pin: "0123", newPassword: "Audit-changed-password-123" });
-        const logged = accounts.login({ email: input.email, password: "Audit-changed-password-123" });
-        assert.equal(guessed.status, 200); assert.equal(reset.status, 200); assert.equal(logged.status, 200);
-        record("weak-recovery-design", { prerequisite: "account chose the same common two-character answer for all questions",
-            recoverPinStatus: guessed.status, passwordResetStatus: reset.status, newPasswordLoginStatus: logged.status });
-
-        const failed = [];
-        for (let i = 0; i < 5; i++) failed.push((await request("reset", { email: input.email, pin: "9999", newPassword: "Other-password-123" })).status);
-        const correctAfterAttack = await request("reset", { email: input.email, pin: "0123", newPassword: "Other-password-123" });
-        record("forced-pin-recovery-by-outsider", { unauthenticatedAttemptStatuses: failed, correctPinStatus: correctAfterAttack.status,
-            code: (await correctAfterAttack.json()).code });
+        const recoveryResponses = await Promise.all(["reset", "questions", "recover-pin", "change-pin", "setup-security"]
+            .map(action => request(action, { email: input.email })));
+        assert.ok(recoveryResponses.every(response => response.status === 404));
+        record("local-recovery-endpoints-removed", { statuses: recoveryResponses.map(response => response.status) });
 
         const baselineStart = performance.now(); await (await fetch(`${base}/login.html`)).text();
         const baselineMs = performance.now() - baselineStart;

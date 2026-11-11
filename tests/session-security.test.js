@@ -95,22 +95,18 @@ test("ambiguous cookies cannot choose an account and logout revokes all presente
     assert.equal((await h.privateRequest(second)).status, 401);
 });
 
-test("recovery revokes the target's sessions and any different account cookie being cleared", async t => {
+test("removed local recovery endpoints cannot alter accounts or revoke sessions", async t => {
     const h = await fixture(t), first = profile(), target = profile({ email: "recovery-target@demo" });
     const firstCookie = cookieOf(await h.request("register", first));
     const otherDevice = cookieOf(await h.request("login", first));
     const targetCookie = cookieOf(await h.request("register", target));
-    const newPassword = "New-target-password-456";
-    assert.equal((await h.request("reset", { ...target, newPassword }, firstCookie)).status, 200);
-    assert.equal((await h.privateRequest(firstCookie)).status, 401);
-    assert.equal((await h.privateRequest(targetCookie)).status, 401);
+    for (const action of ["reset", "questions", "recover-pin", "change-pin", "setup-security"]) {
+        assert.equal((await h.request(action, target, firstCookie)).status, 404);
+    }
+    assert.equal((await h.privateRequest(firstCookie)).status, 200);
     assert.equal((await h.privateRequest(otherDevice)).status, 200);
-    const nextFirst = cookieOf(await h.request("login", first));
-    const nextTarget = cookieOf(await h.request("login", { ...target, password: newPassword }));
-    assert.equal((await h.request("recover-pin", { ...target, answers: target.questions.map(q => q.answer), newPin: "6273", confirmPin: "6273" }, nextFirst)).status, 200);
-    assert.equal((await h.privateRequest(nextFirst)).status, 401);
-    assert.equal((await h.privateRequest(nextTarget)).status, 401);
-    assert.equal((await h.privateRequest(otherDevice)).status, 200);
+    assert.equal((await h.privateRequest(targetCookie)).status, 200);
+    assert.equal((await h.request("login", target)).status, 200);
 });
 
 test("HTTPS issuance and deletion use Secure; forwarded headers cannot impersonate TLS on localhost", async t => {

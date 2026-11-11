@@ -1,19 +1,18 @@
 import { test, expect } from '@playwright/test';
 
-test('signup rejects weak passwords and updates the accessible hint', async ({ page }) => {
+test('signup rejects weak passwords without displaying a policy hint', async ({ page }) => {
     await page.route('https://www.gstatic.com/firebasejs/**', route => route.abort());
     await page.goto('/login.html');
     await page.locator('#signup').click();
     const password = page.locator('#password');
+    await expect(page.locator('#password-policy-hint')).toHaveCount(0);
     await expect(password).toHaveAttribute('minlength', '8');
     for (const value of ['abc1234', 'abcdefgh', '12345678']) {
         await password.fill(value);
         expect(await password.evaluate(input => input.checkValidity())).toBe(false);
-        await expect(page.locator('#password-policy-hint')).toContainText('8');
     }
     await password.fill('Strong-password1');
     expect(await password.evaluate(input => input.checkValidity())).toBe(true);
-    await expect(page.locator('#password-policy-hint')).toContainText('Đã đáp ứng');
     await page.locator('#signin').click();
     await page.locator('#password1').fill('old123');
     expect(await page.locator('#password1').evaluate(input => input.checkValidity())).toBe(true);

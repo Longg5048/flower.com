@@ -1,4 +1,4 @@
-import "../core/password-policy.js?v=1";
+import "../core/password-policy.js?v=2";
 import { firebaseConfig, isFirebaseConfigured, connectFirebaseEmulators } from "../core/firebase-config.js";
 import { logAuthError } from "./auth-logging.js";
 import { getFirebaseErrorMessage } from "./login-errors.js?v=1";
@@ -6,7 +6,7 @@ import { isLocalAuth, localAuthRequest, persistLocalAccount } from "./local-auth
 import { addQuestionFields, readQuestions, restrictPinInputs } from "./recovery-security.js?v=3";
 
 const passwordPolicy = globalThis.FlowerPasswordPolicy;
-passwordPolicy.bindPasswordHint(document.getElementById("password"), document.getElementById("password-policy-hint"));
+passwordPolicy.bindPasswordHint(document.getElementById("password"));
 
 const signUpButton = document.getElementById("signup");
 const signInButton = document.getElementById("signin");

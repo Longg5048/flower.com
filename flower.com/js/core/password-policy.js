@@ -9,7 +9,9 @@
         const update = () => {
             const valid = isStrongPassword(input.value);
             input.setCustomValidity(input.value && !valid ? message : '');
-            hint.textContent = input.value && valid ? 'Đã đáp ứng yêu cầu tối thiểu. Nên dùng mật khẩu dài, riêng cho tài khoản này.' : message;
+            if (hint) {
+                hint.textContent = input.value && valid ? 'Đã đáp ứng yêu cầu tối thiểu. Nên dùng mật khẩu dài, riêng cho tài khoản này.' : message;
+            }
         };
         input.addEventListener('input', update);
         update();

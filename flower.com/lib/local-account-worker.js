@@ -36,7 +36,7 @@ if (!isMainThread) {
             });
         };
         const service = {};
-        for (const method of ["register", "login", "reset", "questions", "recoverPin", "changePin", "setupSecurity", "session", "logout"]) {
+        for (const method of ["register", "login", "reset", "recoverPin", "changePin", "setupSecurity", "session", "logout"]) {
             service[method] = (...args) => call(method, ...args);
         }
         service.close = async () => { fail(); await worker.terminate(); };

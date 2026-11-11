@@ -6,11 +6,7 @@ const path = require("node:path");
 const { DatabaseSync } = require("node:sqlite");
 const { randomUUID } = require("node:crypto");
 const { createLocalAccounts } = require("../flower.com/lib/local-accounts");
-const profile = () => ({ email: "ban@demo", password: "Mat-khau-thu-123", name: "Người thử", phone: "0900000000", pin: "938405", confirmPin: "938405", questions: [
-    { question: "Tên con vật trong truyện tôi thích?", answer: "Cáo xanh" },
-    { question: "Món ăn tôi tự nấu lần đầu?", answer: "Canh bí" },
-    { question: "Tên nhân vật tôi từng tự vẽ?", answer: "Mây tím" }
-] });
+const profile = require("./helpers/local-profile");
 function fixture(t) {
     let time = 1_800_000_000_000;
     const accounts = createLocalAccounts({ now: () => time });
@@ -53,14 +49,12 @@ test("stored passwords are salted hashes and reset verifies only the replacement
     assert.equal(accounts.login(input).status, 401);
     assert.equal(accounts.login({ ...input, password: replacement }).status, 200);
 });
-test("registration accepts only four to six ASCII digits and three distinct questions", (t) => {
+test("registration accepts only four to six ASCII digits without requiring questions", (t) => {
     const accounts = createLocalAccounts(); t.after(() => accounts.close());
     for (const pin of ["", "123", "1234567", "9384051726", "12a4", "12 4", "12-4", "1e03", "1.23", "１２３４", "١٢٣٤", "1234\n", 1234]) {
         assert.throws(() => accounts.register({ ...profile(), pin, confirmPin: pin }), { code: "invalid-pin" });
     }
     assert.throws(() => accounts.register({ ...profile(), confirmPin: "123456" }), { code: "pin-mismatch" });
-    assert.throws(() => accounts.register({ ...profile(), questions: [] }), { code: "invalid-security-questions" });
-    assert.throws(() => accounts.register({ ...profile(), questions: Array(3).fill({ question: "Câu hỏi giống nhau?", answer: "Bí mật" }) }), { code: "invalid-security-questions" });
     const user = accounts.register(profile());
     assert.equal(user.account.securityConfigured, true);
     assert.ok(!Object.hasOwn(user, "recoveryCode"));
@@ -112,8 +106,8 @@ test("five incorrect PINs require a new PIN and never unlock with time or the co
     assert.equal(reset(input.pin).code, "pin-reset-required");
     advance(365 * 24 * 60 * 60_000);
     assert.equal(reset(input.pin).code, "pin-reset-required");
-    assert.equal(accounts.questions(input).pinResetRequired, true);
-    const recovered = accounts.recoverPin({ name: input.name, phone: input.phone, email: input.email, answers: input.questions.map(item => item.answer), newPin: "6273", confirmPin: "6273" });
+    assert.equal(accounts.login(input).account.pinResetRequired, true);
+    const recovered = accounts.recoverPin({ ...input, newPin: "6273", confirmPin: "6273" });
     assert.equal(recovered.status, 200);
     assert.equal(reset(input.pin).attemptsRemaining, 4);
     assert.equal(reset("6273").status, 200);
@@ -131,7 +125,7 @@ test("PIN attempts share one budget across password reset and PIN change", t => 
     assert.equal(accounts.changePin({ ...change, oldPin: input.pin }, user.sessionToken).code, "pin-reset-required");
     assert.equal(accounts.setupSecurity(input, user.sessionToken).code, "security-already-configured");
     assert.equal(accounts.session(user.sessionToken).pinResetRequired, true);
-    assert.throws(() => accounts.recoverPin({ name: input.name, phone: input.phone, email: input.email, answers: input.questions.map(item => item.answer), newPin: input.pin, confirmPin: input.pin }), { code: "pin-unchanged" });
+    assert.throws(() => accounts.recoverPin({ ...input, newPin: input.pin, confirmPin: input.pin }), { code: "pin-unchanged" });
     assert.equal(accounts.session(user.sessionToken).pinResetRequired, true);
 });
 test("PIN changes require session, full profile, password and old PIN", (t) => {
@@ -150,28 +144,26 @@ test("PIN changes require session, full profile, password and old PIN", (t) => {
     assert.equal(accounts.reset({ name: input.name, phone: input.phone, email: input.email, pin: input.pin, newPassword: "New-password1" }).status, 401);
     assert.equal(accounts.reset({ name: input.name, phone: input.phone, email: input.email, pin: body.newPin, newPassword: "New-password1" }).status, 200);
 });
-test("forgotten PIN requires all three answers and does not bypass password locks", (t) => {
+test("forgotten PIN requires the current password and does not bypass login locks", (t) => {
     const { accounts, input, user } = fixture(t);
-    assert.deepEqual(accounts.questions({ name: input.name, phone: input.phone, email: input.email }).questions, input.questions.map(item => item.question));
-    const answers = input.questions.map(item => item.answer);
-    const body = { name: input.name, phone: input.phone, email: input.email, answers, newPin: "6273", confirmPin: "6273" };
-    assert.equal(accounts.recoverPin({ ...body, answers: [answers[0], "Sai", answers[2]] }).status, 401);
+    const body = { ...input, newPin: "6273", confirmPin: "6273" };
+    assert.equal(accounts.recoverPin({ ...body, password: "wrong" }).status, 401);
     for (let i = 0; i < 5; i++) accounts.login({ name: input.name, phone: input.phone, email: input.email, password: "wrong" });
-    assert.equal(accounts.recoverPin({ ...body, answers: answers.map(answer => "  " + answer.toUpperCase() + "  ") }).status, 200);
+    assert.equal(accounts.recoverPin(body).status, 200);
     assert.equal(accounts.session(user.sessionToken), null); assert.equal(accounts.login(input).code, "account-locked");
     assert.equal(accounts.reset({ name: input.name, phone: input.phone, email: input.email, pin: body.newPin, newPassword: "New-password1" }).status, 200);
     assert.equal(accounts.login({ name: input.name, phone: input.phone, email: input.email, password: "New-password1" }).status, 200);
 });
-test("five wrong sets of answers lock PIN recovery for fifteen minutes", (t) => {
+test("five wrong current passwords lock PIN recovery for fifteen minutes", (t) => {
     const { accounts, input, advance } = fixture(t);
-    const body = { name: input.name, phone: input.phone, email: input.email, answers: ["Sai một", "Sai hai", "Sai ba"], newPin: "6273", confirmPin: "6273" };
+    const body = { ...input, password: "wrong", newPin: "6273", confirmPin: "6273" };
     for (let remaining = 4; remaining >= 1; remaining--) {
         const result = accounts.recoverPin(body);
         assert.equal(result.status, 401); assert.equal(result.attemptsRemaining, remaining);
     }
     const blocked = accounts.recoverPin(body);
     assert.equal(blocked.status, 429); assert.equal(blocked.attemptsRemaining, 0);
-    const valid = { ...body, answers: input.questions.map(item => item.answer) };
+    const valid = { ...body, password: input.password };
     assert.equal(accounts.recoverPin(valid).status, 429); advance(15 * 60_000);
     assert.equal(accounts.recoverPin(valid).status, 200);
 });
@@ -191,7 +183,7 @@ test("accounts, secret hashes and lockouts persist across restarts", (t) => {
     }
     first.close();
     const bytes = fs.readFileSync(filename).toString("utf8");
-    for (const secret of [input.password, input.pin, ...input.questions.map(item => item.answer)]) assert.ok(!bytes.includes(secret));
+    for (const secret of [input.password, input.pin]) assert.ok(!bytes.includes(secret));
     const reopened = createLocalAccounts({ filename }); t.after(() => reopened.close());
     assert.equal(reopened.login(input).code, "account-locked");
     assert.equal(reopened.session(user.sessionToken).securityConfigured, true);
@@ -224,7 +216,7 @@ test("legacy schema preserves accounts and locks; enrolling a PIN disables the o
     assert.equal(accounts.session(token).securityConfigured, false);
     assert.equal(accounts.login({ email: "oldcode@demo", password: "old123" }).status, 200);
     assert.equal(accounts.login(input).code, "account-locked");
-    assert.equal(accounts.questions(input).code, "security-setup-required");
+    assert.equal(accounts.recoverPin({ ...input, newPin: "6273", confirmPin: "6273" }).code, "security-setup-required");
     assert.equal(accounts.setupSecurity({ ...input, password: "wrong" }, token).status, 401);
     const enrolled = accounts.setupSecurity(input, token);
     assert.equal(enrolled.account.securityConfigured, true);
@@ -262,7 +254,7 @@ test("migration preserves previous PIN failure budgets and promotes prior fifth 
     assert.equal(logged.status, 200); assert.equal(logged.account.pinResetRequired, true);
 });
 
-test("accounts with an old long PIN must answer their questions to adopt a numeric four-to-six-digit PIN", t => {
+test("accounts with an old long PIN use their current password to adopt a numeric four-to-six-digit PIN", t => {
     const { DatabaseSync } = require("node:sqlite");
     const { randomBytes, randomUUID, scryptSync } = require("node:crypto");
     const filename = path.join(__dirname, "../flower.com/.tools/local-account-tests", "short-pin-" + randomUUID() + ".sqlite");
@@ -274,12 +266,10 @@ test("accounts with an old long PIN must answer their questions to adopt a numer
     db.exec("ALTER TABLE local_users DROP COLUMN pin_format_version"); db.close();
     const migrated = createLocalAccounts({ filename }); t.after(() => migrated.close());
     assert.equal(migrated.session(user.sessionToken).pinResetRequired, true);
-    assert.equal(migrated.questions(input).pinResetReason, "pin-format-update-required");
     assert.equal(migrated.reset({ name: input.name, phone: input.phone, email: input.email, pin: "1234", newPassword: "New-password1" }).code, "pin-format-update-required");
     assert.equal(migrated.changePin({ ...input, oldPin: "1234", newPin: "84710", confirmPin: "84710" }, user.sessionToken).code, "pin-format-update-required");
-    const answers = input.questions.map(item => item.answer);
-    assert.equal(migrated.recoverPin({ name: input.name, phone: input.phone, email: input.email, answers: ["Sai một", "Sai hai", "Sai ba"], newPin: "0123", confirmPin: "0123" }).status, 401);
-    assert.equal(migrated.recoverPin({ name: input.name, phone: input.phone, email: input.email, answers, newPin: "0123", confirmPin: "0123" }).status, 200);
+    assert.equal(migrated.recoverPin({ ...input, password: "wrong", newPin: "0123", confirmPin: "0123" }).status, 401);
+    assert.equal(migrated.recoverPin({ ...input, newPin: "0123", confirmPin: "0123" }).status, 200);
     assert.equal(migrated.session(user.sessionToken), null);
     assert.equal(migrated.login(input).account.pinResetRequired, false);
     assert.equal(migrated.reset({ name: input.name, phone: input.phone, email: input.email, pin: "0123", newPassword: "New-password1" }).status, 200);

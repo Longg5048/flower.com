@@ -2,7 +2,7 @@ import "../core/password-policy.js?v=1";
 import { firebaseConfig, isFirebaseConfigured, connectFirebaseEmulators } from "../core/firebase-config.js";
 import { logAuthError } from "./auth-logging.js";
 import { isLocalAuth, localAuthRequest } from "./local-auth-client.js?v=2";
-import { recoveryError, restrictPinInputs } from "./recovery-security.js?v=3";
+import { recoveryError, restrictPinInputs } from "./recovery-security.js?v=4";
 
 const passwordPolicy = globalThis.FlowerPasswordPolicy;
 passwordPolicy.bindPasswordHint(document.getElementById("recovery-new-password"), document.getElementById("recovery-password-hint"));
@@ -107,7 +107,7 @@ form.addEventListener("submit", async (event) => {
             document.getElementById("local-reset-result").hidden = false;
             form.hidden = true;
         } catch (error) {
-            if (["pin-reset-required", "pin-format-update-required"].includes(error.code)) await openRequiredPinRecovery(email);
+            if (["pin-reset-required", "pin-format-update-required"].includes(error.code)) openRequiredPinRecovery(email, error.code);
             else showMessage(recoveryError(error));
         } finally {
             submitButton.disabled = false;
@@ -139,19 +139,14 @@ form.addEventListener("submit", async (event) => {
 
 if (isLocalAuth) {
     const pinSection = document.getElementById("pin-recovery");
-    const questionsForm = document.getElementById("pin-questions-form");
     const pinForm = document.getElementById("pin-recovery-form");
     const pinEmail = document.getElementById("pin-email");
     const pinMessage = document.getElementById("pin-message");
     const backButton = document.getElementById("back-to-password");
-    const failedMessage = "Bạn đã nhập sai PIN 5 lần. Còn 0 lượt thử PIN cũ. Hãy trả lời đúng cả 3 câu hỏi và đặt PIN mới.";
-    const formatMessage = "PIN hiện tại dùng độ dài cũ. Hãy trả lời đúng cả 3 câu hỏi để đặt PIN mới gồm 4–6 chữ số.";
-    const genericMessage = "Hãy trả lời đúng cả 3 câu hỏi và đặt PIN mới gồm 4–6 chữ số để tiếp tục.";
-    let requiredMessage = genericMessage;
-    let recoveryEmail = "";
-    let mandatory = false;
+    const failedMessage = "Bạn đã nhập sai PIN 5 lần. Còn 0 lượt thử PIN cũ. Hãy xác nhận bằng mật khẩu hiện tại để đặt PIN mới.";
+    const formatMessage = "PIN hiện tại dùng độ dài cũ. Hãy xác nhận bằng mật khẩu hiện tại để đặt PIN mới gồm 4–6 chữ số.";
+    const genericMessage = "Hãy xác nhận bằng mật khẩu hiện tại để đặt PIN mới gồm 4–6 chữ số.";
     function setMandatory(value) {
-        mandatory = value;
         pinEmail.readOnly = value;
         backButton.hidden = value;
         document.getElementById("pin-recovery-title").textContent = value ? "Bắt buộc đặt PIN mới" : "Quên PIN";
@@ -172,9 +167,8 @@ if (isLocalAuth) {
         setMandatory(false);
         form.hidden = true;
         pinSection.hidden = false;
-        pinForm.hidden = true;
+        pinForm.hidden = false;
         pinForm.reset();
-        recoveryEmail = "";
         pinStatus("");
         pinEmail.value = emailInput.value;
         document.getElementById("pin-profile-name").value = document.getElementById("recovery-name").value;
@@ -191,97 +185,61 @@ if (isLocalAuth) {
         emailInput.focus();
     });
     pinEmail.addEventListener("input", () => {
-        pinForm.hidden = true;
-        pinForm.reset();
-        recoveryEmail = "";
+        for (const id of ["pin-current-password", "forgot-new-pin", "forgot-confirm-pin"]) document.getElementById(id).value = "";
         pinStatus("");
     });
-    async function loadQuestions() {
-        const button = questionsForm.querySelector("button");
-        if (button.disabled) return;
-        button.disabled = true;
-        pinForm.hidden = true;
-        pinForm.reset();
-        try {
-            const email = pinEmail.value.trim().toLowerCase();
-            const result = await localAuthRequest("questions", { email,
-                name: document.getElementById("pin-profile-name").value, phone: document.getElementById("pin-profile-phone").value });
-            if (pinEmail.value.trim().toLowerCase() !== email) return;
-            requiredMessage = result.pinResetReason === "pin-format-update-required" ? formatMessage : failedMessage;
-            setMandatory(Boolean(result.pinResetRequired));
-            recoveryEmail = email;
-            document.getElementById("pin-recovery-account").textContent = `Đặt lại PIN cho ${email}`;
-            const fields = document.getElementById("pin-answer-fields");
-            fields.replaceChildren();
-            result.questions.forEach((question, index) => {
-                const label = document.createElement("label");
-                label.htmlFor = `pin-answer-${index + 1}`;
-                label.textContent = `${index + 1}. ${question}`;
-                const input = document.createElement("input");
-                Object.assign(input, { id: label.htmlFor, type: "password", required: true, minLength: 2, maxLength: 200, autocomplete: "off" });
-                fields.append(label, input);
-            });
-            pinForm.hidden = false;
-            pinStatus(mandatory ? requiredMessage : "");
-        } catch (error) { pinStatus(`${mandatory ? requiredMessage + " " : ""}${recoveryError(error)}`); }
-        finally { button.disabled = false; }
-    }
-    questionsForm.addEventListener("submit", async event => {
-        event.preventDefault();
-        await loadQuestions();
-    });
-    openRequiredPinRecovery = async email => {
+    openRequiredPinRecovery = (email, reason) => {
         form.hidden = true;
         pinSection.hidden = false;
-        pinForm.hidden = true;
+        pinForm.hidden = false;
         pinForm.reset();
-        recoveryEmail = "";
         pinEmail.value = email;
         document.getElementById("pin-profile-name").value = document.getElementById("recovery-name").value;
         document.getElementById("pin-profile-phone").value = document.getElementById("recovery-phone").value;
         setMandatory(true);
-        requiredMessage = genericMessage;
-        pinStatus(requiredMessage);
+        pinStatus(reason === "pin-reset-required" ? failedMessage : reason === "pin-format-update-required" ? formatMessage : genericMessage);
         const url = new URL(window.location.href);
         url.searchParams.set("email", email);
         url.searchParams.set("recoverPin", "1");
+        if (["pin-reset-required", "pin-format-update-required"].includes(reason)) url.searchParams.set("pinReason", reason);
         window.history.replaceState(null, "", url);
-        if (document.getElementById("pin-profile-name").value && document.getElementById("pin-profile-phone").value) await loadQuestions();
-        else pinStatus("Nhập họ tên và số điện thoại đã đăng ký để xem câu hỏi và đặt PIN mới.");
     };
     pinForm.addEventListener("submit", async event => {
         event.preventDefault();
         const button = pinForm.querySelector("button");
-        if (button.disabled || !recoveryEmail) return;
+        if (button.disabled) return;
         button.disabled = true;
-        const email = recoveryEmail;
-        const questionsButton = questionsForm.querySelector("button");
-        questionsButton.disabled = true;
+        const email = pinEmail.value.trim().toLowerCase();
         try {
             await localAuthRequest("recover-pin", { email,
                 name: document.getElementById("pin-profile-name").value, phone: document.getElementById("pin-profile-phone").value,
-                answers: [1, 2, 3].map(index => document.getElementById(`pin-answer-${index}`).value),
+                password: document.getElementById("pin-current-password").value,
                 newPin: document.getElementById("forgot-new-pin").value,
                 confirmPin: document.getElementById("forgot-confirm-pin").value });
             window.FlowerSafeStorage.remove("loggedUser");
             window.FlowerSafeStorage.remove("loggedAdmin");
             emailInput.value = email;
-            pinEmail.value = email;
+            document.getElementById("recovery-name").value = document.getElementById("pin-profile-name").value;
+            document.getElementById("recovery-phone").value = document.getElementById("pin-profile-phone").value;
             setMandatory(false);
             document.getElementById("recovery-pin").value = "";
             showMessage("", false);
             const url = new URL(window.location.href);
             url.searchParams.delete("recoverPin");
+            url.searchParams.delete("pinReason");
             window.history.replaceState(null, "", url);
             pinForm.reset();
+            pinEmail.value = email;
+            document.getElementById("pin-profile-name").value = document.getElementById("recovery-name").value;
+            document.getElementById("pin-profile-phone").value = document.getElementById("recovery-phone").value;
             pinForm.hidden = true;
-            pinStatus("Đã đặt lại PIN. Bạn có thể quay lại đặt mật khẩu bằng PIN mới.", false);
+            pinStatus("Đã đặt lại PIN. Bạn có thể đăng nhập bằng mật khẩu hiện tại hoặc dùng PIN mới để khôi phục mật khẩu.", false);
         } catch (error) { pinStatus(recoveryError(error)); }
-        finally { button.disabled = false; questionsButton.disabled = false; }
+        finally { button.disabled = false; }
     });
     for (const button of pinSection.querySelectorAll('button[type="submit"]')) button.disabled = false;
     if (emailInput.value && new URLSearchParams(window.location.search).get("recoverPin") === "1") {
-        await openRequiredPinRecovery(emailInput.value);
+        openRequiredPinRecovery(emailInput.value, new URLSearchParams(window.location.search).get("pinReason"));
     }
 }
 submitButton.disabled = false;

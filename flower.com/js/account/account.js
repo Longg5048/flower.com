@@ -2,7 +2,7 @@ import { firebaseConfig, connectFirebaseEmulators } from "../core/firebase-confi
 import { logAuthError } from "./auth-logging.js";
 import { isLocalAuth, localAuthRequest, persistLocalAccount } from "./local-auth-client.js?v=2";
 import { monitorLocalSession, invalidateLocalSession } from "./session-lifecycle.js?v=1";
-import { addQuestionFields, readQuestions, recoveryError, restrictPinInputs } from "./recovery-security.js?v=3";
+import { recoveryError, restrictPinInputs } from "./recovery-security.js?v=4";
 
 function getStoredAccount() {
     try {
@@ -145,7 +145,6 @@ if (isLocalAuth && account && !account.pinResetRequired) {
     const form = document.getElementById("security-form");
     const submit = document.getElementById("security-submit");
     const status = document.getElementById("security-message");
-    const questions = document.getElementById("security-setup-questions");
     const setup = !account.securityConfigured;
     document.getElementById("local-security").hidden = false;
     document.getElementById("security-email").value = account.email;
@@ -157,11 +156,8 @@ if (isLocalAuth && account && !account.pinResetRequired) {
     document.getElementById("security-old-pin").disabled = setup;
     if (setup) {
         document.getElementById("security-title").textContent = "Thiết lập PIN khôi phục";
-        document.getElementById("security-intro").textContent = "Tài khoản cũ của bạn vẫn được giữ nguyên. Xác nhận mật khẩu, bổ sung họ tên, số điện thoại rồi đặt PIN và 3 câu hỏi để khôi phục sau này.";
-        submit.textContent = "Lưu PIN và câu hỏi";
-        questions.hidden = false;
-        questions.disabled = false;
-        addQuestionFields(questions, "security");
+        document.getElementById("security-intro").textContent = "Xác nhận mật khẩu, bổ sung họ tên, số điện thoại rồi đặt PIN để khôi phục tài khoản khi cần.";
+        submit.textContent = "Lưu PIN";
     }
     form.addEventListener("submit", async event => {
         event.preventDefault();
@@ -177,8 +173,7 @@ if (isLocalAuth && account && !account.pinResetRequired) {
                 password: document.getElementById("security-password").value,
                 oldPin: document.getElementById("security-old-pin").value,
                 newPin: document.getElementById("security-new-pin").value,
-                confirmPin: document.getElementById("security-confirm-pin").value,
-                ...(setup ? { questions: readQuestions("security") } : {})
+                confirmPin: document.getElementById("security-confirm-pin").value
             });
             account = result.account;
             persistLocalAccount(account);

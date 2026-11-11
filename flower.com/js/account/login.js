@@ -3,7 +3,7 @@ import { firebaseConfig, isFirebaseConfigured, connectFirebaseEmulators } from "
 import { logAuthError } from "./auth-logging.js";
 import { getFirebaseErrorMessage } from "./login-errors.js?v=1";
 import { isLocalAuth, localAuthRequest, persistLocalAccount } from "./local-auth-client.js?v=2";
-import { addQuestionFields, readQuestions, restrictPinInputs } from "./recovery-security.js?v=3";
+import { restrictPinInputs } from "./recovery-security.js?v=4";
 
 const passwordPolicy = globalThis.FlowerPasswordPolicy;
 passwordPolicy.bindPasswordHint(document.getElementById("password"));
@@ -106,7 +106,6 @@ if (isLocalAuth) {
     const security = document.getElementById("signup-security");
     security.hidden = false;
     security.disabled = false;
-    addQuestionFields(document.getElementById("signup-questions"), "signup");
 }
 
 function updateLoginWait() {
@@ -344,7 +343,7 @@ signUp.addEventListener("submit", async (event) => {
         try {
             const result = await localAuthRequest("register", { email, password, name, phone,
                 pin: document.getElementById("signup-pin").value,
-                confirmPin: document.getElementById("signup-confirm-pin").value, questions: readQuestions("signup") });
+                confirmPin: document.getElementById("signup-confirm-pin").value });
             persistLocalAccount(result.account);
             window.location.assign("./product.html");
         } catch (error) {

@@ -140,7 +140,7 @@ Mở <http://127.0.0.1:3000> hoặc <http://127.0.0.1:3000/login.html> trong tr�
 Máy chủ Node phục vụ cả giao diện lẫn `/api/*` trên cùng địa chỉ, không cần bật Live Server.
 
 Mặc định `AUTH_MODE=local`: vào **Tạo tài khoản**, dùng tên có `@` như `ban@demo`, chọn mật khẩu
-và tự đặt PIN gồm 4–6 chữ số cùng 3 câu hỏi khôi phục PIN. Tên đăng nhập không cần là email có thật. Tài khoản, mật khẩu băm
+và tự đặt PIN gồm 4–6 chữ số. Khi quên PIN, xác nhận bằng mật khẩu tài khoản hiện tại để đặt lại. Tên đăng nhập không cần là email có thật. Tài khoản, mật khẩu băm
 và trạng thái khóa được lưu trên máy trong `.tools/local-auth/accounts.sqlite`; không cần điền
 các key Firebase. Xem [tài khoản chạy thử](flower.com/docs/local-accounts.md).
 

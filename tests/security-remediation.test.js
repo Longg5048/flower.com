@@ -18,19 +18,18 @@ async function serverFor(t, accounts, resolveApi) {
     return `http://127.0.0.1:${server.address().port}`;
 }
 
-test("weak and repeated security answers are rejected before account creation", t => {
+test("obsolete question payloads are ignored and are not exposed on new accounts", t => {
     const accounts = createLocalAccounts(); t.after(() => accounts.close());
-    for (const answers of [["12", "12", "12"], ["Cáo xanh", "CÁO XANH", "Canh bí"], ["123456", "Canh bí", "Mây tím"], ["password", "Canh bí", "Mây tím"]]) {
-        const input = profile(); input.questions.forEach((q, i) => { q.answer = answers[i]; });
-        assert.throws(() => accounts.register(input), { code: "invalid-security-questions" });
-    }
-    assert.ok(accounts.register(profile()).account.uid);
+    const result = accounts.register({ ...profile(), questions: [null] });
+    assert.equal(result.account.securityConfigured, true);
+    assert.ok(!Object.hasOwn(result.account, "questions"));
 });
 
-test("username-only probes neither expose questions nor consume the PIN budget", t => {
+test("username-only probes cannot recover a PIN or consume the PIN budget", t => {
     const accounts = createLocalAccounts(); t.after(() => accounts.close());
     const input = profile(); accounts.register(input);
-    assert.deepEqual(accounts.questions({ email: input.email }), accounts.questions({ email: "missing@demo" }));
+    const probe = { email: input.email, password: input.password, newPin: "6273", confirmPin: "6273" };
+    assert.deepEqual(accounts.recoverPin(probe), accounts.recoverPin({ ...probe, email: "missing@demo" }));
     for (let i = 0; i < 10; i++) {
         assert.equal(accounts.reset({ email: input.email, pin: "0000", newPassword: "Changed-password1" }).code, "invalid-recovery");
     }

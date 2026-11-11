@@ -18,13 +18,8 @@ async function fillRecoveryProfile(page, input) {
 }
 
 const pin = "938405";
-const questions = [
-  { question: "Tên con vật trong truyện tôi thích?", answer: "Cáo xanh" },
-  { question: "Món ăn tôi tự nấu lần đầu?", answer: "Canh bí" },
-  { question: "Tên nhân vật tôi từng tự vẽ?", answer: "Mây tím" }
-];
 const profile = (overrides = {}) => ({ email: `ban-${randomUUID()}@demo`, password: "Tai-khoan-tu-tao-123",
-  name: "Khách thử nghiệm", phone: "0900000000", pin, confirmPin: pin, questions, ...overrides });
+  name: "Khách thử nghiệm", phone: "0900000000", pin, confirmPin: pin, ...overrides });
 async function register(page, input) {
   const response = await page.request.post("/api/local-auth/register", { data: input });
   expect(response.ok()).toBeTruthy();
@@ -34,7 +29,7 @@ test.beforeEach(async ({ page }) => {
   await page.route("https://www.gstatic.com/firebasejs/**", route => route.abort());
 });
 
-test("register with a custom PIN and questions, keep session, then sign out and back in", async ({ page }, testInfo) => {
+test("register with a custom PIN without questions, keep session, then sign out and back in", async ({ page }, testInfo) => {
   const input = profile();
   await page.goto("/login.html");
   await expect(page.locator("[data-google-auth]").first()).toBeHidden();
@@ -42,10 +37,7 @@ test("register with a custom PIN and questions, keep session, then sign out and 
   for (const [id, value] of Object.entries({ name: "Khách", lastName: "thử nghiệm", email: input.email,
     phone: input.phone, password: input.password, checkpassword: input.password,
     "signup-pin": "123", "signup-confirm-pin": "123" })) await page.locator(`#${id}`).fill(value);
-  for (let i = 0; i < 3; i++) {
-    await page.locator(`#signup-question-${i + 1}`).fill(questions[i].question);
-    await page.locator(`#signup-answer-${i + 1}`).fill(questions[i].answer);
-  }
+  await expect(page.locator('#signUp [id*="question"], #signUp [id*="answer"]')).toHaveCount(0);
   expect(await page.locator("#signup-pin").evaluate(input => input.checkValidity())).toBe(false);
   await page.locator("#signup-pin").fill("12");
   await page.locator("#signup-pin").pressSequentially("a!b-3 4");
@@ -67,7 +59,7 @@ test("register with a custom PIN and questions, keep session, then sign out and 
   expect(await page.evaluate(() => document.cookie)).not.toContain("flower_local_session");
   const storage = await page.evaluate(() => JSON.stringify({ ...localStorage }));
   expect(storage).not.toContain(pin);
-  expect(storage).not.toContain(questions[0].answer);
+  expect(storage).not.toContain(input.password);
   await page.locator("#logout-button").click();
   await expect(page).toHaveURL(/login\.html/);
   await page.locator("#email1").fill(input.email);
@@ -152,7 +144,7 @@ test("change PIN verifies full account information, current password and old PIN
   await expect(page.locator("#local-reset-result")).toBeVisible();
 });
 
-test("forgotten PIN requires all three custom answers before a new PIN can reset the password", async ({ page }) => {
+test("forgotten PIN requires the current password before a new PIN can reset the password", async ({ page }) => {
   const input = profile(), nextPin = "6273";
   await register(page, input);
   await page.request.post("/api/local-auth/logout");
@@ -160,24 +152,20 @@ test("forgotten PIN requires all three custom answers before a new PIN can reset
   await fillRecoveryProfile(page, input);
   await page.locator("#forgot-pin").click();
   await expect(page.locator("#pin-email")).toHaveValue(input.email);
-  await page.locator("#pin-questions-form button").click();
   await expect(page.locator("#pin-recovery-form")).toBeVisible();
+  await expect(page.locator('[id*="pin-answer"], #pin-questions-form')).toHaveCount(0);
+  await page.locator("#pin-current-password").fill(input.password);
   await page.locator("#back-to-password").click();
   await page.locator("#forgot-pin").click();
-  await expect(page.locator("#pin-recovery-form")).toBeHidden();
-  await page.locator("#pin-questions-form button").click();
   await expect(page.locator("#pin-recovery-form")).toBeVisible();
-  for (let i = 0; i < 3; i++) {
-    await expect(page.locator(`label[for="pin-answer-${i + 1}"]`)).toContainText(questions[i].question);
-    await page.locator(`#pin-answer-${i + 1}`).fill(questions[i].answer);
-  }
-  await page.locator("#pin-answer-3").fill("Câu trả lời sai");
+  await expect(page.locator("#pin-current-password")).toHaveValue("");
+  await page.locator("#pin-current-password").fill(randomUUID());
   await page.locator("#forgot-new-pin").fill(nextPin);
   await page.locator("#forgot-confirm-pin").fill(nextPin);
   await page.locator("#pin-recovery-form button").click();
-  await expect(page.locator("#pin-message")).toContainText("đúng cả 3");
+  await expect(page.locator("#pin-message")).toContainText("không chính xác");
   await expect(page.locator("#pin-message")).toContainText("Bạn còn 4 lượt thử");
-  await page.locator("#pin-answer-3").fill(questions[2].answer);
+  await page.locator("#pin-current-password").fill(input.password);
   await page.locator("#pin-recovery-form button").click();
   await expect(page.locator("#pin-message")).toContainText("Đã đặt lại PIN");
   await page.locator("#back-to-password").click();
@@ -188,7 +176,7 @@ test("forgotten PIN requires all three custom answers before a new PIN can reset
   await expect(page.locator("#local-reset-result")).toBeVisible();
 });
 
-test("fifth wrong PIN shows questions automatically, survives reload and requires a new PIN", async ({ page }) => {
+test("fifth wrong PIN opens password confirmation automatically and survives reload", async ({ page }) => {
   const input = profile(), nextPin = "6273";
   await register(page, input);
   await page.goto(`/forgot-password.html?email=${encodeURIComponent(input.email)}`);
@@ -209,10 +197,7 @@ test("fifth wrong PIN shows questions automatically, survives reload and require
   await page.reload();
   await expect(page.locator("#pin-recovery-form")).toBeVisible();
   await expect(page.locator("#pin-message")).toContainText("Còn 0 lượt thử PIN cũ");
-  for (let i = 0; i < 3; i++) {
-    await expect(page.locator(`label[for="pin-answer-${i + 1}"]`)).toContainText(questions[i].question);
-    await page.locator(`#pin-answer-${i + 1}`).fill(questions[i].answer);
-  }
+  await page.locator("#pin-current-password").fill(input.password);
   await page.locator("#forgot-new-pin").fill(nextPin);
   await page.locator("#forgot-confirm-pin").fill(nextPin);
   await page.locator("#pin-recovery-form button").click();
@@ -225,7 +210,7 @@ test("fifth wrong PIN shows questions automatically, survives reload and require
   await expect(page.locator("#local-reset-result")).toBeVisible();
 });
 
-test("fifth wrong old PIN on the profile opens mandatory questions and cannot be bypassed by revisiting the profile", async ({ page }) => {
+test("fifth wrong old PIN on the profile requires password confirmation on recovery", async ({ page }) => {
   const input = profile();
   await register(page, input);
   await page.goto("/account.html");
@@ -241,7 +226,7 @@ test("fifth wrong old PIN on the profile opens mandatory questions and cannot be
   await page.locator("#security-submit").click();
   await expect(page).toHaveURL(/forgot-password\.html\?.*recoverPin=1/);
   await expect(page.locator("#pin-recovery-form")).toBeVisible();
-  await expect(page.locator("#pin-message")).toContainText("Còn 0 lượt thử PIN cũ");
+  await expect(page.locator("#pin-message")).toContainText("mật khẩu hiện tại");
   await page.goto("/account.html");
   await expect(page).toHaveURL(/forgot-password\.html\?.*recoverPin=1/);
   await expect(page.locator("#pin-recovery-form")).toBeVisible();

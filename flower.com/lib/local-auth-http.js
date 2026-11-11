@@ -4,15 +4,14 @@ const MESSAGES = {
     "local-rate-limited": "Bạn đã gửi quá nhiều yêu cầu trong thời gian ngắn. Vui lòng chờ rồi thử lại.",
     "account-locked": "Bạn đã đăng nhập sai nhiều lần. Vui lòng chờ hết thời gian khóa.",
     "password-reset-required": "Tài khoản cần đặt lại mật khẩu. Chọn Quên mật khẩu và nhập PIN của bạn.",
-    "invalid-recovery": "Thông tin khôi phục không chính xác. Hãy kiểm tra tên đăng nhập, họ tên, số điện thoại và PIN (nếu có).",
-    "pin-reset-required": "Bạn đã nhập sai PIN 5 lần. Còn 0 lượt thử PIN cũ. Hãy trả lời đúng 3 câu hỏi và đặt PIN mới để tiếp tục.",
-    "pin-format-update-required": "PIN hiện tại dùng độ dài cũ. Hãy trả lời đúng 3 câu hỏi để đặt PIN mới gồm 4–6 chữ số.",
-    "invalid-answers": "Thông tin trả lời chưa chính xác. Cần trả lời đúng cả 3 câu hỏi.",
+    "invalid-recovery": "Thông tin khôi phục không chính xác. Hãy kiểm tra thông tin tài khoản và PIN hoặc mật khẩu xác nhận.",
+    "pin-reset-required": "Bạn đã nhập sai PIN 5 lần. Còn 0 lượt thử PIN cũ. Hãy xác nhận bằng mật khẩu hiện tại để đặt PIN mới.",
+    "pin-format-update-required": "PIN hiện tại dùng độ dài cũ. Hãy xác nhận bằng mật khẩu hiện tại để đặt PIN mới gồm 4–6 chữ số.",
     "invalid-security-proof": "Thông tin tài khoản, mật khẩu hoặc PIN cũ không chính xác.",
     "session-required": "Vui lòng đăng nhập lại trước khi đổi PIN.",
-    "security-setup-required": "Tài khoản chưa thiết lập PIN và câu hỏi. Hãy đăng nhập và mở trang Tài khoản để thiết lập.",
+    "security-setup-required": "Tài khoản chưa thiết lập PIN. Hãy đăng nhập và mở trang Tài khoản để thiết lập.",
     "security-already-configured": "Tài khoản đã có PIN. Hãy dùng chức năng đổi PIN với PIN cũ.",
-    "answers-locked": "Bạn đã trả lời sai quá nhiều lần. Vui lòng thử lại sau.",
+    "pin-recovery-locked": "Bạn đã xác nhận sai mật khẩu quá nhiều lần. Vui lòng thử lại sau.",
     "invalid-recovery-code": "Tên đăng nhập hoặc mã khôi phục không chính xác.",
     "recovery-locked": "Bạn đã nhập sai thông tin xác minh quá nhiều lần. Vui lòng thử lại sau."
 };
@@ -31,11 +30,9 @@ function createLocalAuthHandler(accounts) {
                 ...(Number.isInteger(result.attemptsRemaining) ? { attemptsRemaining: result.attemptsRemaining } : {}),
                 ...(result.retryAfter ? { retryAfter: result.retryAfter } : {}) });
             if (result.sessionToken) setSession(result.sessionToken);
-            return res.status(200).json({ ...(result.account ? { account: result.account } : {}),
-                ...(result.questions ? { questions: result.questions } : {}),
-                ...(result.pinResetRequired ? { pinResetRequired: true, pinResetReason: result.pinResetReason } : {}) });
+            return res.status(200).json({ ...(result.account ? { account: result.account } : {}) });
         };
-        if (!["register", "login", "reset", "session", "logout", "questions", "recover-pin", "change-pin", "setup-security"].includes(action)) {
+        if (!["register", "login", "reset", "session", "logout", "recover-pin", "change-pin", "setup-security"].includes(action)) {
             return res.status(404).json({ code: "not-found", error: "Không tìm thấy chức năng tài khoản." });
         }
         const method = action === "session" ? "GET" : "POST";
@@ -51,7 +48,6 @@ function createLocalAuthHandler(accounts) {
             }
             if (action === "register") return sendResult({ status: 200, ...await accounts.register(req.body, sessionCookies(req)) });
             if (action === "login") return sendResult(await accounts.login(req.body, sessionCookies(req)));
-            if (action === "questions") return sendResult(await accounts.questions(req.body));
             if (action === "change-pin") return sendResult(await accounts.changePin(req.body, cookie));
             if (action === "setup-security") return sendResult(await accounts.setupSecurity(req.body, cookie));
             if (action === "recover-pin") {

@@ -44,30 +44,9 @@ function profile(input) {
     if (!name || name.length > 120 || !phone || phone.length > 30) invalid("invalid-profile", "Vui lòng nhập đầy đủ họ tên và số điện thoại (tối đa 120 và 30 ký tự).");
     return { name, phone };
 }
-function securityQuestions(input, account = {}) {
-    if (!Array.isArray(input) || input.length !== 3) invalid("invalid-security-questions", "Hãy đặt 3 câu hỏi khác nhau và trả lời đủ cả 3 câu.");
-    const titles = [], answers = [], normalizedAnswers = [];
-    for (const item of input) {
-        const title = typeof item?.question === "string" ? item.question.trim() : "";
-        const answer = typeof item?.answer === "string" ? normalize(item.answer) : "";
-        if (title.length < 5 || title.length > 160 || answer.length < 6 || answer.length > 200
-            || titles.some(other => normalize(other) === normalize(title)) || normalizedAnswers.includes(answer)
-            || [account.email, account.name, account.phone, account.password, account.pin, account.newPin].some(value => typeof value === "string" && normalize(value) === answer)
-            || /^(.)\1+$|^(?:123456\d*|abcdef\w*|qwerty\w*|password\w*|mat khau|mật khẩu|khong biet|không biết|khong co|không có|\d+)$/u.test(answer)) {
-            invalid("invalid-security-questions", "Đặt 3 câu hỏi khác nhau; đáp án cần 6–200 ký tự, khó đoán, không chỉ gồm số và không trùng nhau.");
-        }
-        titles.push(title);
-        normalizedAnswers.push(answer);
-    }
-    for (const answer of normalizedAnswers) {
-        const salt = randomBytes(16);
-        answers.push({ salt: salt.toString("hex"), hash: secretHash(answer, salt).toString("hex") });
-    }
-    return { titles: JSON.stringify(titles), answers: JSON.stringify(answers) };
-}
 function publicAccount(row) {
     return { uid: row.id, email: row.username, name: row.name || "Khách hàng", phone: row.phone,
-        role: "customer", authProvider: "local", securityConfigured: Boolean(row.pin_hash && row.security_answers),
+        role: "customer", authProvider: "local", securityConfigured: Boolean(row.pin_hash),
         pinResetRequired: Boolean(row.pin_reset_required || (row.pin_hash && row.pin_format_version < 2)),
         sessionExpiresAt: Number(row.session_expires_at) };
 }
@@ -96,7 +75,7 @@ function createLocalAccounts({ filename = ":memory:", now = Date.now } = {}) {
             if (!columns.has(column)) db.exec(`ALTER TABLE local_users ADD COLUMN ${column} ${definition}`);
         }
         if (!columns.has("pin_failures")) {
-            // Carry over the former shared PIN budget; a prior fifth failure now requires questions.
+            // Carry over the former shared PIN budget without unlocking a previously blocked PIN.
             db.exec(`UPDATE local_users SET pin_failures = MIN(5, recovery_failures),
                 pin_reset_required = CASE WHEN recovery_failures >= 5 THEN 1 ELSE 0 END,
                 recovery_failures = 0, recovery_locked_until = 0 WHERE pin_hash IS NOT NULL`);
@@ -135,14 +114,14 @@ function createLocalAccounts({ filename = ":memory:", now = Date.now } = {}) {
     }
     function blocked(user, kind = "recovery") {
         const until = user[`${kind}_locked_until`];
-        return until > now() ? { status: 429, code: kind === "answer" ? "answers-locked" : "recovery-locked",
+        return until > now() ? { status: 429, code: kind === "answer" ? "pin-recovery-locked" : "recovery-locked",
             retryAfter: Math.ceil((until - now()) / 1000), attemptsRemaining: 0 } : null;
     }
     function failed(user, code, kind = "recovery") {
         const count = user[`${kind}_locked_until`] ? 1 : user[`${kind}_failures`] + 1;
         const until = count >= 5 ? now() + 15 * 60_000 : 0;
         db.prepare(`UPDATE local_users SET ${kind}_failures = ?, ${kind}_locked_until = ? WHERE id = ?`).run(count, until, user.id);
-        return until ? { status: 429, code: kind === "answer" ? "answers-locked" : "recovery-locked", retryAfter: 900, attemptsRemaining: 0 }
+        return until ? { status: 429, code: kind === "answer" ? "pin-recovery-locked" : "recovery-locked", retryAfter: 900, attemptsRemaining: 0 }
             : { status: 401, code, attemptsRemaining: 5 - count };
     }
     function pinRestriction(user) {
@@ -164,13 +143,13 @@ function createLocalAccounts({ filename = ":memory:", now = Date.now } = {}) {
     function register(input = {}, previousToken) {
         const email = username(input.email), secret = password(input.password), details = profile(input);
         if (userByName.get(email)) invalid("account-exists", "Tên đăng nhập này đã được sử dụng.", 409);
-        const value = newPin(input), questions = securityQuestions(input.questions, input);
+        const value = newPin(input);
         return transaction(() => {
             if (userByName.get(email)) invalid("account-exists", "Tên đăng nhập này đã được sử dụng.", 409);
             const salt = randomBytes(16), pinSalt = randomBytes(16), id = `local-${randomUUID()}`;
             db.prepare(`INSERT INTO local_users (id, username, name, phone, password_hash, salt, recovery_hash,
-                pin_hash, pin_salt, security_questions, security_answers, pin_format_version) VALUES (?, ?, ?, ?, ?, ?, '', ?, ?, ?, ?, 2)`)
-                .run(id, email, details.name, details.phone, passwordHash(secret, salt), salt, secretHash(value, pinSalt), pinSalt, questions.titles, questions.answers);
+                pin_hash, pin_salt, pin_format_version) VALUES (?, ?, ?, ?, ?, ?, '', ?, ?, 2)`)
+                .run(id, email, details.name, details.phone, passwordHash(secret, salt), salt, secretHash(value, pinSalt), pinSalt);
             const user = userByName.get(email);
             return authenticated(user, previousToken);
         });
@@ -193,8 +172,8 @@ function createLocalAccounts({ filename = ":memory:", now = Date.now } = {}) {
             return authenticated(user, previousToken);
         });
     }
-    // A username alone must never reveal questions or consume another person's PIN budget.
-    // Profile details are an extra barrier, not a replacement for the PIN/three answers.
+    // Profile details are an extra barrier, not a replacement for the PIN/current password.
+    // A username alone must never consume another person's recovery budget.
     function recoveryUser(input) {
         const user = userByName.get(username(input.email));
         const name = typeof input.name === "string" && input.name.length <= 120 ? normalize(input.name) : "";
@@ -226,32 +205,24 @@ function createLocalAccounts({ filename = ":memory:", now = Date.now } = {}) {
             return { status: 200 };
         });
     }
-    function questions(input = {}) {
-        const user = recoveryUser(input);
-        if (!user) return { status: 401, code: "invalid-recovery" };
-        if (!user.security_questions) return { status: 409, code: "security-setup-required" };
-        return blocked(user, "answer") || { status: 200, questions: JSON.parse(user.security_questions),
-            ...(pinRestriction(user) ? { pinResetRequired: true, pinResetReason: pinRestriction(user).code } : {}) };
-    }
     function recoverPin(input = {}, previousToken) {
-        const email = username(input.email), value = newPin(input);
-        if (!Array.isArray(input.answers) || input.answers.length !== 3 || input.answers.some(answer => typeof answer !== "string" || normalize(answer).length < 2 || answer.length > 200)) {
-            invalid("invalid-answers", "Vui lòng trả lời đủ cả 3 câu hỏi (2–200 ký tự mỗi câu).");
-        }
+        const email = username(input.email), secret = password(input.password, 1), value = newPin(input);
         return transaction(() => {
             const user = recoveryUser(input);
-            if (!user) return { status: 401, code: "invalid-recovery" };
-            if (!user.security_answers) return { status: 409, code: "security-setup-required" };
+            if (!user) {
+                same(passwordHash(secret, dummySalt), dummyHash);
+                return { status: 401, code: "invalid-recovery" };
+            }
+            // Keep the legacy answer_* counters so existing recovery cooldowns remain in force.
             const stop = blocked(user, "answer"); if (stop) return stop;
-            const proofs = JSON.parse(user.security_answers);
-            let correct = 1;
-            proofs.forEach((proof, index) => { correct &= Number(same(secretHash(normalize(input.answers[index]), Buffer.from(proof.salt, "hex")), Buffer.from(proof.hash, "hex"))); });
-            if (!correct) return failed(user, "invalid-answers", "answer");
+            if (!same(passwordHash(secret, user.salt), user.password_hash)) return failed(user, "invalid-recovery", "answer");
+            if (!user.pin_hash) return { status: 409, code: "security-setup-required" };
             if (verifyPin(user, value)) invalid("pin-unchanged", "Hãy chọn PIN mới khác PIN cũ.");
             if (same(passwordHash(value, user.salt), user.password_hash)) invalid("pin-matches-password", "Hãy đặt PIN khác mật khẩu.");
             const salt = randomBytes(16);
             db.prepare(`UPDATE local_users SET pin_hash = ?, pin_salt = ?, recovery_hash = '', recovery_failures = 0,
                 recovery_locked_until = 0, answer_failures = 0, answer_locked_until = 0,
+                security_questions = NULL, security_answers = NULL,
                 pin_failures = 0, pin_reset_required = 0, pin_format_version = 2 WHERE id = ?`).run(secretHash(value, salt), salt, user.id);
             db.prepare("DELETE FROM local_sessions WHERE user_id = ?").run(user.id);
             removePresentedSessions(previousToken);
@@ -284,10 +255,10 @@ function createLocalAccounts({ filename = ":memory:", now = Date.now } = {}) {
             if (user.pin_hash) return { status: 409, code: "security-already-configured" };
             const stop = blocked(user); if (stop) return stop;
             if (!same(passwordHash(secret, user.salt), user.password_hash)) return failed(user, "invalid-security-proof");
-            const questions = securityQuestions(input.questions, input), salt = randomBytes(16);
+            const salt = randomBytes(16);
             db.prepare(`UPDATE local_users SET name = ?, phone = ?, pin_hash = ?, pin_salt = ?, recovery_hash = '',
-                security_questions = ?, security_answers = ?, recovery_failures = 0, recovery_locked_until = 0, pin_format_version = 2 WHERE id = ?`)
-                .run(details.name, details.phone, secretHash(value, salt), salt, questions.titles, questions.answers, user.id);
+                security_questions = NULL, security_answers = NULL, recovery_failures = 0, recovery_locked_until = 0, pin_format_version = 2 WHERE id = ?`)
+                .run(details.name, details.phone, secretHash(value, salt), salt, user.id);
             return rotateSession(userByName.get(user.username));
         });
     }
@@ -295,6 +266,6 @@ function createLocalAccounts({ filename = ":memory:", now = Date.now } = {}) {
     function logout(token) {
         transaction(() => removePresentedSessions(token));
     }
-    return { register, login, reset, questions, recoverPin, changePin, setupSecurity, session, logout, close: () => db.close() };
+    return { register, login, reset, recoverPin, changePin, setupSecurity, session, logout, close: () => db.close() };
 }
 module.exports = { createLocalAccounts };

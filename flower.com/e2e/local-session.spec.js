@@ -23,11 +23,7 @@ test.beforeEach(async ({ page }) => {
 
 async function signedIn(page) {
   const input = { email: `session-${randomUUID()}@demo`, password: "Session-test-password-123", name: "Khách kiểm thử phiên", phone: "0900000000",
-    pin: "938405", confirmPin: "938405", questions: [
-      { question: "Tên con vật trong truyện tôi thích?", answer: "Cáo xanh" },
-      { question: "Món ăn tôi tự nấu lần đầu?", answer: "Canh bí" },
-      { question: "Tên nhân vật tôi từng tự vẽ?", answer: "Mây tím" }
-    ] };
+    pin: "938405", confirmPin: "938405" };
   const response = await page.request.post("/api/local-auth/register", { data: input });
   expect(response.status()).toBe(200);
   const { account } = await response.json();

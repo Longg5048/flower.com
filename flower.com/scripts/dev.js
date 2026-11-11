@@ -29,7 +29,7 @@ if (!Number.isInteger(port) || port < 1 || port > 65535) {
         console.log(`Flowerflow: http://127.0.0.1:${port}/`);
         console.log(`Đăng nhập: http://127.0.0.1:${port}/login.html`);
         console.log("Giao diện và API chạy cùng địa chỉ. Dừng bằng Ctrl+C.");
-        if (mode === "local") console.log("Tài khoản tự tạo trên máy: không cần Firebase hoặc email thật. Đặt PIN và 3 câu hỏi khi đăng ký.");
+        if (mode === "local") console.log("Tài khoản tự tạo trên máy: không cần Firebase hoặc email thật. Đặt PIN khi đăng ký; dùng mật khẩu hiện tại nếu quên PIN.");
         if (missing.length) {
             console.log("Đăng nhập Firebase thật chưa sẵn sàng. Cần điền trong .env:");
             missing.forEach((key) => console.log(`  ${key}`));

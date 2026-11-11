@@ -80,13 +80,12 @@ test("mandatory password reset cannot be bypassed by knowing the username", asyn
     assert.equal((await login("New-test-password1")).status, 200);
 });
 
-test("PIN API protects secrets, rotates cookies and verifies all three answers", async t => {
+test("PIN API protects secrets, retires questions and verifies the current password", async t => {
     const { request } = await fixture(t);
     const input = profile();
     const registered = await request("register", input);
     const cookie = registered.headers.get("set-cookie").split(";")[0];
-    const titles = await (await request("questions", { email: input.email })).json();
-    assert.deepEqual(titles, { questions: input.questions.map(item => item.question) });
+    assert.equal((await request("questions", { email: input.email })).status, 404);
     const change = { ...input, oldPin: input.pin, newPin: "84710", confirmPin: "84710" };
     assert.equal((await request("change-pin", change)).status, 401);
     assert.equal((await request("change-pin", { ...change, oldPin: "123456" }, cookie)).status, 401);
@@ -98,8 +97,8 @@ test("PIN API protects secrets, rotates cookies and verifies all three answers",
     const body = await changed.json();
     for (const key of ["pin", "pin_hash", "security_answers", "sessionToken"]) assert.ok(!Object.hasOwn(body, key));
     assert.equal((await request("setup-security", input, newCookie)).status, 409);
-    const recover = { email: input.email, answers: input.questions.map(item => item.answer), newPin: "6273", confirmPin: "6273" };
-    assert.equal((await request("recover-pin", { ...recover, answers: ["Sai một", "Sai hai", "Sai ba"] })).status, 401);
+    const recover = { email: input.email, password: input.password, newPin: "6273", confirmPin: "6273" };
+    assert.equal((await request("recover-pin", { ...recover, password: "wrong" })).status, 401);
     const recovered = await request("recover-pin", recover);
     assert.equal(recovered.status, 200);
     assert.match(recovered.headers.get("set-cookie"), /Max-Age=0/);
@@ -107,7 +106,7 @@ test("PIN API protects secrets, rotates cookies and verifies all three answers",
     assert.equal((await request("reset", { email: input.email, pin: recover.newPin, newPassword: "New-password1" })).status, 200);
 });
 
-test("five wrong PINs force recovery across endpoints; answers have a separate cooldown", async t => {
+test("five wrong PINs force recovery across endpoints; password confirmation has a separate cooldown", async t => {
     const { request, advance } = await fixture(t);
     const input = profile();
     const registered = await request("register", input);
@@ -126,15 +125,14 @@ test("five wrong PINs force recovery across endpoints; answers have a separate c
         email: input.email, pin: input.pin, newPassword: "New-password1"
     })));
     assert.ok(parallel.every(response => response.status === 403));
-    const titles = await (await request("questions", { email: input.email })).json();
-    assert.equal(titles.pinResetRequired, true); assert.equal(titles.questions.length, 3);
-    const recover = { email: input.email, answers: ["Sai một", "Sai hai", "Sai ba"], newPin: "6273", confirmPin: "6273" };
+    assert.equal((await request("questions", { email: input.email })).status, 404);
+    const recover = { email: input.email, password: "wrong", newPin: "6273", confirmPin: "6273" };
     for (let remaining = 4; remaining >= 0; remaining--) {
         const response = await request("recover-pin", recover);
         assert.equal((await response.json()).attemptsRemaining, remaining);
     }
-    assert.equal((await request("questions", { email: input.email })).status, 429);
+    assert.equal((await request("recover-pin", { ...recover, password: input.password })).status, 429);
     advance(15 * 60_000);
-    assert.equal((await request("recover-pin", { ...recover, answers: input.questions.map(item => item.answer) })).status, 200);
+    assert.equal((await request("recover-pin", { ...recover, password: input.password })).status, 200);
     assert.equal((await request("reset", { email: input.email, pin: recover.newPin, newPassword: "New-password1" })).status, 200);
 });

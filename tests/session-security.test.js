@@ -107,7 +107,8 @@ test("recovery revokes the target's sessions and any different account cookie be
     assert.equal((await h.privateRequest(otherDevice)).status, 200);
     const nextFirst = cookieOf(await h.request("login", first));
     const nextTarget = cookieOf(await h.request("login", { ...target, password: newPassword }));
-    assert.equal((await h.request("recover-pin", { ...target, answers: target.questions.map(q => q.answer), newPin: "6273", confirmPin: "6273" }, nextFirst)).status, 200);
+    assert.equal((await h.request("recover-pin", { ...target, newPin: "6273", confirmPin: "6273" }, nextFirst)).status, 401);
+    assert.equal((await h.request("recover-pin", { ...target, password: newPassword, newPin: "6273", confirmPin: "6273" }, nextFirst)).status, 200);
     assert.equal((await h.privateRequest(nextFirst)).status, 401);
     assert.equal((await h.privateRequest(nextTarget)).status, 401);
     assert.equal((await h.privateRequest(otherDevice)).status, 200);

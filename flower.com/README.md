@@ -144,7 +144,7 @@ Triển khai: `firebase deploy --only firestore:rules,firestore:indexes`. Lệnh
 
 ## Xác thực
 
-- Khi chạy `npm run dev`, mặc định **tài khoản tự tạo trên máy**: tên có `@` nhưng không cần email thật, đăng ký/đăng nhập bằng SQLite và cookie phiên. Dùng PIN tự đặt gồm 4–6 chữ số để khôi phục mật khẩu; đổi PIN cần đầy đủ thông tin, mật khẩu và PIN cũ. Quên PIN phải trả lời đúng 3 câu hỏi tự đặt. Các bí mật được băm bằng scrypt. Xem [tài khoản local](docs/local-accounts.md).
+- Khi chạy `npm run dev`, mặc định **tài khoản tự tạo trên máy**: tên có `@` nhưng không cần email thật, đăng ký/đăng nhập bằng SQLite và cookie phiên. Dùng PIN tự đặt gồm 4–6 chữ số để khôi phục mật khẩu; đổi PIN cần đầy đủ thông tin, mật khẩu và PIN cũ. Quên PIN được xác nhận bằng mật khẩu hiện tại. Các bí mật được băm bằng scrypt. Xem [tài khoản local](docs/local-accounts.md).
 - Chế độ Firebase (`AUTH_MODE=firebase` khi chạy dev, hoặc bản Vercel hiện có) dùng **Email/Password và Google** qua Firebase Authentication. Tài khoản Google luôn được tạo với vai trò khách hàng; khi Firebase chưa sẵn sàng, chế độ này báo lỗi và không chuyển sang một cơ chế xác thực khác.
 - Đăng nhập mật khẩu đi qua `/api/login`, giới hạn theo tài khoản: sai 5 lần khóa 15 phút, sau đó mỗi lần thử sai tăng thời gian khóa lên 30/60/120/240 phút; lần sai thứ 10 bắt buộc hoàn tất đặt lại mật khẩu. Xem [cấu hình key Firebase bắt buộc và kiểm thử](docs/login-protection.md) trước khi triển khai.
 - **Quản trị:** trang `admin.html` kiểm tra claim `admin: true` trên ID token; API phía server kiểm tra lại claim này độc lập với giao diện.

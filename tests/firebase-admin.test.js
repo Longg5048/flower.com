@@ -1,6 +1,16 @@
 const test = require('node:test');
 const assert = require('node:assert/strict');
+const path = require('node:path');
+const { createRequire } = require('node:module');
 const { loadModule, response, memoryDatabase } = require('./helpers/api-fixture');
+
+test('Firebase Admin JWKS dependency resolves a CommonJS jose entry', () => {
+    const appRequire = createRequire(path.join(__dirname, '../flower.com/package.json'));
+    const jwksRsaPath = appRequire.resolve('jwks-rsa');
+    const josePath = appRequire.resolve('jose', { paths: [jwksRsaPath] });
+    assert.match(josePath, /[\\/]dist[\\/]node[\\/]cjs[\\/]index\.js$/);
+    assert.doesNotThrow(() => appRequire('jwks-rsa/src/utils'));
+});
 
 function fixture(t, value) {
     const previous = process.env.FIREBASE_SERVICE_ACCOUNT_JSON;

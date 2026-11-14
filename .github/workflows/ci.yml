@@ -14,6 +14,20 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  aspnet:
+    name: ASP.NET Core build and tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 10.0.x
+      - name: Chạy test nghiệp vụ C#
+        run: dotnet test flower.com/aspnet/FlowerFlow.Tests/FlowerFlow.Tests.csproj --configuration Release
+      - name: Publish API và frontend
+        run: dotnet publish flower.com/aspnet/FlowerFlow.Api/FlowerFlow.Api.csproj --configuration Release --output "$RUNNER_TEMP/flowerflow-publish"
+
   unit:
     name: Unit test + coverage
     runs-on: ubuntu-latest

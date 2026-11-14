@@ -1,6 +1,10 @@
 # Dependencies
 node_modules/
 .tools/
+**/bin/
+**/obj/
+**/publish/
+.vs/
 
 # Environment variables and Vercel local config
 .env*

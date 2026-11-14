@@ -43,19 +43,19 @@ Trước khi bắt đầu, đọc lời đồng ý (mục 5) và chỉ ghi âm k
 
 ## 4. Kịch bản usability test
 
-Dùng điện thoại thật, mở https://flower-com-six.vercel.app. Người điều phối chỉ đọc nhiệm vụ, không hướng dẫn. Người tham gia vừa làm vừa nói ra suy nghĩ.
+Dùng điện thoại thật trên môi trường staging/local dành riêng cho kiểm thử, với dữ liệu và tài khoản thử nghiệm. **Không đặt đơn hoặc đăng nhập quản trị trên production**, không dùng thông tin cá nhân thật của người tham gia hay người nhận. Người điều phối chỉ đọc nhiệm vụ, không hướng dẫn. Người tham gia vừa làm vừa nói ra suy nghĩ.
 
 | # | Nhiệm vụ | Thành công khi | Đo |
 | --- | --- | --- | --- |
 | T1 | "Tìm một bó hoa hồng tặng sinh nhật dưới 500.000 ₫" | Mở được trang chi tiết một bó phù hợp | Thời gian, số lần quay lại |
 | T2 | "Thêm bó đó vào giỏ, kèm lời nhắn trên thiệp" | Giỏ có sản phẩm và lời nhắn | Thời gian, lỗi |
-| T3 | "Đặt giao ngày mai buổi sáng tới Cầu Giấy, trả khi nhận hàng" | Đặt xong, thấy mã đơn | Thời gian, lỗi, có hiểu phí giao không |
+| T3 | "Đặt giao ngày mai buổi sáng tới Cầu Giấy, trả khi nhận hàng" | Đặt xong trong môi trường thử nghiệm, thấy mã đơn | Thời gian, lỗi, có hiểu phí giao không |
 | T4 | "Kiểm tra đơn vừa đặt đang ở bước nào" | Mở trang theo dõi, thấy trạng thái | Thời gian |
-| T5 (admin) | "Xác nhận đơn vừa có và chuyển sang Đang chuẩn bị" | Trạng thái đổi đúng | Số thao tác |
+| T5 (admin) | "Xác nhận đơn vừa có và chuyển sang Đang chuẩn bị" | Trạng thái đổi đúng trong môi trường thử nghiệm | Số thao tác |
 
 Sau buổi test hỏi: điểm hài lòng từ 1 đến 5; điều khó nhất; một điều muốn thay đổi.
 
-Lưu ý: dùng đơn thử và hủy đơn sau buổi test để hoàn kho. Không thanh toán VNPay thật.
+Lưu ý: chỉ tạo đơn thử trong staging/local và xóa dữ liệu thử sau buổi test để hoàn kho. Không thanh toán VNPay thật. T5 cần tài khoản admin thử nghiệm riêng; không chia sẻ mật khẩu production hoặc quyền quản trị thật.
 
 ## 5. Lời đồng ý (đọc trước khi bắt đầu)
 

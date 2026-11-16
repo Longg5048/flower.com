@@ -1,0 +1,59 @@
+name: ASP.NET main backend
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  aspnet:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      FLOWERFLOW_TEST_FIRESTORE_HOST: 127.0.0.1:8797
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 10.0.x
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: flower.com/package-lock.json
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+      - run: npm ci --prefix flower.com
+      - name: Install Chromium
+        working-directory: flower.com
+        run: npx playwright install --with-deps chromium
+      - name: Restore solution
+        run: dotnet restore aspnet/FlowerFlow.sln
+      - name: Test HTTP contracts, browser and Firestore transactions
+        working-directory: flower.com
+        run: npx firebase emulators:exec --config ../aspnet/deploy/firebase.test.json --project demo-flowerflow-main --only firestore "dotnet test ../aspnet/FlowerFlow.sln --no-restore --logger trx --results-directory ../artifacts/test-results"
+      - name: Publish release
+        run: dotnet publish aspnet/src/FlowerFlow.Api/FlowerFlow.Api.csproj -c Release --no-restore -o artifacts/main-backend
+      - name: Smoke published host without production secrets
+        shell: bash
+        run: |
+          (cd artifacts/main-backend && dotnet FlowerFlow.Api.dll --urls http://127.0.0.1:5087) > artifacts/host-smoke.log 2>&1 &
+          host_pid=$!
+          trap 'kill "$host_pid"' EXIT
+          for attempt in {1..30}; do
+            if curl --silent --fail http://127.0.0.1:5087/health > /dev/null; then break; fi
+            sleep 1
+          done
+          node aspnet/deploy/smoke-main-backend.cjs http://127.0.0.1:5087
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: aspnet-test-results
+          path: artifacts/test-results
+      - uses: actions/upload-artifact@v4
+        with:
+          name: flowerflow-main-backend
+          path: artifacts/main-backend

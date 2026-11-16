@@ -340,7 +340,8 @@ public sealed class FlowerFlowDbContext(DbContextOptions<FlowerFlowDbContext> op
         orderItem.Property(x => x.Unit).HasMaxLength(10);
         orderItem.Property(x => x.UnitPrice).HasPrecision(18, 0);
         orderItem.Property(x => x.DiscountAmount).HasPrecision(18, 0).HasDefaultValue(0);
-        orderItem.Property(x => x.LineTotal).HasComputedColumnSql("([UnitPrice] * [Quantity] - [DiscountAmount])", stored: true);
+        orderItem.Property(x => x.LineTotal).HasPrecision(30, 0)
+            .HasComputedColumnSql("([UnitPrice] * [Quantity] - [DiscountAmount])", stored: true);
         orderItem.Property(x => x.Size).HasMaxLength(40);
         orderItem.Property(x => x.Color).HasMaxLength(40);
         orderItem.Property(x => x.CardMessage).HasMaxLength(300);

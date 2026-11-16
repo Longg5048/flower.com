@@ -942,7 +942,8 @@ namespace FlowerFlow.Infrastructure.Migrations
 
                     b.Property<decimal>("LineTotal")
                         .ValueGeneratedOnAddOrUpdate()
-                        .HasColumnType("decimal(18,2)")
+                        .HasPrecision(30)
+                        .HasColumnType("decimal(30,0)")
                         .HasComputedColumnSql("([UnitPrice] * [Quantity] - [DiscountAmount])", true);
 
                     b.Property<long>("OrderId")

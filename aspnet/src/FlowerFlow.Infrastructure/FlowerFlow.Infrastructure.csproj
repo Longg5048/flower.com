@@ -1,12 +1,15 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <ItemGroup>
+    <EmbeddedResource Include="../../../flower.com/flower.json" LogicalName="FlowerFlow.Catalog.json" />
+    <EmbeddedResource Include="../../../flower.com/js/core/firebase-config.js" LogicalName="FlowerFlow.FirebaseConfig.js" />
     <ProjectReference Include="..\FlowerFlow.Domain\FlowerFlow.Domain.csproj" />
     <ProjectReference Include="..\FlowerFlow.Application\FlowerFlow.Application.csproj" />
   </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="FirebaseAdmin" Version="3.7.0" />
+    <PackageReference Include="Google.Cloud.Firestore" Version="4.6.0" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="10.0.14">
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
       <PrivateAssets>all</PrivateAssets>

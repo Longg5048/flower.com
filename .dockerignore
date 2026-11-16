@@ -1,0 +1,14 @@
+**/node_modules
+**/bin
+**/obj
+.git
+**/.env*
+**/*service-account*.json
+**/*firebase-adminsdk*.json
+**/serviceAccountKey.json
+**/backups
+**/coverage
+**/test-results*
+**/playwright-report*
+artifacts
+**/*.log

@@ -1,20 +1,28 @@
 # FlowerFlow ASP.NET Core API
 
-This is the ASP.NET Core 10 sidecar API for FlowerFlow. The existing Vercel/Node backend, Firebase, and frontend remain in place. The approved SQL Server design in `docs/database/schema.sql` is mapped by EF Core; this project does not create or change a database automatically.
+Validation update (2026-11-17): **97/97 ASP.NET tests passed with no skips**, including Firestore transactions and a Chromium frontend/API flow; Release publish and local smoke passed. See [final report](../docs/test-reports/2026-11-17-main-backend.md) for contention fixes, commands and staging limitations.
+
+Current implementation (2026-11-16): all existing production API groups now have ASP.NET endpoints using Firebase Authentication and Firestore, including login, administration, catalog/images/settings, orders/reviews, payments/IPN and design requests. See [main backend deployment](MAIN-BACKEND-DEPLOYMENT.md) for the endpoint map, required secrets, publish/container commands and staging/cutover procedure; [work status](MAIN-BACKEND-WORK.md) tracks validation. Production routing remains on Node.
+
+The historical stage reports are [assessment](BACKEND-ASSESSMENT.md), [Firebase](FIREBASE-FOUNDATION.md), [products](PRODUCTS-MIGRATION.md), [flower prices](FLOWER-PRICES-MIGRATION.md) and [images](IMAGES-MIGRATION.md). Review submission is now implemented in ASP.NET Orders as well.
+
+Publish from the repository root: `dotnet publish aspnet/src/FlowerFlow.Api/FlowerFlow.Api.csproj -c Release -o artifacts/main-backend`. The output includes the unchanged static frontend; configure server secrets before starting it. `/health/ready` must return 200 before routing traffic. SQL Server is not required for the migrated API groups, and EF migrations must not be run for this migration.
+
+The remaining SQL documentation below describes the preserved SQL scaffolding (`/api/account/*`, DbContext and migrations), not the primary Firestore backend. That scaffolding is retained to preserve existing work; it does not create or change a database automatically.
 
 ## Project map
 
 - `src/FlowerFlow.Domain`: persistence-independent C# entity types, grouped by identity, catalog, commerce, and operations.
 - `src/FlowerFlow.Application`: application/use-case layer, kept independent of ASP.NET and SQL details.
-- `src/FlowerFlow.Infrastructure`: EF Core SQL Server provider, `FlowerFlowDbContext` mappings, and migrations. The DbContext is the unit of work for a request: it tracks entity changes and translates LINQ into SQL.
+- `src/FlowerFlow.Infrastructure`: Firebase Auth/Firestore adapters and VNPay gateway for the main backend; preserved EF Core SQL Server provider, DbContext and migrations for the optional SQL scaffolding.
 - `src/FlowerFlow.Api`: ASP.NET startup, controllers, HTTP configuration, Firebase bearer authentication, and OpenAPI/Swagger UI.
 - `initial-schema-migration.sql`: generated, idempotent SQL for review. It is not applied automatically.
 
-## Request flow
+## Preserved SQL scaffolding request flow
 
 An HTTP request enters an API controller. ASP.NET resolves its dependencies through dependency injection; `AddDbContext` registers `FlowerFlowDbContext` with a scoped lifetime, normally one instance per request. A controller queries a `DbSet` with LINQ. EF Core translates that expression to parameterized SQL, the SQL Server provider sends it to SQL Server, and EF maps returned rows to C# entities. The controller should return response DTOs rather than database entities directly.
 
-## Local setup and secret handling
+## Optional SQL scaffolding setup
 
 Install the .NET 10 SDK and SQL Server. The API reads `ConnectionStrings:FlowerFlow` from .NET User Secrets in Development or from the `ConnectionStrings__FlowerFlow` environment variable in other environments. Never place a real connection string in `appsettings*.json` or source control.
 

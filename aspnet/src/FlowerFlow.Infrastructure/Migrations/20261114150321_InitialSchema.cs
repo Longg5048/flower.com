@@ -705,7 +705,7 @@ namespace FlowerFlow.Infrastructure.Migrations
                     UnitPrice = table.Column<decimal>(type: "decimal(18,0)", precision: 18, scale: 0, nullable: false),
                     Quantity = table.Column<int>(type: "int", nullable: false),
                     DiscountAmount = table.Column<decimal>(type: "decimal(18,0)", precision: 18, scale: 0, nullable: false, defaultValue: 0m),
-                    LineTotal = table.Column<decimal>(type: "decimal(18,2)", nullable: false, computedColumnSql: "([UnitPrice] * [Quantity] - [DiscountAmount])", stored: true),
+                    LineTotal = table.Column<decimal>(type: "decimal(30,0)", precision: 30, scale: 0, nullable: false, computedColumnSql: "([UnitPrice] * [Quantity] - [DiscountAmount])", stored: true),
                     Size = table.Column<string>(type: "nvarchar(40)", maxLength: 40, nullable: true),
                     Color = table.Column<string>(type: "nvarchar(40)", maxLength: 40, nullable: true),
                     CardMessage = table.Column<string>(type: "nvarchar(300)", maxLength: 300, nullable: true),

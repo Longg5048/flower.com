@@ -1,5 +1,7 @@
 using System.Security.Claims;
 using System.Text.Encodings.Web;
+using FlowerFlow.Application.Identity;
+using FlowerFlow.Api.Controllers;
 using FlowerFlow.Infrastructure.Persistence;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.EntityFrameworkCore;
@@ -11,13 +13,15 @@ public sealed class FirebaseBearerHandler(
     IOptionsMonitor<AuthenticationSchemeOptions> options,
     ILoggerFactory logger,
     UrlEncoder encoder,
-    FirebaseTokenVerifier verifier,
+    IFirebaseTokenVerifier verifier,
     FlowerFlowDbContext db,
     IConfiguration configuration)
     : AuthenticationHandler<AuthenticationSchemeOptions>(options, logger, encoder)
 {
     protected override async Task<AuthenticateResult> HandleAuthenticateAsync()
     {
+        if (Context.GetEndpoint()?.Metadata.GetMetadata<FirestoreEndpointAttribute>() is not null)
+            return AuthenticateResult.NoResult();
         var authorization = Request.Headers.Authorization.ToString();
         if (string.IsNullOrWhiteSpace(authorization))
             return AuthenticateResult.NoResult();

@@ -62,11 +62,14 @@ static class ApiHostContracts
             using var sessionRequest = new HttpRequestMessage(HttpMethod.Get,"/api/local-auth/session"); sessionRequest.Headers.Add("Cookie",cookie);
             using var session = await client.SendAsync(sessionRequest);
             AdditionalContracts.Require(session.IsSuccessStatusCode, "Actual local session was not persisted");
-            foreach (var path in new[] { "orders", "login", "auth/logout-all", "payments", "vnpay-ipn", "products", "design-requests", "product-images", "review-images", "admin/users", "owner/users", "admin/audit", "bouquet-wrapping", "delivery-zones", "flower-prices" })
+            foreach (var path in new[] { "orders", "login", "auth/logout-all", "payments", "vnpay-ipn", "products", "design-requests", "product-images", "review-images", "admin/users", "owner/users", "admin/audit", "bouquet-wrapping", "delivery-zones", "flower-prices", "wilting-prices" })
             {
                 using var request = new HttpRequestMessage(HttpMethod.Put, "/api/" + path); request.Headers.Add("Cookie",cookie);
                 using var response = await client.SendAsync(request);
-                AdditionalContracts.Require((int)response.StatusCode != 500 && response.Content.Headers.ContentType?.MediaType == "application/json", "API dependency graph/routing failed: " + path);
+                // This host has no Firebase credentials: 503 is a valid configured failure,
+                // while 404 would silently accept a missing controller route.
+                AdditionalContracts.Require(response.StatusCode != HttpStatusCode.NotFound && (int)response.StatusCode != 500
+                    && response.Content.Headers.ContentType?.MediaType == "application/json", "API dependency graph/routing failed: " + path);
             }
             using var logoutRequest = new HttpRequestMessage(HttpMethod.Post,"/api/local-auth/logout"); logoutRequest.Headers.Add("Cookie",cookie);
             using var logout = await client.SendAsync(logoutRequest); AdditionalContracts.Require(logout.IsSuccessStatusCode, "Actual logout failed");

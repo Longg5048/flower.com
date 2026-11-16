@@ -18,6 +18,7 @@ backups/
 *.json.enc
 
 # Test coverage reports
+/artifacts/
 coverage/
 test-results/
 test-results-local/

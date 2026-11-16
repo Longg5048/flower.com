@@ -4,6 +4,17 @@ Render là hosting chính thức của website từ ngày 16/11/2026: `https://f
 
 ## Việc cần làm trên dashboard khi chuyển
 
+Để kiểm tra lại host bằng các request chỉ đọc, chạy từ gốc repository:
+
+```sh
+node flower.com/scripts/verify-render.mjs https://flower-com.onrender.com
+```
+
+Script yêu cầu HTTPS, kiểm tra health, trang chủ, cấu trúc catalog, CSP/HSTS và
+việc API local-auth bị tắt. Nó không xác minh merchant VNPay, login production
+hay commit đang chạy trên Render. Bằng chứng Docker CI và kết quả HTTP ngày
+17/11/2026 nằm trong [báo cáo FF-01](../../../docs/test-reports/2026-11-17-ff-01-docker-render.md).
+
 Các bước này nằm ngoài repo, chủ dự án phải tự làm:
 
 1. **Render → service → Settings → Build & Deploy:** đổi Branch sang `main` (khớp `render.yaml`), bật Auto-Deploy "After CI checks pass" nếu muốn tự deploy, rồi **Manual Deploy → Deploy latest commit**.

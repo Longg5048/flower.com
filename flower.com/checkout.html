@@ -90,6 +90,10 @@
               </select>
             </label>
             <p id="delivery-zone-message" class="checkout-field-wide checkout-zone-message" role="status" aria-live="polite"></p>
+            <label class="checkout-field checkout-field-wide">
+              <span>Địa điểm chi tiết <small>(bắt buộc)</small></span>
+              <input type="text" name="deliveryAddressDetail" maxlength="500" placeholder="Ví dụ: Tòa A, tầng 3, căn 305" required>
+            </label>
             <label class="checkout-field">
               <span>Ngày giao mong muốn</span>
               <input type="date" name="deliveryDate" id="delivery-date" required>
@@ -213,7 +217,7 @@
   <script src="./js/catalog/bouquet-options.js?v=1"></script>
   <script src="./js/core/currency.js?v=12"></script>
   <script src="./js/order/order-store.js?v=27"></script>
-  <script src="./js/order/checkout.js?v=5"></script>
+  <script src="./js/order/checkout.js?v=6"></script>
 <script src="./js/core/contact-tools.js?v=1"></script>
 </body>
 </html>

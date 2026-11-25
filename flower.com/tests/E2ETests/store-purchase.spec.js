@@ -138,6 +138,7 @@ test("customer can browse, add a flower, sign in, and place an order", async ({ 
     && response.request().postDataJSON()?.action === "quote"
     && response.request().postDataJSON()?.deliveryZoneId === "fixture-zone");
   await page.locator('[name="deliveryDistrict"]').selectOption("fixture-zone");
+  await page.locator('[name="deliveryAddressDetail"]').fill("Tòa A, tầng 3");
   await zoneQuote;
   await expect(page.getByRole("button", { name: "Đặt hàng" })).toBeEnabled();
   const deliveryDate = new Date(Date.now() + 3 * 86400000).toISOString().slice(0, 10);

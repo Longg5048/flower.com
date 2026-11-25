@@ -103,6 +103,7 @@ for (const width of [320, 390, 768]) {
     await page.locator('[name="address"]').fill("1 Đường Hoa, phường Bến Nghé, TP. Hồ Chí Minh");
     await page.locator('[name="deliveryProvince"]').selectOption("Test Province");
     await page.locator('[name="deliveryDistrict"]').selectOption("fixture-zone");
+    await page.locator('[name="deliveryAddressDetail"]').fill("Tòa A, tầng 3");
     await expect(page.locator(".checkout-submit")).toBeEnabled();
     await page.locator('[name="deliveryDate"]').fill(new Date(Date.now() + 3 * 86400000).toISOString().slice(0, 10));
     await page.locator('[name="deliveryTime"]').selectOption("08:00–11:00");

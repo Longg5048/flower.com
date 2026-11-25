@@ -624,12 +624,15 @@
     return "";
   }
 
-  function validateCheckoutFields() {
+  function validateCheckoutFields(deliveryAddressDetail, deliveryAddress) {
     const field = (name) => checkoutForm.elements[name];
     const checks = [
       [field("customerName"), field("customerName").value.trim() ? "" : "Vui lòng nhập họ và tên."],
       [field("phone"), phoneError(field("phone").value, true)],
       [field("address"), field("address").value.trim() ? "" : "Vui lòng nhập địa chỉ giao hàng."],
+      [field("deliveryAddressDetail"), !deliveryAddressDetail
+        ? "Vui lòng nhập địa điểm chi tiết."
+        : deliveryAddress.length > 500 ? "Địa chỉ giao hàng và địa điểm chi tiết tối đa 500 ký tự." : ""],
       [field("recipientPhone"), phoneError(field("recipientPhone").value, false)]
     ];
     checks.forEach(([input, message]) => input.setCustomValidity(message));
@@ -642,8 +645,11 @@
     return true;
   }
 
-  ["customerName", "phone", "address", "recipientPhone"].forEach((name) => {
+  ["customerName", "phone", "address", "deliveryAddressDetail", "recipientPhone"].forEach((name) => {
     checkoutForm.elements[name].addEventListener("input", (event) => event.target.setCustomValidity(""));
+  });
+  checkoutForm.elements.address.addEventListener("input", () => {
+    checkoutForm.elements.deliveryAddressDetail.setCustomValidity("");
   });
 
   checkoutForm.addEventListener("submit", (event) => {
@@ -682,12 +688,15 @@
       return;
     }
 
-    if (!validateCheckoutFields()) return;
-
     const formData = new FormData(event.currentTarget);
+    const deliveryAddressDetail = String(formData.get("deliveryAddressDetail") || "").trim();
+    const deliveryAddress = [String(formData.get("address") || "").trim(), deliveryAddressDetail]
+      .filter(Boolean).join(", ");
+    if (!validateCheckoutFields(deliveryAddressDetail, deliveryAddress)) return;
+
     const checkout = {
       customerName: String(formData.get("customerName") || "").trim(),
-      address: String(formData.get("address") || "").trim(),
+      address: deliveryAddress,
       phone: String(formData.get("phone") || "").trim(),
       paymentMethod: formData.get("paymentMethod"),
       paymentReference,

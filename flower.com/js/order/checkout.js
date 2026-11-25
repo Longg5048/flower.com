@@ -736,4 +736,6 @@
   window.addEventListener("flowerstoragechange", (event) => {
     if (event.detail?.source === "sync" && event.detail.key === "cart") refreshCartFromStorage();
   });
+  // QR is the default choice: show its panel at once instead of waiting for zones and promotions.
+  updatePaymentOnlinePanel();
   void initializeCheckout();

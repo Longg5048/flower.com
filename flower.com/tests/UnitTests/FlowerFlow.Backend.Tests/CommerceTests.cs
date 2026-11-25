@@ -136,7 +136,7 @@ public sealed class CommerceTests
         Assert.Equal(18, (await new CatalogService(store, Owner, clock).ProductAsync("bouquet-rose")).Quantity);
     }
 
-    [Fact]
+    [Fact(Skip = "VNPay gateway checkout is disabled (commit 25ca5ba allows only cod|qr); re-enable when the gateway returns.")]
     public async Task Simulated_gateway_duplicate_results_are_idempotent_and_late_money_does_not_restore_stock()
     {
         using var store = new InMemoryUnitOfWork(); var clock = new Clock();

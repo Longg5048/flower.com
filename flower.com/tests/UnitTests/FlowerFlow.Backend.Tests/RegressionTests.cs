@@ -11,7 +11,7 @@ public sealed class RegressionTests
     private static readonly CatalogTests.Actor Owner = new();
     private static readonly CatalogTests.Actor Customer = new("customer-a", "customer");
 
-    [Fact]
+    [Fact(Skip = "VNPay gateway checkout is disabled (commit 25ca5ba allows only cod|qr); re-enable when the gateway returns.")]
     public async Task Failed_gateway_result_keeps_stock_until_expiry_and_retry_reserves_again()
     {
         using var store = new InMemoryUnitOfWork(); var clock = new CommerceTests.Clock();
@@ -47,7 +47,7 @@ public sealed class RegressionTests
         Assert.Equal(20, (await new CatalogService(store, Owner, clock).ProductAsync("bouquet-rose")).Quantity);
     }
 
-    [Fact]
+    [Fact(Skip = "VNPay gateway checkout is disabled (commit 25ca5ba allows only cod|qr); re-enable when the gateway returns.")]
     public async Task Guest_can_create_gateway_session_only_with_payment_reference()
     {
         using var store = new InMemoryUnitOfWork(); var clock = new CommerceTests.Clock(); var guest = new CatalogTests.Actor("", "");
@@ -113,7 +113,7 @@ public sealed class RegressionTests
         Assert.Equal(20, (await catalog.ProductAsync("bouquet-rose")).Quantity);
     }
 
-    [Fact]
+    [Fact(Skip = "VNPay gateway checkout is disabled (commit 25ca5ba allows only cod|qr); re-enable when the gateway returns.")]
     public async Task Failed_callback_for_an_older_attempt_does_not_overwrite_current_payment_state()
     {
         using var store = new InMemoryUnitOfWork(); var clock = new CommerceTests.Clock();

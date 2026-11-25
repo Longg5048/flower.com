@@ -68,7 +68,21 @@ public sealed class CheckoutWorkflowTests
         Assert.Equal(20, (await customer.GetFromJsonAsync<ProductResponse>("/api/v1/products/bouquet-rose"))!.Quantity);
     }
 
-    [Fact]
+        [Fact]
+    public async Task Http_gateway_checkout_is_rejected_while_vnpay_is_disabled()
+    {
+        var clock = new CommerceTests.Clock(); await using var factory = new Factory(clock);
+        using var customer = factory.CreateClient();
+        customer.DefaultRequestHeaders.Add("X-Development-User", "customer-a");
+        var quote = await Read<QuoteResponse>(await customer.PostAsJsonAsync("/api/v1/quotes", new QuoteRequest([new("bouquet-rose", 2)], "", "hcm-q1")));
+        var before = (await customer.GetFromJsonAsync<ProductResponse>("/api/v1/products/bouquet-rose"))!.Quantity;
+        var response = await customer.PostAsJsonAsync("/api/v1/orders", CommerceTests.Checkout(quote, "vnpay"));
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+        Assert.Equal("invalid-argument", (await response.Content.ReadFromJsonAsync<JsonElement>()).GetProperty("code").GetString());
+        Assert.Equal(before, (await customer.GetFromJsonAsync<ProductResponse>("/api/v1/products/bouquet-rose"))!.Quantity);
+    }
+
+[Fact(Skip = "VNPay gateway checkout is disabled (commit 25ca5ba allows only cod|qr); re-enable when the gateway returns.")]
     public async Task Http_gateway_failure_retry_and_additional_payment_do_not_duplicate_inventory_changes()
     {
         var clock = new CommerceTests.Clock(); await using var factory = new Factory(clock);

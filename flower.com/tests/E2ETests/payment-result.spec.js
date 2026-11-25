@@ -2,6 +2,7 @@ import { expect, test } from "@playwright/test";
 test("checkout defaults to QR and keeps COD available", async ({ page }) => {
  await page.route("**/api/delivery-zones*", route => route.fulfill({status:200, contentType:"application/json",body:JSON.stringify({ zones: [], configured: false })}));
  await page.goto("/checkout.html");
+ await expect(page.locator('#checkout-form[data-ready="true"]')).toHaveCount(1, { timeout: 15000 });
  const qr = page.locator('[name="paymentMethod"][value="qr"]');
  const cod = page.locator('[name="paymentMethod"][value="cod"]');
  const details = page.locator("#payment-online-panel");

@@ -93,8 +93,26 @@ public sealed class PasswordAuthService : IPasswordAuthService
                 // Google reports the blocked method as metadata.methodName; keep the older metadata.method.
                 && new[] { "methodName", "method" }.Select(name => Js.StringOrEmpty(Js.Get(Js.Get(detail, "metadata"), name))).FirstOrDefault(value => value.Length > 0) is { } method
                 && Regex.IsMatch(method, @"(?:SignInWithPassword|VerifyPassword|verifyPassword)$"));
-            if (!blocked) throw new AuthUnavailableException($"public-key-not-blocked-http-{(int)status}");
+            if (!blocked) throw new AuthUnavailableException($"public-key-not-blocked-http-{(int)status}{ProbeSummary(data, details)}");
         }
+    }
+    // Only Google's fixed identifiers (status, reason codes, method suffix) are kept, never keys or messages.
+    private static string ProbeSummary(JsonElement data, JsonElement details)
+    {
+        static string Safe(string value) => Regex.Replace(value, "[^A-Za-z0-9_.]", "");
+        var parts = new List<string> { Safe(Js.StringOrEmpty(Js.Get(Js.Get(data, "error"), "status"))) };
+        if (details.ValueKind == JsonValueKind.Array)
+            foreach (var detail in details.EnumerateArray())
+            {
+                var reason = Safe(Js.StringOrEmpty(Js.Get(detail, "reason")));
+                if (reason.Length == 0) continue;
+                var metadata = Js.Get(detail, "metadata");
+                var method = Safe(Js.StringOrEmpty(Js.Get(metadata, "methodName")) is { Length: > 0 } named ? named : Js.StringOrEmpty(Js.Get(metadata, "method")));
+                parts.Add(method.Length == 0 ? reason : reason + ":" + method[(method.LastIndexOf('.') + 1)..]);
+            }
+        else parts.Add("details-" + details.ValueKind);
+        var summary = string.Join(",", parts.Where(part => part.Length > 0));
+        return summary.Length == 0 ? "" : "-" + (summary.Length > 160 ? summary[..160] : summary);
     }
     public async Task<PasswordAccount> LookupAsync(string email, CancellationToken cancellationToken = default)
     {

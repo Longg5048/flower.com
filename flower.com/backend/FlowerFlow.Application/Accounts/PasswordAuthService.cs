@@ -93,6 +93,10 @@ public sealed class PasswordAuthService : IPasswordAuthService
                 // Google reports the blocked method as metadata.methodName; keep the older metadata.method.
                 && new[] { "methodName", "method" }.Select(name => Js.StringOrEmpty(Js.Get(Js.Get(detail, "metadata"), name))).FirstOrDefault(value => value.Length > 0) is { } method
                 && Regex.IsMatch(method, @"(?:SignInWithPassword|VerifyPassword|verifyPassword)$"));
+            // From some hosting networks (seen on Render) Google denies the same blocked key with reason ACCESS_DENIED instead of
+            // API_KEY_SERVICE_BLOCKED. It is still a 403 denial of password sign-in with the public key, so accept it as blocked.
+            blocked = blocked || status == HttpStatusCode.Forbidden && Js.StringOrEmpty(Js.Get(Js.Get(data, "error"), "status")) == "PERMISSION_DENIED"
+                && details.ValueKind == JsonValueKind.Array && details.EnumerateArray().Any(detail => Js.StringOrEmpty(Js.Get(detail, "reason")) == "ACCESS_DENIED");
             if (!blocked) throw new AuthUnavailableException($"public-key-not-blocked-http-{(int)status}{ProbeSummary(data, details)}");
         }
     }
